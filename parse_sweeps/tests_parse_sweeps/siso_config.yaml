@@ -1,0 +1,25 @@
+cases:
+  - name: "siso_simulation"
+    input:
+      path: "radar.bin"
+      dtype: "complex128"
+    simulation:
+      range: [0.5, 1., 1.]
+      velocity: [0.02, 0.0, -0.03]
+    system:
+      parameters:
+        sampling_frequency: 1e6
+        carrier_frequency: 120e9
+        bandwidth: 750e6
+        nchirps: 12
+        nframes: 2
+        chirp_time: 50e-6
+        frame_time: 1e-3
+        range_nfft_factor: 4
+      input_buffer: {}
+      range_fft:
+        max_range: 2
+        min_range: 0.3
+      doppler_fft:
+        nfft: 128
+      output: {}

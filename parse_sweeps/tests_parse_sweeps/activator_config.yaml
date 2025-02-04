@@ -1,0 +1,96 @@
+cases:
+  - name: "identity1"
+    input:
+      path: "input.bin"
+      total_nsamples: 100
+    system:
+      input_buffer:
+        channel_shape: [1]
+        step_size: 1
+        buffer_size: 1
+        dtype: "int16"
+    output:
+      path: ["output.bin"]
+      channel_shape: [[1]]
+      step_size: [1]
+      dtype: ["int16"]
+
+  - name: "identity2"
+    input:
+      path: "input.bin"
+      total_nsamples: 100
+    system:
+      input_buffer:
+        channel_shape: [8]
+        step_size: 1
+        buffer_size: 1
+        dtype: "int16"
+    output:
+      path: ["output.bin"]
+      channel_shape: [[8]]
+      step_size: [1]
+      dtype: ["int16"]
+
+  - name: "identity3"
+    input:
+      path: "input.bin"
+      total_nsamples: 100
+    system:
+      input_buffer:
+        channel_shape: [8]
+        step_size: 20
+        buffer_size: 20
+        dtype: "int16"
+    output:
+      path: ["output.bin"]
+      channel_shape: [[8]]
+      step_size: [20]
+      dtype: ["int16"]
+
+  - name: "single_output"
+    input:
+      path: "input.bin"
+      total_nsamples: 100
+    system:
+      input_buffer:
+        channel_shape: [8]
+        step_size: 20
+        buffer_size: 20
+        sweeps:
+          input_dtype:
+            - "int16"
+            - "float32"
+    output:
+      path: ["output.bin"]
+      channel_shape: [[4]]
+      step_size: [5]
+      dtype:
+        - ["int16"]
+        - ["float32"]
+
+  - name: "dual_output"
+    input:
+      path: "input.bin"
+      total_nsamples: 100
+    system:
+      input_buffer:
+        channel_shape: [16]
+        step_size: 20
+        buffer_size: 20
+        sweeps:
+          dtype:
+            - "int16"
+            - "float32"
+    output:
+      path:
+        - "output_16_channels.bin"
+        - "output_4_channels.bin"
+      step_size:
+        - 2
+        - 5
+      channel_shape:
+        - [16]
+        - [4]
+      dtype:
+        - "int16"
+        - "float32"
