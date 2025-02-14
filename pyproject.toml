@@ -3,7 +3,11 @@ package-mode = false
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
+pre-commit = "^4.1.0"
 
+
+[tool.poetry.dependencies]
+parse-sweeps = {develop = true}
 [project]
 name = "signal-processing"
 version = "0.1.0"
@@ -14,6 +18,7 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "parse-sweeps @ file:///home/noam/version_control/portfolio/signal_processing/parse_sweeps"
 ]
 
 
