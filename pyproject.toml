@@ -5,6 +5,8 @@ package-mode = false
 pytest = "^8.3.4"
 pre-commit = "^4.1.0"
 parse-sweeps = {path = "parse_sweeps", develop = true}
+activator = {path = "activator", develop = true}
+data-handle = {path = "data_handle", develop = true}
 
 
 [tool.poetry.dependencies]
