@@ -1,0 +1,16 @@
+cases:
+  - name: "reflecting_modules"
+    input_buffer:
+      buffer_size: 64
+      sweeps:
+        channel_shape:
+          - [1, 2]
+          - [2, 1]
+          - [2, 3]
+        dtype:
+          - "int16"
+          - "float32"
+        step_size:
+          - 1
+          - 8
+          - 64
