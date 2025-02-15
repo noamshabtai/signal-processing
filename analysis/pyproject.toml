@@ -1,0 +1,27 @@
+[project]
+name = "analysis"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Noam Shabtai",email = "shabtai.noam@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "activator @ file:///home/noam/version_control/portfolio/signal_processing/activator",
+    "parse-sweeps @ file:///home/noam/version_control/portfolio/signal_processing/parse_sweeps"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+data-handle = {path = "../data_handle", develop = true}
+
+
+[tool.poetry.dependencies]
+activator = {develop = true}
+parse-sweeps = {develop = true}

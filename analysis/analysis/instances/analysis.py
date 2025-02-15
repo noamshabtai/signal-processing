@@ -1,0 +1,17 @@
+import activator.instances.activator
+import numpy as np
+
+import analysis.analysis
+
+
+class Analysis(analysis.analysis.Analysis):
+    def __init__(self, yaml_path, **kwargs):
+        super().__init__(activator=activator.instances.activator.Activator, yaml_path=yaml_path, **kwargs)
+
+    def extract_results(self, **kwargs):
+        self.results["step_size"].append(self.activator.system.input_buffer.step_size)
+        with open(self.activator.output_path[-1], "rb") as fid:
+            output_mean = np.mean(np.fromfile(fid, dtype=np.float64))
+        self.results["output_mean"].append(output_mean)
+
+        self.results["nsamples"].append(kwargs["simulation"]["nsamples"])

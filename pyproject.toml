@@ -4,13 +4,11 @@ package-mode = false
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
 pre-commit = "^4.1.0"
-parse-sweeps = {path = "parse_sweeps", develop = true}
-activator = {path = "activator", develop = true}
-data-handle = {path = "data_handle", develop = true}
 
 
 [tool.poetry.dependencies]
-system = {develop = true}
+analysis = {develop = true}
+data-handle = {develop = true}
 
 [project]
 name = "signal-processing"
@@ -22,7 +20,8 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "system @ file:///home/noam/version_control/portfolio/signal_processing/system"
+    "analysis @ file:///home/noam/version_control/portfolio/signal_processing/analysis",
+    "data-handle @ file:///home/noam/version_control/portfolio/signal_processing/data_handle",
 ]
 
 

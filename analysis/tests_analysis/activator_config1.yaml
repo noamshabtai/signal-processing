@@ -1,0 +1,22 @@
+cases:
+  - name: "dummy activator int"
+    input:
+      path: "input.bin"
+      dtype: "int16"
+    simulation:
+      sweeps:
+        nsamples:
+          - 50
+          - 100
+    system:
+      input_buffer:
+        channel_shape: [2,3]
+        step_size: 10
+        buffer_size: 50
+    output:
+      dtype: ["int32", "int64"]
+    plot:
+      show: False
+      save: True
+    log:
+      rate: 10
