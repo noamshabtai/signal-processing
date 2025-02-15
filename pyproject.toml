@@ -8,6 +8,7 @@ pre-commit = "^4.1.0"
 
 [tool.poetry.dependencies]
 parse-sweeps = {develop = true}
+buffer = {develop = true}
 [project]
 name = "signal-processing"
 version = "0.1.0"
@@ -18,7 +19,8 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "parse-sweeps @ file:///home/noam/version_control/portfolio/signal_processing/parse_sweeps"
+    "parse-sweeps @ file:///home/noam/version_control/portfolio/signal_processing/parse_sweeps",
+    "buffer @ file:///home/noam/version_control/portfolio/signal_processing/buffer"
 ]
 
 

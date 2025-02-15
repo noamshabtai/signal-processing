@@ -1,0 +1,10 @@
+cases:
+  - name: "non-equal-step-size"
+    dtype: "float32"
+    buffer_size: 1000
+    step_size: 32
+    sweeps:
+      channel_shape:
+        - [1, 4]
+        - [4, 1]
+        - [3, 6]
