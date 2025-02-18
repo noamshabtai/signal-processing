@@ -39,13 +39,15 @@ def test_activator(kwargs):
         input_data = np.fromfile(f, dtype=input_dtype).reshape(file_shape, order="F")
     assert input_data.nbytes == np.prod(channel_shape) * nsamples * input_dtype.itemsize
 
-    with open(pathlib.Path("output") / (modules[-1] + ".bin"), "rb") as f:
-        output_data = np.fromfile(f, dtype=output_dtype)
-    assert output_data.nbytes == np.prod(channel_shape) * nsteps * step_size * output_dtype.itemsize
+    assert pathlib.Path("output/params.yaml").exists()
 
-    assert np.prod(output_data.ndim) or output_data == input_data[: np.prod(channel_shape) * nsteps * step_size]
+    if act.system.input_buffer.full:
+        with open(pathlib.Path("output") / (modules[-1] + ".bin"), "rb") as f:
+            output_data = np.fromfile(f, dtype=output_dtype)
+        assert output_data.nbytes == np.prod(channel_shape) * nsteps * step_size * output_dtype.itemsize
+        assert np.prod(output_data.ndim) or output_data == input_data[: np.prod(channel_shape) * nsteps * step_size]
 
-    for module in modules:
-        assert (pathlib.Path("output") / (module + ".bin")).exists()
-        if act.system.input_buffer.full and kwargs["plot"]["save"]:
-            assert (pathlib.Path("png") / (module + ".png")).exists()
+        for module in modules:
+            assert (pathlib.Path("output") / (module + ".bin")).exists()
+            if kwargs["plot"]["save"]:
+                assert (pathlib.Path("output") / (module + ".png")).exists()

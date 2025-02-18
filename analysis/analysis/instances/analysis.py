@@ -6,6 +6,7 @@ import analysis.analysis
 
 class Analysis(analysis.analysis.Analysis):
     def __init__(self, yaml_path, **kwargs):
+        kwargs["results"] = ["step_size", "output_mean", "nsamples"]
         super().__init__(activator=activator.instances.activator.Activator, yaml_path=yaml_path, **kwargs)
 
     def extract_results(self, **kwargs):

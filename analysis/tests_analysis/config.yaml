@@ -1,10 +1,10 @@
 cases:
   - name: "dummy_analysis"
-    results:
-      - "step_size"
-      - "output_mean"
-      - "nsamples"
     sweeps:
       config:
         - "activator_config0.yaml"
         - "activator_config1.yaml"
+      cases:
+        - [1]
+        - [0]
+        - [0, 1]

@@ -4,6 +4,7 @@ import time
 
 import matplotlib.pyplot as plt
 import numpy as np
+import yaml
 
 
 class Activator:
@@ -14,8 +15,7 @@ class Activator:
 
         kwargs["system"]["input_buffer"]["dtype"] = kwargs["input"]["dtype"]
         self.system = activated_system(**kwargs["system"])
-        root_dir = str(kwargs["root_dir"]) if "root_dir" in kwargs else "."
-        self.input_path = root_dir + "/" + kwargs["input"]["path"]
+        self.input_path = pathlib.Path(kwargs["input"]["path"]).expanduser()
         self.input_fid = open(self.input_path, "rb")
 
         self.output_dtype = [np.dtype(dtype) for dtype in kwargs["output"]["dtype"]]
@@ -23,13 +23,7 @@ class Activator:
         self.output_filename = [module + ".bin" for module in self.system.modules]
         pathlib.Path("output").mkdir(exist_ok=True)
         self.output_path = [pathlib.Path("output") / filename for filename in self.output_filename]
-
-        if self.plot_save:
-            self.png_filename = [module + ".png" for module in self.system.modules]
-            pathlib.Path("png").mkdir(exist_ok=True)
-            self.png_path = [pathlib.Path("png") / filename for filename in self.png_filename]
-        else:
-            self.png_path = []
+        self.png_path = [output_path.with_suffix(".png") for output_path in self.output_path] if self.plot_save else []
 
         self.output_fid = [open(self.output_path[i], "wb") for i in range(len(self.output_dtype))]
         self.output_channel_shape = np.array(kwargs["output"]["channel_shape"], dtype=np.int16)
@@ -47,6 +41,9 @@ class Activator:
         self.total_nbytes = pathlib.Path(self.input_path).stat().st_size
         self.nsteps = self.total_nbytes // self.read_nbytes
         self.step = 0
+
+        self.params_path = pathlib.Path("output") / "params.yaml"
+        self.kwargs = kwargs
 
     def pre_hook(self):
         pass
@@ -89,6 +86,7 @@ class Activator:
                         else:
                             plt.plot(data[channel_index], label=f"channel {channel_index}")
                     plt.legend()
+                    plt.title(list(self.system.modules.keys())[i])
                     if self.plot_save:
                         plt.savefig(self.png_path[i])
                     if self.plot_show:
@@ -103,3 +101,17 @@ class Activator:
 
         if self.plot_save or self.plot_show:
             self.display_plot()
+
+        with open(self.params_path, "w") as fid:
+            yaml.dump(make_yaml_safe(self.kwargs), fid, default_flow_style=False)
+
+
+def make_yaml_safe(data):
+    if isinstance(data, dict):
+        return {k: make_yaml_safe(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [make_yaml_safe(v) for v in data]
+    elif isinstance(data, (int, float, str, bool, type(None))):
+        return data
+    else:
+        return str(data)
