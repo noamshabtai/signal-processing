@@ -19,9 +19,9 @@ def prepare_data(**data_kwargs):
     data_handle.data_handle.normal_data_file(**k)
 
 
-def test_analysis(kwargs, current_dir):
+def test_analysis(kwargs, project_dir):
     shutil.rmtree("outputs", ignore_errors=True)
-    prepare_data(**(parse_sweeps.parse_sweeps.parse_sweeps(current_dir / kwargs["config"])[0]))
+    prepare_data(**(parse_sweeps.parse_sweeps.parse_sweeps(project_dir / "tests" / kwargs["config"])[0]))
 
     yaml_path = pathlib.Path(__file__).parent / kwargs["config"]
     an = analysis.instances.analysis.Analysis(yaml_path=yaml_path, **kwargs)

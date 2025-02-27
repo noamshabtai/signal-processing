@@ -1,21 +1,18 @@
 [project]
 name = "buffer"
 version = "0.1.0"
-description = ""
-authors = [
-    {name = "Noam Shabtai",email = "shabtai.noam@gmail.com"}
-]
+description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "numpy (>=2.2.3,<3.0.0)"
+    "numpy>=2.2.3",
 ]
 
+[dependency-groups]
+dev = [
+    "parse-sweeps",
+    "pytest>=8.3.4",
+]
 
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.4"
-parse-sweeps = {path = "../parse_sweeps", develop = true}
+[tool.uv.sources]
+parse-sweeps = { path = "../parse_sweeps", editable = true }

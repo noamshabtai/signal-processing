@@ -1,28 +1,25 @@
 [project]
 name = "activator"
 version = "0.1.0"
-description = ""
-authors = [
-    {name = "Noam Shabtai",email = "shabtai.noam@gmail.com"}
-]
+description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "system @ file:///home/noam/version_control/portfolio/signal_processing/system",
-    "matplotlib (>=3.10.0,<4.0.0)"
+    "matplotlib>=3.10.0",
+    "system",
 ]
 
+[dependency-groups]
+dev = [
+    "data-handle",
+    "parse-sweeps",
+    "pytest>=8.3.4",
+]
 
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+[tool.uv.sources]
+parse-sweeps = { path = "../parse_sweeps", editable = true }
+data-handle = { path = "../data_handle", editable = true }
+system = { path = "../system", editable = true }
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.4"
-parse-sweeps = {path = "../parse_sweeps", develop = true}
-data-handle = {path = "../data_handle", develop = true}
-ipdb = "^0.13.13"
-
-
-[tool.poetry.dependencies]
-system = {develop = true}
+[tool.setuptools.packages.find]
+exclude = ["output"]

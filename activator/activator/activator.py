@@ -26,10 +26,10 @@ class Activator:
         self.png_path = [output_path.with_suffix(".png") for output_path in self.output_path] if self.plot_save else []
 
         self.output_fid = [open(self.output_path[i], "wb") for i in range(len(self.output_dtype))]
-        self.output_channel_shape = np.array(kwargs["output"]["channel_shape"], dtype=np.int16)
-        self.output_step_size = np.array(kwargs["output"]["step_size"], dtype=np.int32)
+        self.output_channel_shape = kwargs["output"]["channel_shape"]
+        self.output_step_size = kwargs["output"]["step_size"]
         self.output_step_shape = [
-            np.append(channel_shape, step_size)
+            channel_shape + [step_size]
             for channel_shape, step_size in zip(self.output_channel_shape, self.output_step_size)
         ]
 
@@ -77,7 +77,7 @@ class Activator:
             if pathlib.Path(path).stat().st_size:
                 with open(path, "rb") as fid:
                     data = np.fromfile(fid, dtype=self.output_dtype[i]).reshape(
-                        np.append(self.output_channel_shape[i], [-1]), order="F"
+                        self.output_channel_shape[i] + [-1], order="F"
                     )
                     for channel_index in itertools.product(*[range(dim) for dim in self.output_channel_shape[i]]):
                         if np.iscomplexobj(data):

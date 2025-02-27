@@ -1,28 +1,19 @@
 [project]
 name = "system"
 version = "0.1.0"
-description = ""
-authors = [
-    {name = "Noam Shabtai",email = "shabtai.noam@gmail.com"}
-]
+description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "buffer @ file:///home/noam/version_control/portfolio/signal_processing/buffer"
+    "buffer",
 ]
 
+[dependency-groups]
+dev = [
+    "parse-sweeps",
+    "pytest>=8.3.4",
+]
 
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.group.add.dependencies]
-pytest = "^8.3.4"
-
-
-[tool.poetry.group.dev.dependencies]
-parse-sweeps = {path = "../parse_sweeps", develop = true}
-
-
-[tool.poetry.dependencies]
-buffer = {develop = true}
+[tool.uv.sources]
+parse-sweeps = { path = "../parse_sweeps", editable = true }
+buffer = { path = "../buffer", editable = true }
