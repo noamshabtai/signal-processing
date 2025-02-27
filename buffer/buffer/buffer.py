@@ -3,11 +3,11 @@ import numpy as np
 
 class Buffer:
     def __init__(self, **kwargs):
-        self.channel_shape = np.array(kwargs["channel_shape"], dtype=np.int32)
+        self.channel_shape = kwargs["channel_shape"]
         self.buffer_size = np.int32(kwargs["buffer_size"])
         self.step_size = np.int32(kwargs["step_size"])
-        self.buffer_shape = np.append(self.channel_shape, self.buffer_size)
-        self.step_shape = np.append(self.channel_shape, self.step_size)
+        self.buffer_shape = self.channel_shape + [self.buffer_size]
+        self.step_shape = self.channel_shape + [self.step_size]
         self.dtype = np.dtype(kwargs["dtype"])
         self.buffer = np.zeros(self.buffer_shape, dtype=self.dtype)
 
