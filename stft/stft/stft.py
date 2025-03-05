@@ -30,8 +30,8 @@ class STFT:
         elif self.step_ratio == 4:
             ALPHA = 0.54
             BETA = 0.46
-            RESTORING_FACTOR = (1 / self.step_ratio / (ALPHA**2 + BETA**2 / 2)).astype(self.float_dtype)
-            self.synthesis_window = self.analysis_window * RESTORING_FACTOR
+            RESTORING_FACTOR = 1 / self.step_ratio / (ALPHA**2 + BETA**2 / 2)
+            self.synthesis_window = (self.analysis_window * RESTORING_FACTOR).astype(self.float_dtype)
         else:
             denominator = np.zeros(self.window_size)
             for n in range(self.window_size):

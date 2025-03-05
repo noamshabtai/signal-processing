@@ -1,8 +1,11 @@
+base:
+  input:
+    path: "input.bin"
+    total_nsamples: 100
+  system:
+    fs: 16e3
 cases:
   - name: "identity1"
-    input:
-      path: "input.bin"
-      total_nsamples: 100
     system:
       input_buffer:
         channel_shape: [1]
@@ -16,9 +19,6 @@ cases:
       dtype: ["int16"]
 
   - name: "identity2"
-    input:
-      path: "input.bin"
-      total_nsamples: 100
     system:
       input_buffer:
         channel_shape: [8]
@@ -32,9 +32,6 @@ cases:
       dtype: ["int16"]
 
   - name: "identity3"
-    input:
-      path: "input.bin"
-      total_nsamples: 100
     system:
       input_buffer:
         channel_shape: [8]
@@ -48,9 +45,6 @@ cases:
       dtype: ["int16"]
 
   - name: "single_output"
-    input:
-      path: "input.bin"
-      total_nsamples: 100
     system:
       input_buffer:
         channel_shape: [8]
@@ -69,9 +63,6 @@ cases:
         - ["float32"]
 
   - name: "dual_output"
-    input:
-      path: "input.bin"
-      total_nsamples: 100
     system:
       input_buffer:
         channel_shape: [16]

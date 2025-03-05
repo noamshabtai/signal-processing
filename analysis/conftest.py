@@ -12,5 +12,5 @@ def kwargs(request):
 
 
 @pytest.fixture()
-def project_dir():
-    return pathlib.Path(__file__).parent
+def tests_dir():
+    return pathlib.Path(__file__).parent / "tests"

@@ -72,6 +72,9 @@ class Activator:
             for fid, key, dtype in zip(self.output_fid, self.system.outputs, self.output_dtype):
                 self.system.outputs[key].astype(dtype).ravel(order="F").tofile(fid)
 
+    def post_figure_hook(self, plt, png_path):
+        pass
+
     def display_plot(self):
         for i, path in enumerate(self.output_path):
             if pathlib.Path(path).stat().st_size:
@@ -87,6 +90,7 @@ class Activator:
                             plt.plot(data[channel_index], label=f"channel {channel_index}")
                     plt.legend()
                     plt.title(list(self.system.modules.keys())[i])
+                    self.post_figure_hook(plt, str(self.png_path[i]))
                     if self.plot_save:
                         plt.savefig(self.png_path[i])
                     if self.plot_show:

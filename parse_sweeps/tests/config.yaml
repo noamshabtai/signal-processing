@@ -1,3 +1,6 @@
+base:
+  output_dir: "output"
+  log_file: "log.txt"
 cases:
   - name: "case1"
     fs: 16e3

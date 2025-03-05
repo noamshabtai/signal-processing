@@ -4,8 +4,8 @@ import numpy as np
 class Buffer:
     def __init__(self, **kwargs):
         self.channel_shape = kwargs["channel_shape"]
-        self.buffer_size = np.int32(kwargs["buffer_size"])
-        self.step_size = np.int32(kwargs["step_size"])
+        self.buffer_size = kwargs["buffer_size"]
+        self.step_size = kwargs["step_size"]
         self.buffer_shape = self.channel_shape + [self.buffer_size]
         self.step_shape = self.channel_shape + [self.step_size]
         self.dtype = np.dtype(kwargs["dtype"])
