@@ -72,7 +72,7 @@ class Activator:
             for fid, key, dtype in zip(self.output_fid, self.system.outputs, self.output_dtype):
                 self.system.outputs[key].astype(dtype).ravel(order="F").tofile(fid)
 
-    def post_figure_hook(self, plt, png_path):
+    def post_figure_hook(self, plt, i, data):
         pass
 
     def display_plot(self):
@@ -88,9 +88,9 @@ class Activator:
                             plt.plot(data[channel_index].imag, label=f"channel {channel_index} imag")
                         else:
                             plt.plot(data[channel_index], label=f"channel {channel_index}")
+                    self.post_figure_hook(plt, i, data)
                     plt.legend()
                     plt.title(list(self.system.modules.keys())[i])
-                    self.post_figure_hook(plt, str(self.png_path[i]))
                     if self.plot_save:
                         plt.savefig(self.png_path[i])
                     if self.plot_show:
