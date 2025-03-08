@@ -9,6 +9,9 @@ import yaml
 
 
 class Activator:
+    def __enter__(self):
+        return self
+
     def __init__(self, activated_system, **kwargs):
         self.plot_show = kwargs["plot"]["show"]
         self.plot_save = kwargs["plot"]["save"]
@@ -158,3 +161,6 @@ class Activator:
 
         with open(self.params_path, "w") as fid:
             yaml.dump(data_handle.data_handle.make_yaml_safe(self.kwargs), fid, default_flow_style=False)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()

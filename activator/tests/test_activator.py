@@ -19,9 +19,8 @@ def prepare_data(**data_kwargs):
 
 def test_activator(kwargs):
     prepare_data(**kwargs)
-    act = activator.instances.activator.Activator(**kwargs)
-    act.execute()
-    act.close()
+    with activator.instances.activator.Activator(**kwargs) as act:
+        act.execute()
     modules = list(act.system.modules.keys())
 
     channel_shape = kwargs["system"]["input_buffer"]["channel_shape"]
