@@ -1,0 +1,61 @@
+# test_data.yaml
+cases:
+  - name: "Integer Handling"
+    input: 42
+    expected: 42
+
+  - name: "Float Handling"
+    input: 3.14
+    expected: 3.14
+
+  - name: "String Handling"
+    input: "Hello"
+    expected: "Hello"
+
+  - name: "Boolean Handling"
+    input: true
+    expected: true
+
+  - name: "None Handling"
+    input: null
+    expected: null
+
+  - name: "Set to String Conversion"
+    input: !!set
+      1: null
+      2: null
+      3: null
+    expected: "{1, 2, 3}"
+
+  - name: "Bytes to String Conversion"
+    input: !!binary |
+      Ynl0ZXM=
+    expected: "b'bytes'"
+
+  - name: "Nested Dictionary Handling"
+    input:
+      key1: 42
+      key2:
+        - 1
+        - 2
+        - 3
+      key3:
+        nested_key: "value"
+    expected:
+      key1: 42
+      key2:
+        - 1
+        - 2
+        - 3
+      key3:
+        nested_key: "value"
+
+  - name: "Nested List Handling"
+    input:
+      - 1
+      - "two"
+      - three: 3.0
+    expected:
+      - 1
+      - "two"
+      - three: 3.0

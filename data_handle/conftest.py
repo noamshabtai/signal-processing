@@ -23,7 +23,5 @@ def create_fixture(fixture):
     setattr(sys.modules[__name__], f"kwargs_{fixture}", k)
 
 
-for fixture in [
-    "normal_data_file",
-]:
+for fixture in ["normal_data_file", "make_yaml_safe"]:
     create_fixture(fixture)

@@ -11,4 +11,6 @@ class Activator(activator.activator.Activator):
         kwargs["output"]["step_size"] = [
             kwargs["system"]["input_buffer"]["step_size"] for _ in range(len(kwargs["output"]["dtype"]))
         ]
+        kwargs["input"]["source"] = "file"
+        kwargs["output"]["destination"] = "file"
         super().__init__(activated_system=system.instances.system.System, **kwargs)

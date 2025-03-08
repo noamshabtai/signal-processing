@@ -12,6 +12,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "data-handle",
+    "ipdb>=0.13.13",
     "pytest>=8.3.4",
 ]
 

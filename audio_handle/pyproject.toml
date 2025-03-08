@@ -1,25 +1,19 @@
 [project]
-name = "activator"
+name = "audio-handle"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "data-handle",
-    "matplotlib>=3.10.0",
-    "system",
+    "numpy>=2.2.3",
+    "pyaudio>=0.2.14",
 ]
 
 [dependency-groups]
 dev = [
     "parse-sweeps",
-    "pytest>=8.3.4",
+    "pytest>=8.3.5",
 ]
 
 [tool.uv.sources]
 parse-sweeps = { path = "../parse_sweeps", editable = true }
-system = { path = "../system", editable = true }
-data-handle = { path = "../data_handle", editable = true }
-
-[tool.setuptools.packages.find]
-exclude = ["output"]
