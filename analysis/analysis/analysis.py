@@ -12,19 +12,18 @@ class Analysis:
         self.activator_kwargs_list = [self.activator_kwargs_list[ind] for ind in self.cases]
         self.results = {key: [] for key in kwargs["results"]}
 
-    def extract_results(self):
+    def extract_results(self, activator, **kwargs):
         pass
 
     def execute(self):
         pathlib.Path("outputs").mkdir(exist_ok=True)
         for i, kwargs in zip(self.cases, self.activator_kwargs_list):
-            self.activator = self.activator_class(**kwargs)
-            self.activator.execute()
-            self.activator.close()
-            self.extract_results(**kwargs)
-            pathlib.Path(f"outputs/output{i}").mkdir(exist_ok=True)
-            for output_path in self.activator.output_path:
-                output_path.rename(f"outputs/output{i}/{output_path.name}")
-            for png_path in self.activator.png_path:
-                png_path.rename(f"outputs/output{i}/{png_path.name}")
-            self.activator.params_path.rename(f"outputs/output{i}/params.yaml")
+            with self.activator_class(**kwargs) as act:
+                act.execute()
+                self.extract_results(activator=act, **kwargs)
+                pathlib.Path(f"outputs/output{i}").mkdir(exist_ok=True)
+                for output_path in act.output_path:
+                    output_path.rename(f"outputs/output{i}/{output_path.name}")
+                for png_path in act.png_path:
+                    png_path.rename(f"outputs/output{i}/{png_path.name}")
+                act.params_path.rename(f"outputs/output{i}/params.yaml")

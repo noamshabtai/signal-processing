@@ -16,6 +16,7 @@ class Activator:
         self.plot_show = kwargs["plot"]["show"]
         self.plot_save = kwargs["plot"]["save"]
         self.log_rate = kwargs["log"]["rate"]
+        self.completed = False
 
         kwargs["system"]["input_buffer"]["dtype"] = kwargs["input"]["dtype"]
         self.system = activated_system(**kwargs["system"])
@@ -125,6 +126,9 @@ class Activator:
             if self.output_destination == "speaker":
                 self.output_stream.write(data[-1].astype(self.output_dtype[-1]).tobytes())
 
+        self.completed = True
+        self.close()
+
     def post_figure_hook(self, plt, i, data):
         pass
 
@@ -162,5 +166,17 @@ class Activator:
         with open(self.params_path, "w") as fid:
             yaml.dump(data_handle.data_handle.make_yaml_safe(self.kwargs), fid, default_flow_style=False)
 
+        if self.input_source == "mic":
+            self.input_stream.stop_stream()
+            self.input_stream.close()
+
+        if self.output_destination == "speaker":
+            self.output_stream.stop_stream()
+            self.output_stream.close()
+
+        if self.input_source == "mic" or self.output_destination == "speaker":
+            self.pyaudio.terminate()
+
     def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
+        if not self.completed:
+            self.close()

@@ -9,9 +9,9 @@ class Analysis(analysis.analysis.Analysis):
         kwargs["results"] = ["step_size", "output_mean", "nsamples"]
         super().__init__(activator=activator.instances.activator.Activator, yaml_path=yaml_path, **kwargs)
 
-    def extract_results(self, **kwargs):
-        self.results["step_size"].append(self.activator.system.input_buffer.step_size)
-        with open(self.activator.output_path[-1], "rb") as fid:
+    def extract_results(self, activator, **kwargs):
+        self.results["step_size"].append(activator.system.input_buffer.step_size)
+        with open(activator.output_path[-1], "rb") as fid:
             output_mean = np.mean(np.fromfile(fid, dtype=np.float64))
         self.results["output_mean"].append(output_mean)
 
