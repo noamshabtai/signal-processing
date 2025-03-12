@@ -5,6 +5,7 @@ import time
 import data_handle.data_handle
 import matplotlib.pyplot as plt
 import numpy as np
+import wraplogging.wraplogging
 import yaml
 
 
@@ -13,6 +14,8 @@ class Activator:
         return self
 
     def __init__(self, activated_system, **kwargs):
+        self.logger = wraplogging.wraplogging.create_logger(__name__, show_time=False)
+
         self.plot_show = kwargs["plot"]["show"]
         self.plot_save = kwargs["plot"]["save"]
         self.log_rate = kwargs["log"]["rate"]
@@ -90,14 +93,16 @@ class Activator:
     def log_output(self):
         self.step += 1
         if not self.step % self.log_rate:
+            ellapsed = time.time() - self.start_time
+            eta = ellapsed * (self.nsteps - self.step) / self.step
             if self.input_source == "file":
-                print(
-                    f"Step {self.step}/{self.nsteps} ({100*self.step/self.nsteps:.2f}%),"
-                    f"elapsed time: {time.time()-self.start_time:.2f}s, ETA:"
-                    f"{(time.time()-self.start_time)*(self.nsteps-self.step)/self.step:.2f}s"
+                self.logger.info(
+                    f"Step {self.step}/{self.nsteps} ({100*self.step/self.nsteps:.2f}%) | "
+                    f"Elapsed: {ellapsed:.2f}s | ETA:"
+                    f"{eta:.2f}s"
                 )
             else:
-                print(f"Step {self.step}," f"elapsed time: {time.time()-self.start_time:.2f}s")
+                self.logger.info(f"Step {self.step} | Elapsed: {ellapsed:.2f}s")
 
     def execute(self):
         self.start_time = time.time()
