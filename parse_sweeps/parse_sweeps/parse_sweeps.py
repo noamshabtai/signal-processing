@@ -57,7 +57,7 @@ def parse_sweeps(yaml_file):
         import deepmerge
 
         merger = deepmerge.Merger([(dict, ["merge"])], ["override"], ["override"])
-        expanded_cases = [merger.merge(case, config["base"]) for case in expanded_cases]
+        expanded_cases = [merger.merge(copy.deepcopy(config["base"]), case) for case in expanded_cases]
 
     return expanded_cases
 

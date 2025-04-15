@@ -1,7 +1,7 @@
 import pathlib
 
 import activator.instances.activator
-import data_handle.data_handle
+import data_handle.utils
 import numpy as np
 
 
@@ -14,10 +14,12 @@ def prepare_data(**data_kwargs):
         dtype=np.dtype(data_kwargs["input"]["dtype"]),
         path=data_kwargs["input"]["path"],
     )
-    data_handle.data_handle.normal_data_file(**k)
+    data_handle.utils.normal_data_file(**k)
 
 
-def test_activator(kwargs):
+def test_activator(kwargs, tmp_path):
+    kwargs["input"]["path"] = tmp_path / pathlib.Path(kwargs["input"]["path"]).name
+    kwargs["output"]["dir"] = tmp_path / "output"
     prepare_data(**kwargs)
     with activator.instances.activator.Activator(**kwargs) as act:
         act.execute()
@@ -38,15 +40,15 @@ def test_activator(kwargs):
         input_data = np.fromfile(f, dtype=input_dtype).reshape(file_shape, order="F")
     assert input_data.nbytes == np.prod(channel_shape) * nsamples * input_dtype.itemsize
 
-    assert pathlib.Path("output/params.yaml").exists()
+    assert (kwargs["output"]["dir"] / "params.yaml").exists()
 
     if act.system.input_buffer.full:
-        with open(pathlib.Path("output") / (modules[-1] + ".bin"), "rb") as f:
+        with open(kwargs["output"]["dir"] / (modules[-1] + ".bin"), "rb") as f:
             output_data = np.fromfile(f, dtype=output_dtype)
         assert output_data.nbytes == np.prod(channel_shape) * nsteps * step_size * output_dtype.itemsize
         assert np.prod(output_data.ndim) or output_data == input_data[: np.prod(channel_shape) * nsteps * step_size]
 
         for module in modules:
-            assert (pathlib.Path("output") / (module + ".bin")).exists()
+            assert (kwargs["output"]["dir"] / (module + ".bin")).exists()
             if kwargs["plot"]["save"]:
-                assert (pathlib.Path("output") / (module + ".png")).exists()
+                assert (kwargs["output"]["dir"] / (module + ".png")).exists()

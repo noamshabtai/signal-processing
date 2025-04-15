@@ -1,5 +1,5 @@
 cases:
-  - path: "output.bin"
+  - path: "test_normal_data_file.bin"
     sweeps:
       mean:
         - 0.0

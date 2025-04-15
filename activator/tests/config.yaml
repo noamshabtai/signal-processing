@@ -16,8 +16,9 @@ cases:
         buffer_size: 50
     output:
       dtype: ["int32", "int64"]
+      dir: "output"
     plot:
       show: False
       save: True
     log:
-      rate: 10
+      rate: 2

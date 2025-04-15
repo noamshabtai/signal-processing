@@ -1,25 +1,27 @@
 [project]
-name = "stft"
+name = "spatial-audio"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "system",
+    "audio-handle",
+    "data-handle",
+    "numpy-quaternion>=2024.0.8",
+    "scipy>=1.15.2",
 ]
 
 [dependency-groups]
 dev = [
-    "activator",
-    "data-handle",
     "ipdb>=0.13.13",
     "parse-sweeps",
-    "pytest>=8.3.4",
-    "pytest-xdist>=3.6.1",
+    "pytest>=8.3.5",
 ]
 
 [tool.uv.sources]
 parse-sweeps = { path = "../parse_sweeps", editable = true }
-activator = { path = "../activator", editable = true }
-system = { path = "../system", editable = true }
 data-handle = { path = "../data_handle", editable = true }
+audio-handle = { path = "../audio_handle", editable = true }
+
+[tool.setuptools.packages.find]
+exclude = ["hrtf"]

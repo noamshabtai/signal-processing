@@ -2,7 +2,7 @@ import itertools
 import pathlib
 import time
 
-import data_handle.data_handle
+import data_handle.utils
 import matplotlib.pyplot as plt
 import numpy as np
 import wraplogging.wraplogging
@@ -14,14 +14,19 @@ class Activator:
         return self
 
     def __init__(self, activated_system, **kwargs):
+        self.DEBUG = kwargs["DEBUG"] if "DEBUG" in kwargs else False
         self.logger = wraplogging.wraplogging.create_logger(__name__, show_time=False)
 
         self.plot_show = kwargs["plot"]["show"]
         self.plot_save = kwargs["plot"]["save"]
         self.log_rate = kwargs["log"]["rate"]
-        self.completed = False
+        self.output_dir = pathlib.Path(kwargs["output"]["dir"])
+        self.output_dir.mkdir(parents=True, exist_ok=True)
 
         kwargs["system"]["input_buffer"]["dtype"] = kwargs["input"]["dtype"]
+        kwargs["system"]["DEBUG"] = self.DEBUG
+        if self.DEBUG:
+            kwargs["system"]["output_dir"] = self.output_dir
         self.system = activated_system(**kwargs["system"])
 
         self.input_source = kwargs["input"]["source"]
@@ -60,8 +65,7 @@ class Activator:
                 frames_per_buffer=self.system.input_buffer.step_size,
             )
 
-        pathlib.Path("output").mkdir(exist_ok=True)
-        self.output_path = [pathlib.Path("output") / filename for filename in self.output_filename]
+        self.output_path = [self.output_dir / filename for filename in self.output_filename]
         self.png_path = [output_path.with_suffix(".png") for output_path in self.output_path] if self.plot_save else []
 
         self.output_fid = [open(self.output_path[i], "wb") for i in range(len(self.output_dtype))]
@@ -81,8 +85,10 @@ class Activator:
         self.nsteps = self.total_nbytes // self.read_nbytes
         self.step = 0
 
-        self.params_path = pathlib.Path("output") / "params.yaml"
+        self.params_path = self.output_dir / "params.yaml"
         self.kwargs = kwargs
+
+        self.completed = False
 
     def pre_hook(self):
         pass
@@ -153,6 +159,7 @@ class Activator:
                     self.post_figure_hook(plt, i, data)
                     plt.legend()
                     plt.title(list(self.system.modules.keys())[i])
+                    plt.tight_layout()
                     if self.plot_save:
                         plt.savefig(self.png_path[i])
                     if self.plot_show:
@@ -169,7 +176,7 @@ class Activator:
             self.display_plot()
 
         with open(self.params_path, "w") as fid:
-            yaml.dump(data_handle.data_handle.make_yaml_safe(self.kwargs), fid, default_flow_style=False)
+            yaml.dump(data_handle.utils.make_yaml_safe(self.kwargs), fid, default_flow_style=False)
 
         if self.input_source == "mic":
             self.input_stream.stop_stream()

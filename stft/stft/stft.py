@@ -1,25 +1,17 @@
 import buffer.buffer
+import data_handle.frequency
+import data_handle.utils
 import numpy as np
-
-
-def float_dtype_to_complex_dtype(float_dtype):
-    if float_dtype == np.float32:
-        return np.complex64
-    elif float_dtype == np.float64:
-        return np.complex128
-    else:
-        raise ValueError("Unsupported float dtype: {}".format(float_dtype))
 
 
 class STFT:
     def __init__(self, **kwargs):
-        self.nfft = kwargs["nfft"]
-        self.nfrequencies = self.nfft // 2 + 1
+        self.frequency = data_handle.frequency.Frequency(**kwargs)
         self.output_buffer = buffer.buffer.OutputBuffer(**kwargs["output_buffer"])
         self.float_dtype = np.dtype(self.output_buffer.dtype)
-        self.complex_dtype = float_dtype_to_complex_dtype(self.float_dtype)
+        self.complex_dtype = data_handle.utils.float_dtype_to_complex_dtype(self.float_dtype)
         self.frame_fft = np.zeros(
-            shape=self.output_buffer.channel_shape + [self.nfrequencies], dtype=self.complex_dtype
+            shape=self.output_buffer.channel_shape + [self.frequency.nfrequencies], dtype=self.complex_dtype
         )
         self.processed_frame_fft = np.zeros_like(self.frame_fft)
 
@@ -42,8 +34,8 @@ class STFT:
             self.synthesis_window = np.flip(self.analysis_window / denominator)
 
     def analysis(self, input_data):
-        self.frame_fft = np.fft.fft(self.analysis_window * input_data, n=self.nfft, axis=-1)[
-            ..., : self.nfrequencies
+        self.frame_fft = np.fft.fft(self.analysis_window * input_data, n=self.frequency.nfft, axis=-1)[
+            ..., : self.frequency.nfrequencies
         ].astype(self.complex_dtype)
 
     def processing(self):

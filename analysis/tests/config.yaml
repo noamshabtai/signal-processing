@@ -1,10 +1,12 @@
 cases:
   - name: "dummy_analysis"
+    output:
+      dir: "outputs"
     sweeps:
-      config:
-        - "activator_config0.yaml"
-        - "activator_config1.yaml"
-      cases:
+      yaml_path:
+        - "tests/activator_config0.yaml"
+        - "tests/activator_config1.yaml"
+      indices:
         - [1]
         - [0]
         - [0, 1]

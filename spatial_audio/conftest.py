@@ -11,6 +11,6 @@ def kwargs(request):
     return request.param
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def project_dir():
     return pathlib.Path(__file__).parent

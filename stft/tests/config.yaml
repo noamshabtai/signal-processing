@@ -20,6 +20,7 @@ cases:
           dtype: "float32"
     output:
       dtype: ["int16"]
+      dir: "output"
     plot:
       show: False
       save: True

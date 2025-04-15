@@ -1,4 +1,6 @@
-import data_handle.data_handle
+import pathlib
+
+import data_handle.utils
 import numpy as np
 import stft.instances.activator
 
@@ -12,14 +14,15 @@ def prepare_data(**data_kwargs):
         dtype=np.dtype(data_kwargs["input"]["dtype"]),
         path=data_kwargs["input"]["path"],
     )
-    data_handle.data_handle.normal_data_file(**k)
+    data_handle.utils.normal_data_file(**k)
 
 
-def test_stft(kwargs):
+def test_stft(kwargs, tmp_path):
+    kwargs["input"]["path"] = tmp_path / pathlib.Path(kwargs["input"]["path"]).name
+    kwargs["output"]["dir"] = tmp_path / "output"
     prepare_data(**kwargs)
-    act = stft.instances.activator.Activator(**kwargs)
-    act.execute()
-    act.close()
+    with stft.instances.activator.Activator(**kwargs) as act:
+        act.execute()
 
     channel_shape = kwargs["system"]["input_buffer"]["channel_shape"]
     file_shape = [-1] + channel_shape
@@ -35,7 +38,7 @@ def test_stft(kwargs):
         input_data = np.fromfile(f, dtype=dtype).reshape(file_shape, order="F")
 
     if act.system.input_buffer.full:
-        with open("output/stft.bin", "rb") as fid:
+        with open(kwargs["output"]["dir"] / "stft.bin", "rb") as fid:
             output_data = np.fromfile(fid, dtype=dtype)
         assert output_data.nbytes == np.prod(channel_shape) * nsteps * step_size * dtype.itemsize
         assert np.prod(output_data.ndim) or output_data == input_data[: np.prod(channel_shape) * nsteps * step_size]

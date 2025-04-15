@@ -1,0 +1,92 @@
+base:
+  spatial_audio:
+    nfft: 512
+    sampling_frequency: 16000
+    hrtf:
+      dtype: "complex64"
+    azimuth:
+      symmetric: True
+      span: 90
+    elevation:
+      span: 30
+
+
+cases:
+  - name: "low resolution"
+    sweeps:
+      test:
+        - input:
+            azimuths: [0.0, 90.0, 180.0]
+            elevations: [0.0, 0.0, 0.0]
+          orientation:
+            yaw: 90.0
+            pitch: 0.0
+            roll: 0.0
+          expected:
+            azimuths: [270.0, 0.0, 90.0]
+            elevations: [-0.0, -0.0, -0.0]
+
+        - input:
+            azimuths: [0.0, 45.0, 90.0]
+            elevations: [30.0, 45.0, 60.0]
+          orientation:
+            yaw: 0.0
+            pitch: 30.0
+            roll: 0.0
+          expected:
+            azimuths: [0.0, 32.44, 49.11]
+            elevations: [0.0, 21.25, 48.59]
+
+        - input:
+            azimuths: [270.0, 0.0, 90.0]
+            elevations: [-45.0, -30.0, -15.0]
+          orientation:
+            yaw: 0.0
+            pitch: -30.0
+            roll: 0.0
+          expected:
+            azimuths: [296.57, 0.0, 82.37]
+            elevations: [-37.76, -0.0, -12.95]
+
+
+
+    spatial_audio:
+      hrtf:
+        path: "hrtf/hrtf_16khz_low_res.bin"
+      azimuth:
+        resolution: 10
+      elevation:
+        resolution: 10
+
+  - name: "high resolution"
+    sweeps:
+      test:
+        - input:
+            azimuths: [0.0, 90.0, 180.0, 270.0]
+            elevations: [0.0, 0.0, 0.0, 0.0]
+          orientation:
+            yaw: 0.0
+            pitch: 0.0
+            roll: 90.0
+          expected:
+            azimuths: [0.0, 0.0, 180.0, 0.0]
+            elevations: [0.0, 90.0, 0.0, -90.0]
+
+        - input:
+            azimuths: [45.0, 135.0, 225.0, 315.0]
+            elevations: [10.0, 20.0, -10.0, -20.0]
+          orientation:
+            yaw: 45.0
+            pitch: 15.0
+            roll: 0.0
+          expected:
+            azimuths: [0.0, 84.62, 180.0, 264.62]
+            elevations: [-0.72, 30.15, 0.72, -30.15]
+
+    spatial_audio:
+      hrtf:
+        path: "hrtf/hrtf_16khz_high_res.bin"
+      azimuth:
+        resolution: 1
+      elevation:
+        resolution: 10

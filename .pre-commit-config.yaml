@@ -43,7 +43,7 @@ repos:
     hooks:
       - id: pytest
         name: pytest
-        entry: bash -c 'cd signal_processing && pytest'
+        entry: bash -c 'cd signal_processing && pytest -n 6'
         language: system
         files: ^.*(test_.*\.py|.*_test\.py)$
         pass_filenames: false

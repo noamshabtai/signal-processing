@@ -5,9 +5,9 @@ import analysis.analysis
 
 
 class Analysis(analysis.analysis.Analysis):
-    def __init__(self, yaml_path, **kwargs):
-        kwargs["results"] = ["step_size", "output_mean", "nsamples"]
-        super().__init__(activator=activator.instances.activator.Activator, yaml_path=yaml_path, **kwargs)
+    def __init__(self, cliargs):
+        cliargs.results = ["step_size", "output_mean", "nsamples"]
+        super().__init__(activator=activator.instances.activator.Activator, cliargs=cliargs)
 
     def extract_results(self, activator, **kwargs):
         self.results["step_size"].append(activator.system.input_buffer.step_size)
