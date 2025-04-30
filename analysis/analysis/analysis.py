@@ -64,6 +64,8 @@ class Analysis:
 
         self.activator_class = activator
         self.activator_kwargs_list = parse_sweeps.parse_sweeps.parse_sweeps(cliargs.yaml_path)
+        self.total_number_of_cases = len(self.activator_kwargs_list)
+        self.case_ndigits = np.int16(np.log10(self.total_number_of_cases)) + 1
         self.nactivations = len(self.activator_kwargs_list)
         self.cases = cliargs.indices if cliargs.indices else np.arange(self.nactivations)
         self.activator_kwargs_list = [self.activator_kwargs_list[ind] for ind in self.cases]
@@ -87,7 +89,7 @@ class Analysis:
             )
 
     def single_activation(self, kwargs):
-        kwargs["output"]["dir"] = self.output_dir / f"output{kwargs['current_case']}"
+        kwargs["output"]["dir"] = self.output_dir / f"output{kwargs['current_case']:0{self.case_ndigits}}"
         with self.activator_class(**kwargs) as act:
             act.log_rate *= 10
             act.execute()

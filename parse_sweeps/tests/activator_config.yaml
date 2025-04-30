@@ -1,50 +1,50 @@
 base:
   input:
-    path: "input.bin"
+    path: input.bin
     total_nsamples: 100
   system:
     fs: 16e3
 cases:
-  - name: "identity1"
+  - name: identity1
     system:
       input_buffer:
         channel_shape: [1]
         step_size: 1
         buffer_size: 1
-        dtype: "int16"
+        dtype: int16
     output:
-      path: ["output.bin"]
+      path: [output.bin]
       channel_shape: [[1]]
       step_size: [1]
-      dtype: ["int16"]
+      dtype: [int16]
 
-  - name: "identity2"
+  - name: identity2
     system:
       input_buffer:
         channel_shape: [8]
         step_size: 1
         buffer_size: 1
-        dtype: "int16"
+        dtype: int16
     output:
-      path: ["output.bin"]
+      path: [output.bin]
       channel_shape: [[8]]
       step_size: [1]
-      dtype: ["int16"]
+      dtype: [int16]
 
-  - name: "identity3"
+  - name: identity3
     system:
       input_buffer:
         channel_shape: [8]
         step_size: 20
         buffer_size: 20
-        dtype: "int16"
+        dtype: int16
     output:
-      path: ["output.bin"]
+      path: [output.bin]
       channel_shape: [[8]]
       step_size: [20]
-      dtype: ["int16"]
+      dtype: [int16]
 
-  - name: "single_output"
+  - name: single_output
     system:
       input_buffer:
         channel_shape: [8]
@@ -52,17 +52,17 @@ cases:
         buffer_size: 20
         sweeps:
           input_dtype:
-            - "int16"
-            - "float32"
+            - int16
+            - float32
     output:
-      path: ["output.bin"]
+      path: [output.bin]
       channel_shape: [[4]]
       step_size: [5]
       dtype:
-        - ["int16"]
-        - ["float32"]
+        - [int16]
+        - [float32]
 
-  - name: "dual_output"
+  - name: dual_output
     system:
       input_buffer:
         channel_shape: [16]
@@ -70,12 +70,12 @@ cases:
         buffer_size: 20
         sweeps:
           dtype:
-            - "int16"
-            - "float32"
+            - int16
+            - float32
     output:
       path:
-        - "output_16_channels.bin"
-        - "output_4_channels.bin"
+        - output_16_channels.bin
+        - output_4_channels.bin
       step_size:
         - 2
         - 5
@@ -83,5 +83,5 @@ cases:
         - [16]
         - [4]
       dtype:
-        - "int16"
-        - "float32"
+        - int16
+        - float32

@@ -3,7 +3,7 @@ base:
     nfft: 512
     sampling_frequency: 16000
     hrtf:
-      dtype: "complex64"
+      dtype: complex64
     azimuth:
       symmetric: True
       span: 90
@@ -12,7 +12,7 @@ base:
 
 
 cases:
-  - name: "low resolution"
+  - name: low resolution
     sweeps:
       test:
         - input:
@@ -52,13 +52,13 @@ cases:
 
     spatial_audio:
       hrtf:
-        path: "hrtf/hrtf_16khz_low_res.bin"
+        path: hrtf/hrtf_16khz_low_res.bin
       azimuth:
         resolution: 10
       elevation:
         resolution: 10
 
-  - name: "high resolution"
+  - name: high resolution
     sweeps:
       test:
         - input:
@@ -85,7 +85,7 @@ cases:
 
     spatial_audio:
       hrtf:
-        path: "hrtf/hrtf_16khz_high_res.bin"
+        path: hrtf/hrtf_16khz_high_res.bin
       azimuth:
         resolution: 1
       elevation:

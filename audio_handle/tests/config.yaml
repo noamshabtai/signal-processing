@@ -1,24 +1,24 @@
 cases:
-  - name: "Convert np.int16 to paInt16"
-    dtype: "int16"
-    expected_format: "paInt16"
+  - name: Convert np.int16 to paInt16
+    dtype: int16
+    expected_format: paInt16
 
-  - name: "Convert np.int32 to paInt32"
-    dtype: "int32"
-    expected_format: "paInt32"
+  - name: Convert np.int32 to paInt32
+    dtype: int32
+    expected_format: paInt32
 
-  - name: "Convert np.float32 to paFloat32"
-    dtype: "float32"
-    expected_format: "paFloat32"
+  - name: Convert np.float32 to paFloat32
+    dtype: float32
+    expected_format: paFloat32
 
-  - name: "Convert np.uint8 to paUInt8"
-    dtype: "uint8"
-    expected_format: "paUInt8"
+  - name: Convert np.uint8 to paUInt8
+    dtype: uint8
+    expected_format: paUInt8
 
-  - name: "Convert np.int8 to paInt8"
-    dtype: "int8"
-    expected_format: "paInt8"
+  - name: Convert np.int8 to paInt8
+    dtype: int8
+    expected_format: paInt8
 
-  - name: "Unsupported dtype np.float64"
-    dtype: "float64"
-    expected_format: "ValueError"
+  - name: Unsupported dtype np.float64
+    dtype: float64
+    expected_format: ValueError

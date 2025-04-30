@@ -1,8 +1,8 @@
 cases:
-  - name: "dummy"
+  - name: dummy
     input:
-      path: "input.bin"
-      dtype: "int16"
+      path: input.bin
+      dtype: int16
     simulation:
       sweeps:
         nsamples:
@@ -17,10 +17,10 @@ cases:
       stft:
         nfft: 1024
         output_buffer:
-          dtype: "float32"
+          dtype: float32
     output:
-      dtype: ["int16"]
-      dir: "output"
+      dtype: [int16]
+      dir: output
     plot:
       show: False
       save: True

@@ -14,7 +14,7 @@ class Activator:
         return self
 
     def __init__(self, activated_system, **kwargs):
-        self.DEBUG = kwargs["DEBUG"] if "DEBUG" in kwargs else False
+        self.DEBUG = kwargs.get("DEBUG", False)
         self.logger = wraplogging.wraplogging.create_logger(__name__, show_time=False)
 
         self.plot_show = kwargs["plot"]["show"]

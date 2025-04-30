@@ -1,6 +1,6 @@
 cases:
-  - name: "non-equal-step-size"
-    dtype: "float32"
+  - name: non equal step size
+    dtype: float32
     buffer_size: 100
     step_size: 22
     sweeps:

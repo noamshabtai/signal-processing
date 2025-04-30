@@ -1,5 +1,5 @@
 cases:
-  - name: "reflecting_modules"
+  - name: reflecting modules
     input_buffer:
       buffer_size: 64
       sweeps:
@@ -8,8 +8,8 @@ cases:
           - [2, 1]
           - [2, 3]
         dtype:
-          - "int16"
-          - "float32"
+          - int16
+          - float32
         step_size:
           - 1
           - 8

@@ -9,7 +9,7 @@ class System:
         self.inputs = dict()
         self.outputs = dict()
 
-        self.DEBUG = kwargs["DEBUG"] if "DEBUG" in kwargs else False
+        self.DEBUG = kwargs.get("DEBUG", False)
 
     def connect(self, module):
         pass

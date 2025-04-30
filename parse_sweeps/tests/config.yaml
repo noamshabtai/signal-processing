@@ -1,13 +1,13 @@
 base:
-  output_dir: "output"
-  log_file: "log.txt"
+  output_dir: output
+  log_file: log.txt
 cases:
-  - name: "case1"
+  - name: case1
     fs: 16e3
     sweeps:
       input_file:
-        - "input1.bin"
-        - "input2.bin"
+        - input1.bin
+        - input2.bin
     module1:
       buffer_size: 1024
       sweeps:
@@ -15,13 +15,13 @@ cases:
           - 128
           - 512
 
-  - name: "case2"
+  - name: case2
     fs: 44.1e3
     sweeps:
       input_file:
-        - "input3.bin"
+        - input3.bin
     module2:
-      other_param: "some_value"
+      other_param: some_value
       sweeps:
         factor:
           - 1.5

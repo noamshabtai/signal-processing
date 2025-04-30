@@ -1,5 +1,5 @@
 cases:
-  - path: "test_normal_data_file.bin"
+  - path: test_normal_data_file.bin
     sweeps:
       mean:
         - 0.0
@@ -15,5 +15,5 @@ cases:
         - 1
         - 100
       dtype:
-        - "int8"
-        - "float64"
+        - int8
+        - float64
