@@ -3,7 +3,8 @@ import quaternion
 import spatial_audio.spatial_audio
 
 
-def test_spatial_audio(kwargs, project_dir):
+def test_module(kwargs_module, project_dir):
+    kwargs = kwargs_module
     kwargs["spatial_audio"]["hrtf"]["path"] = project_dir / kwargs["spatial_audio"]["hrtf"]["path"]
     kwargs["spatial_audio"]["initial_azimuth"] = kwargs["test"]["input"]["azimuths"]
     kwargs["spatial_audio"]["initial_elevation"] = kwargs["test"]["input"]["elevations"]
