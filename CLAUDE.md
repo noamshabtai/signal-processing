@@ -13,13 +13,22 @@ This is a Python-based signal processing monorepo implementing real-time audio p
 - **wraplogging** - Logging utilities wrapper
 
 #### Processing Modules
-- **stft** - Short-Time Fourier Transform implementation with analysis, processing, and synthesis stages
+- **stft** - Short-Time Fourier Transform implementation
+  - **Analysis** (`stft.analysis.Analysis`) - Windowing and FFT transformation
+  - **Synthesis** (`stft.synthesis.Synthesis`) - IFFT and overlap-add reconstruction
+  - **System** (`stft.instances.system.System`) - Integrates analysis → processing → synthesis
   - Uses overlapping windowed FFT for frequency domain processing
+  - Perfect reconstruction with proper window scaling
   - Supports configurable overlap ratios (2x, 4x, custom)
-  - Dependencies: `system`, `activator`, `parse_sweeps` (dev)
+  - Dependencies: `system`, `buffer`, `data-handle`
 
-- **spatial_audio** - Spatial audio processing with quaternion-based rotations
-  - Dependencies: `audio-handle`, `numpy`, `quaternion`, `system`
+- **spatial_audio** - HRTF-based spatial audio processing
+  - **SpatialAudio** (`spatial_audio.spatial_audio.SpatialAudio`) - Binaural rendering with HRTFs
+  - **System** (`spatial_audio.spatial_audio.system.System`) - Full pipeline: analysis → spatial → synthesis
+  - Quaternion-based 3D head orientation tracking
+  - Multiple virtual sound sources at configurable azimuths/elevations
+  - Input: CH channels (mono sources) → Output: Stereo (binauralized)
+  - Dependencies: `audio-handle`, `stft`, `system`, `numpy-quaternion`
 
 - **analysis** - Audio analysis utilities
 - **audio_handle** - Audio file I/O and handling
@@ -127,12 +136,20 @@ pytest module_name/tests/
 ```
 
 ### Working with the STFT Pipeline
-The STFT class implements a 3-stage process:
-1. `analysis()` - Apply window and FFT
-2. `processing()` - Apply frequency domain filter
-3. `synthesis()` - IFFT and overlap-add
+The STFT System implements a 3-stage process via separate modules:
+1. `analysis.execute(input_data)` - Apply window and FFT → frequency-domain data
+2. `processing()` - Apply frequency domain filter (in system's connect method)
+3. `synthesis.execute(processed_frame_fft)` - IFFT and overlap-add → time-domain output
 
-Use `execute(input_data)` for the full pipeline.
+The System's `execute(input_chunk)` automatically orchestrates all stages.
+
+### Working with Spatial Audio Pipeline
+The Spatial Audio System extends STFT with binaural processing:
+1. `analysis.execute(input_data)` - FFT of CH mono sources
+2. `spatial_audio.execute(frame_fft_CHxK)` - Apply HRTF → stereo frequency-domain (2xK)
+3. `synthesis.execute(processed_frame_fft)` - IFFT and overlap-add → stereo time-domain
+
+Input: CH channels at configured 3D positions → Output: Binauralized stereo
 
 ### System-Based Modules
 Modules extending the `System` class should:
@@ -158,39 +175,85 @@ Modules extending the `System` class should:
 - Configurable precision (float32/float64)
 - Numpy arrays as primary data structure
 
-## Next Steps
+## Completed Work
 
-### STFT Refactoring (TDD)
-1. **Separate STFT into Analysis and Synthesis classes**
-   - Create `Analysis` class - handles windowing and FFT
-   - Create `Synthesis` class - handles IFFT and overlap-add
-   - Current `STFT` class combines both
+### STFT Refactoring ✅
+- **Separated STFT into Analysis and Synthesis classes** (TDD approach)
+  - `stft/stft/analysis.py` - Handles windowing and FFT
+    - Window applied to buffer_size samples
+    - FFT computed on nfft samples (can differ from buffer_size)
+    - Returns complex frequency-domain data (nfrequencies = nfft//2 + 1)
+  - `stft/stft/synthesis.py` - Handles IFFT and overlap-add
+    - Reconstructs time-domain signal from frequency data
+    - Manages OutputBuffer for perfect reconstruction
+    - Synthesis window scaling depends on overlap ratio
 
-2. **Update STFT System Instance** (`stft/instances/system.py`)
-   - Add `Synthesis` module to `__init__`
-   - Add `Synthesis.execute()` call in system `execute()` method
-   - Maintain proper data flow: Analysis → Processing → Synthesis
+- **Updated STFT System** (`stft/instances/system.py`)
+  - Inherits from `system.system.System`
+  - Modules initialized in order: `analysis`, `synthesis`
+  - Data flow: input_buffer → analysis → processing (filter) → synthesis → output
+  - `connect()` method routes data between modules
 
-3. **Test-Driven Development Approach**
-   - Write tests first for new Analysis and Synthesis classes
-   - Refactor existing STFT tests to use separated classes
-   - Ensure all tests pass before and after refactoring
+- **Tests passing** (12 tests)
+  - Individual Analysis and Synthesis tests
+  - Roundtrip test verifying perfect reconstruction
+  - System integration tests
 
-### Spatial Audio System Architecture
-1. **Inheritance Structure**
-   - `spatial_audio.system.System` will inherit from `stft.instances.system.System`
-   - Inherits the full STFT pipeline: Analysis → Processing → Synthesis
+### Spatial Audio System Architecture ✅
+- **System Design**
+  - `spatial_audio/spatial_audio/system.py` inherits from `system.system.System`
+  - Modules initialized in order: `analysis`, `spatial_audio`, `synthesis`
+  - Processing pipeline: input_buffer → analysis (FFT) → spatial_audio (HRTF) → synthesis (IFFT)
+  - Perfect reconstruction with STFT windowing
 
-2. **Spatial Audio Module Integration**
-   - Add `spatial_audio` module to `self.modules` in `__init__`
-   - Spatial audio executes in frequency domain **right before Synthesis**
-   - Processing order: Analysis → Processing → **Spatial Audio** → Synthesis
+- **Module Integration**
+  - Analysis: Uses HRTF nfft parameter (512) instead of buffer_size (1024)
+  - Spatial Audio: Operates on frequency-domain data (CHxK → 2xK stereo)
+  - Synthesis: Reconstructs time-domain stereo output from binauralized frequency data
+  - Input: CH channels (virtual sound sources at configured azimuths/elevations)
+  - Output: Stereo (2 channels) - binauralized audio
 
-3. **Smart Architecture Benefits**
-   - Spatial audio operates on frequency-domain data (after STFT)
-   - Reuses Synthesis module from parent STFT System
-   - Clean separation: mono→frequency→spatial→stereo→time
-   - No code duplication for synthesis stage
+- **Tests passing** (16 tests total)
+  - `test_spatial_audio_execute()` - Verifies flat spectrum → sum of HRTFs
+  - `test_spatial_audio()` - Rotation/orientation logic (5 test cases)
+  - `test_system()` - Full pipeline with impulse response verification (6 test cases)
+  - System test verifies: impulse input → IFFT(HRTF) with perfect reconstruction
+
+### Package Configuration ✅
+- **Standardized pyproject.toml exclusions** across all modules:
+  - `spatial_audio`: `exclude = ["hrtf*"]` - excludes HRTF binary files
+  - `stft`, `activator`, `analysis`: `exclude = ["output*"]` - excludes output directories
+  - Prevents pytest discovery issues and package pollution
+
+### CI/CD Setup ✅
+- **GitHub Actions workflow** (`.github/workflows/test.yml`)
+  - Runs on: Pull requests to main
+  - Python 3.13, uv package manager
+  - Steps: checkout → setup Python → install uv → sync deps → run pre-commit → run pytest
+  - Pre-commit hooks: all except pytest (run separately for better reporting)
+
+- **Branch Protection** (GitHub ruleset on main branch)
+  - Active enforcement
+  - Requires PR before merging to main
+  - Requires "test" status check to pass
+  - Blocks force pushes
+  - Restricts branch deletion
+
+## Known Issues
+
+### Pytest Module Name Collisions
+- **Issue**: When running pytest from project root, files with same name in different modules collide
+  - Example: `spatial_audio/tests/test_system.py` vs `system/tests/test_system.py`
+  - Python's flat import namespace causes module name conflicts
+
+- **Workaround**: Run tests from within each module directory
+  ```bash
+  cd spatial_audio && pytest tests/
+  cd system && pytest tests/
+  ```
+
+- **Root Cause**: Python import system uses flat namespaces
+- **Status**: Known limitation, accepted as part of workflow
 
 ## Notes
 - The project is under active development
