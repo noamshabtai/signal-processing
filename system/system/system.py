@@ -10,13 +10,14 @@ class System:
         self.outputs = dict()
 
         self.DEBUG = kwargs.get("DEBUG", False)
+        self.execute_before_input_buffer_full = False
 
     def connect(self, module):
         pass
 
     def execute(self, chunk):
         self.input_buffer.push(chunk)
-        if self.input_buffer.full:
+        if self.execute_before_input_buffer_full or self.input_buffer.full:
             for module in self.modules:
                 self.connect(module)
                 self.outputs[module] = self.modules[module].execute(**self.inputs[module])

@@ -1,28 +1,19 @@
+base:
+  system:
+    input_buffer:
+      channel_shape: [1]
+      step_size: 256
+      buffer_size: 1024
+      dtype: float32
+    analysis:
+      sampling_frequency: 16000
+    synthesis:
+      output_buffer:
+        dtype: float32
 cases:
-  - name: dummy
-    input:
-      path: input.bin
-      dtype: int16
-    simulation:
+  - simulation:
       sweeps:
         nsamples:
           - 256
           - 1024
           - 2048
-    system:
-      input_buffer:
-        channel_shape: [2,3]
-        step_size: 256
-        buffer_size: 1024
-      stft:
-        nfft: 1024
-        output_buffer:
-          dtype: float32
-    output:
-      dtype: [int16]
-      dir: output
-    plot:
-      show: False
-      save: True
-    log:
-      rate: 10

@@ -13,6 +13,16 @@ def test_float_dtype_to_complex_dtype():
         assert str(e) == "Unsupported float dtype: <class 'numpy.int32'>"
 
 
+def test_normal_data(kwargs_normal_data):
+    kwargs = kwargs_normal_data
+    A = data_handle.utils.normal_data(**kwargs)
+    assert A.shape == tuple(kwargs["channel_shape"]) + (kwargs["nsamples"],)
+    assert A.dtype == np.dtype(kwargs["dtype"])
+    if kwargs["nsamples"] > 100:
+        assert np.isclose(A.mean(), kwargs["mean"], rtol=1e-3)
+        assert np.isclose(A.std(), kwargs["std"], rtol=1e-3)
+
+
 def test_normal_data_file(kwargs_normal_data_file, tmp_path):
     kwargs = kwargs_normal_data_file
     kwargs["path"] = tmp_path / pathlib.Path(kwargs["path"]).name

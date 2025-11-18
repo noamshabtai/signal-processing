@@ -14,21 +14,22 @@ class STFT:
             shape=self.output_buffer.channel_shape + [self.frequency.nfrequencies], dtype=self.complex_dtype
         )
         self.processed_frame_fft = np.zeros_like(self.frame_fft)
+        self.filter = np.ones_like(self.frame_fft)
 
         self.analysis_window = np.hamming(self.output_buffer.buffer_size).astype(self.float_dtype)
         self.step_ratio = self.output_buffer.buffer_size / self.output_buffer.step_size
         if self.step_ratio == 2:
-            self.synthesis_window = np.ones(self.window_size).astype(self.float_dtype)
+            self.synthesis_window = np.ones(self.output_buffer.buffer_size).astype(self.float_dtype)
         elif self.step_ratio == 4:
             ALPHA = 0.54
             BETA = 0.46
             RESTORING_FACTOR = 1 / self.step_ratio / (ALPHA**2 + BETA**2 / 2)
             self.synthesis_window = (self.analysis_window * RESTORING_FACTOR).astype(self.float_dtype)
         else:
-            denominator = np.zeros(self.window_size)
-            for n in range(self.window_size):
+            denominator = np.zeros(self.output_buffer.buffer_size)
+            for n in range(self.output_buffer.buffer_size):
                 qn = np.int16(np.floor(n / self.step_size))
-                qm = np.int16(np.floor((self.window_size - 1 - n) / self.step_size))
+                qm = np.int16(np.floor((self.output_buffer.buffer_size - 1 - n) / self.step_size))
                 for q in range(-qn, qm + 1):
                     denominator[n] += self.analysis_window[q * self.step_size + n] ** 2
             self.synthesis_window = np.flip(self.analysis_window / denominator)
@@ -39,7 +40,7 @@ class STFT:
         ].astype(self.complex_dtype)
 
     def processing(self):
-        self.processed_frame_fft = self.frame_fft.copy()
+        self.processed_frame_fft = self.frame_fft * self.filter
 
     def synthesis(self):
         mirrored_processed_frame = np.concatenate(
@@ -47,9 +48,9 @@ class STFT:
         )
         y = (self.synthesis_window * np.fft.ifft(mirrored_processed_frame, axis=-1)).real.astype(self.float_dtype)
         self.output_buffer.buffer += y
-        return self.output_buffer.pop()
 
     def execute(self, input_data):
         self.analysis(input_data)
         self.processing()
-        return self.synthesis()
+        self.synthesis()
+        return self.output_buffer.pop()

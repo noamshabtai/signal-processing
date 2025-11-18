@@ -10,14 +10,17 @@ def float_dtype_to_complex_dtype(float_dtype):
         raise ValueError("Unsupported float dtype: {}".format(float_dtype))
 
 
-def normal_data_file(**kwargs):
-    A = np.random.normal(
+def normal_data(**kwargs):
+    return np.random.normal(
         loc=np.float64(kwargs["mean"]),
         scale=np.float64(kwargs["std"]),
         size=list(kwargs["channel_shape"]) + list([kwargs["nsamples"]]),
-    )
+    ).astype(kwargs["dtype"])
+
+
+def normal_data_file(**kwargs):
     with open(kwargs["path"], "wb") as file:
-        A.astype(kwargs["dtype"]).tofile(file)
+        normal_data(**kwargs).ravel(order="F").tofile(file)
 
 
 def make_yaml_safe(data):

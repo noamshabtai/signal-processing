@@ -23,4 +23,4 @@ activator = { path = "../activator", editable = true }
 data-handle = { path = "../data_handle", editable = true }
 
 [tool.setuptools.packages.find]
-exclude = ["output", "outputs"]
+exclude = ["output*"]

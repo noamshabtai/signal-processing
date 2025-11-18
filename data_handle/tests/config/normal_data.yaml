@@ -1,0 +1,18 @@
+cases:
+  - sweeps:
+      mean:
+        - 0.0
+        - 100.0
+      std:
+        - 1.0
+        - 100.0
+      channel_shape:
+        - [1, 2]
+        - [2, 1]
+        - [2, 3]
+      nsamples:
+        - 1
+        - 100
+      dtype:
+        - int8
+        - float64

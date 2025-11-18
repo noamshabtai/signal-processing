@@ -16,37 +16,37 @@ cases:
     sweeps:
       test:
         - input:
-            azimuths: [0.0, 90.0, 180.0]
-            elevations: [0.0, 0.0, 0.0]
+            azimuth: [0.0, 90.0, 180.0]
+            elevation: [0.0, 0.0, 0.0]
           orientation:
             yaw: 90.0
             pitch: 0.0
             roll: 0.0
           expected:
-            azimuths: [270.0, 0.0, 90.0]
-            elevations: [-0.0, -0.0, -0.0]
+            azimuth: [270.0, 0.0, 90.0]
+            elevation: [-0.0, -0.0, -0.0]
 
         - input:
-            azimuths: [0.0, 45.0, 90.0]
-            elevations: [30.0, 45.0, 60.0]
+            azimuth: [0.0, 45.0, 90.0]
+            elevation: [30.0, 45.0, 60.0]
           orientation:
             yaw: 0.0
             pitch: 30.0
             roll: 0.0
           expected:
-            azimuths: [0.0, 32.44, 49.11]
-            elevations: [0.0, 21.25, 48.59]
+            azimuth: [0.0, 32.44, 49.11]
+            elevation: [0.0, 21.25, 48.59]
 
         - input:
-            azimuths: [270.0, 0.0, 90.0]
-            elevations: [-45.0, -30.0, -15.0]
+            azimuth: [270.0, 0.0, 90.0]
+            elevation: [-45.0, -30.0, -15.0]
           orientation:
             yaw: 0.0
             pitch: -30.0
             roll: 0.0
           expected:
-            azimuths: [296.57, 0.0, 82.37]
-            elevations: [-37.76, -0.0, -12.95]
+            azimuth: [296.57, 0.0, 82.37]
+            elevation: [-37.76, -0.0, -12.95]
 
 
 
@@ -62,26 +62,26 @@ cases:
     sweeps:
       test:
         - input:
-            azimuths: [0.0, 90.0, 180.0, 270.0]
-            elevations: [0.0, 0.0, 0.0, 0.0]
+            azimuth: [0.0, 90.0, 180.0, 270.0]
+            elevation: [0.0, 0.0, 0.0, 0.0]
           orientation:
             yaw: 0.0
             pitch: 0.0
             roll: 90.0
           expected:
-            azimuths: [0.0, 0.0, 180.0, 0.0]
-            elevations: [0.0, 90.0, 0.0, -90.0]
+            azimuth: [0.0, 0.0, 180.0, 0.0]
+            elevation: [0.0, 90.0, 0.0, -90.0]
 
         - input:
-            azimuths: [45.0, 135.0, 225.0, 315.0]
-            elevations: [10.0, 20.0, -10.0, -20.0]
+            azimuth: [45.0, 135.0, 225.0, 315.0]
+            elevation: [10.0, 20.0, -10.0, -20.0]
           orientation:
             yaw: 45.0
             pitch: 15.0
             roll: 0.0
           expected:
-            azimuths: [0.0, 84.62, 180.0, 264.62]
-            elevations: [-0.72, 30.15, 0.72, -30.15]
+            azimuth: [0.0, 84.62, 180.0, 264.62]
+            elevation: [-0.72, 30.15, 0.72, -30.15]
 
     spatial_audio:
       hrtf:

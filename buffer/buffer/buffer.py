@@ -31,4 +31,5 @@ class OutputBuffer(Buffer):
     def pop(self):
         data = self.buffer[..., : self.step_size]
         self.buffer = np.roll(self.buffer, -self.step_size, axis=-1)
+        self.buffer[..., -self.step_size :] = 0
         return data

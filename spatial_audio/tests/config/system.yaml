@@ -1,0 +1,51 @@
+base:
+  test:
+    sampling_frequency: 16000
+  system:
+    input_buffer:
+      channel_shape: [3]
+      step_size: 256
+      buffer_size: 1024
+      dtype: float32
+    analysis: {}
+    synthesis:
+      output_buffer:
+        dtype: float32
+    spatial_audio:
+      nfft: 512
+      sampling_frequency: 16000
+      initial_azimuth: [0.0, 90.0, 180.0]
+      initial_elevation: [0.0, 0.0, 0.0]
+      hrtf:
+        dtype: complex64
+        nfft: 512
+        sampling_frequency: 16000
+      azimuth:
+        symmetric: True
+        span: 90
+      elevation:
+        span: 30
+
+cases:
+  - test:
+      sweeps:
+        nsamples:
+          - 256
+          - 1024
+          - 2048
+    system:
+      sweeps:
+        spatial_audio:
+          - hrtf:
+              path: hrtf/hrtf_16khz_low_res.bin
+            azimuth:
+              resolution: 10
+            elevation:
+              resolution: 10
+
+          - hrtf:
+              path: hrtf/hrtf_16khz_high_res.bin
+            azimuth:
+              resolution: 1
+            elevation:
+              resolution: 10

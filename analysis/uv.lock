@@ -158,6 +158,7 @@ requires-dist = [{ name = "numpy", specifier = ">=2.2.3" }]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "ipdb", specifier = ">=0.13.13" },
     { name = "parse-sweeps", editable = "../parse_sweeps" },
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -475,7 +476,10 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=8.3.4" }]
+dev = [
+    { name = "pytest", specifier = ">=8.3.4" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+]
 
 [[package]]
 name = "parso"
@@ -743,4 +747,7 @@ dependencies = [
 requires-dist = [{ name = "rich", specifier = ">=13.9.4" }]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=8.3.5" }]
+dev = [
+    { name = "pytest", specifier = ">=8.3.5" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+]

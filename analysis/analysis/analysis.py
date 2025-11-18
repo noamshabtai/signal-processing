@@ -65,7 +65,7 @@ class Analysis:
         self.activator_class = activator
         self.activator_kwargs_list = parse_sweeps.parse_sweeps.parse_sweeps(cliargs.yaml_path)
         self.total_number_of_cases = len(self.activator_kwargs_list)
-        self.case_ndigits = np.int16(np.log10(self.total_number_of_cases)) + 1
+        self.case_ndigits = np.int16(np.log10(self.total_number_of_cases - 1)) + 1
         self.nactivations = len(self.activator_kwargs_list)
         self.cases = cliargs.indices if cliargs.indices else np.arange(self.nactivations)
         self.activator_kwargs_list = [self.activator_kwargs_list[ind] for ind in self.cases]

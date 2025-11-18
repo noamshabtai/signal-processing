@@ -25,4 +25,4 @@ data-handle = { path = "../data_handle", editable = true }
 wraplogging = { path = "../wraplogging", editable = true }
 
 [tool.setuptools.packages.find]
-exclude = ["output"]
+exclude = ["output*"]
