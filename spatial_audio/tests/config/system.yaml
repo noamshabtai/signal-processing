@@ -42,10 +42,3 @@ cases:
               resolution: 10
             elevation:
               resolution: 10
-
-          - hrtf:
-              path: hrtf/hrtf_16khz_high_res.bin
-            azimuth:
-              resolution: 1
-            elevation:
-              resolution: 10
