@@ -3,18 +3,23 @@ name = "data-handle"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
+authors = [
+    { name = "Noam Shabtai", email = "shabtai.noam@gmail.com" }
+]
 requires-python = ">=3.12"
 dependencies = [
-    "numpy>=2.2.3",
+    "numpy>=2.3.5",
 ]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
-    "ipdb>=0.13.13",
     "parse-sweeps",
-    "pytest>=8.3.4",
-    "pytest-xdist>=3.6.1",
+    "pytest>=9.0.1",
 ]
 
 [tool.uv.sources]
-parse-sweeps = { path = "../parse_sweeps", editable = true }
+parse-sweeps = { path = "../parse-sweeps", editable = true }

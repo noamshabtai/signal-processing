@@ -9,6 +9,10 @@ dependencies = [
     "parse-sweeps",
 ]
 
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [dependency-groups]
 dev = [
     "data-handle",
@@ -18,9 +22,9 @@ dev = [
 ]
 
 [tool.uv.sources]
-parse-sweeps = { path = "../parse_sweeps", editable = true }
+parse-sweeps = { path = "../parse-sweeps", editable = true }
 activator = { path = "../activator", editable = true }
-data-handle = { path = "../data_handle", editable = true }
+data-handle = { path = "../data-handle", editable = true }
 
 [tool.setuptools.packages.find]
 exclude = ["output*"]

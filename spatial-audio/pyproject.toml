@@ -3,26 +3,31 @@ name = "spatial-audio"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
+authors = [
+    { name = "Noam Shabtai", email = "shabtai.noam@gmail.com" }
+]
 requires-python = ">=3.12"
 dependencies = [
     "audio-handle",
-    "numpy>=2.3.4",
+    "numpy>=2.3.5",
     "numpy-quaternion>=2024.0.12",
     "stft",
-    "system",
 ]
+
+[project.scripts]
+spatial-audio = "spatial_audio:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
     "parse-sweeps",
-    "pytest>=8.4.2",
+    "pytest>=9.0.1",
 ]
 
 [tool.uv.sources]
-parse-sweeps = { path = "../parse_sweeps", editable = true }
-system = { path = "../system", editable = true }
-audio-handle = { path = "../audio_handle", editable = true }
+parse-sweeps = { path = "../parse-sweeps", editable = true }
+audio-handle = { path = "../audio-handle", editable = true }
 stft = { path = "../stft", editable = true }
-
-[tool.setuptools.packages.find]
-exclude = ["hrtf*"]

@@ -21,6 +21,6 @@ dev = [
 
 [tool.uv.sources]
 analysis = { path = "analysis", editable = true }
-data-handle = { path = "data_handle", editable = true }
-audio-handle = { path = "audio_handle", editable = true }
-spatial-audio = { path = "spatial_audio", editable = true }
+data-handle = { path = "data-handle", editable = true }
+audio-handle = { path = "audio-handle", editable = true }
+spatial-audio = { path = "spatial-audio", editable = true }

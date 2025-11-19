@@ -11,6 +11,10 @@ dependencies = [
     "wraplogging",
 ]
 
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [dependency-groups]
 dev = [
     "parse-sweeps",
@@ -19,9 +23,9 @@ dev = [
 ]
 
 [tool.uv.sources]
-parse-sweeps = { path = "../parse_sweeps", editable = true }
+parse-sweeps = { path = "../parse-sweeps", editable = true }
 system = { path = "../system", editable = true }
-data-handle = { path = "../data_handle", editable = true }
+data-handle = { path = "../data-handle", editable = true }
 wraplogging = { path = "../wraplogging", editable = true }
 
 [tool.setuptools.packages.find]

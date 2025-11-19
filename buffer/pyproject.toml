@@ -8,6 +8,10 @@ dependencies = [
     "numpy>=2.2.3",
 ]
 
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [dependency-groups]
 dev = [
     "parse-sweeps",
@@ -16,4 +20,4 @@ dev = [
 ]
 
 [tool.uv.sources]
-parse-sweeps = { path = "../parse_sweeps", editable = true }
+parse-sweeps = { path = "../parse-sweeps", editable = true }
