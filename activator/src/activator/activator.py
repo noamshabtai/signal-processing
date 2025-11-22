@@ -2,7 +2,7 @@ import itertools
 import pathlib
 import time
 
-import data_handle.utils
+import data_types.conversions
 import matplotlib.pyplot as plt
 import numpy as np
 import wraplogging.wraplogging
@@ -176,7 +176,7 @@ class Activator:
             self.display_plot()
 
         with open(self.params_path, "w") as fid:
-            yaml.dump(data_handle.utils.make_yaml_safe(self.kwargs), fid, default_flow_style=False)
+            yaml.dump(data_types.conversions.make_yaml_safe(self.kwargs), fid, default_flow_style=False)
 
         if self.input_source == "mic":
             self.input_stream.stop_stream()

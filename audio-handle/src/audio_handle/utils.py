@@ -1,6 +1,6 @@
 import wave
 
-import data_handle.utils
+import data_types.conversions
 import numpy as np
 import pyaudio
 
@@ -86,7 +86,7 @@ def read_entire_wav_file(path):
         return bytes_to_chunk(
             data_bytes=fid.readframes(fid.getnframes()),
             nchannels=fid.getnchannels(),
-            dtype=data_handle.utils.get_int_type_from_nbytes(fid.getsampwidth()),
+            dtype=data_types.conversions.get_int_type_from_nbytes(fid.getsampwidth()),
         )
 
 
@@ -94,7 +94,7 @@ def read_frame_from_wav_file(fid, nsamples):
     return bytes_to_chunk(
         data_bytes=fid.readframes(nsamples),
         nchannels=fid.getnchannels(),
-        dtype=data_handle.utils.get_int_type_from_nbytes(fid.getsampwidth()),
+        dtype=data_types.conversions.get_int_type_from_nbytes(fid.getsampwidth()),
     )
 
 

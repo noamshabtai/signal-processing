@@ -7,7 +7,7 @@ name = "activator"
 version = "0.1.0"
 source = { editable = "../activator" }
 dependencies = [
-    { name = "data-handle" },
+    { name = "data-types" },
     { name = "matplotlib" },
     { name = "system" },
     { name = "wraplogging" },
@@ -15,7 +15,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "data-handle", editable = "../data-handle" },
+    { name = "data-types", editable = "../data-types" },
     { name = "matplotlib", specifier = ">=3.10.0" },
     { name = "system", editable = "../system" },
     { name = "wraplogging", editable = "../wraplogging" },
@@ -39,7 +39,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "data-handle" },
+    { name = "data-types" },
     { name = "ipdb" },
     { name = "pytest" },
     { name = "pytest-xdist" },
@@ -53,7 +53,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "data-handle", editable = "../data-handle" },
+    { name = "data-types", editable = "../data-types" },
     { name = "ipdb", specifier = ">=0.13.13" },
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -146,9 +146,9 @@ wheels = [
 ]
 
 [[package]]
-name = "data-handle"
+name = "data-types"
 version = "0.1.0"
-source = { editable = "../data-handle" }
+source = { editable = "../data-types" }
 dependencies = [
     { name = "numpy" },
 ]

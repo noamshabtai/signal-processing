@@ -3,7 +3,7 @@ import pathlib
 import shutil
 
 import analysis.instances.analysis
-import data_handle.utils
+import data_types.conversions
 import deepmerge
 import numpy as np
 import parse_sweeps.parse_sweeps
@@ -18,7 +18,7 @@ def prepare_data(**data_kwargs):
         dtype=np.dtype(data_kwargs["input"]["dtype"]),
         path=data_kwargs["input"]["path"],
     )
-    data_handle.utils.normal_data_file(**k)
+    data_types.conversions.normal_data_file(**k)
 
 
 def test_analysis(kwargs, project_dir, tmp_path):

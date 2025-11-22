@@ -1,7 +1,7 @@
 import pathlib
 
 import activator.instances.activator
-import data_handle.utils
+import data_types.conversions
 import numpy as np
 
 
@@ -14,7 +14,7 @@ def prepare_data(**data_kwargs):
         dtype=np.dtype(data_kwargs["input"]["dtype"]),
         path=data_kwargs["input"]["path"],
     )
-    data_handle.utils.normal_data_file(**k)
+    data_types.conversions.normal_data_file(**k)
 
 
 def test_activator(kwargs, tmp_path):

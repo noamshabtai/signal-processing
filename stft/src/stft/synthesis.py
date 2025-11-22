@@ -1,5 +1,5 @@
 import buffer.buffer
-import data_handle.utils
+import data_types.conversions
 import numpy as np
 
 
@@ -8,7 +8,7 @@ class Synthesis:
         self.output_buffer = buffer.buffer.OutputBuffer(**kwargs["output_buffer"])
 
         self.float_dtype = np.dtype(self.output_buffer.dtype)
-        self.complex_dtype = data_handle.utils.float_dtype_to_complex_dtype(self.float_dtype)
+        self.complex_dtype = data_types.conversions.float_dtype_to_complex_dtype(self.float_dtype)
 
         self.step_ratio = self.output_buffer.buffer_size / self.output_buffer.step_size
 

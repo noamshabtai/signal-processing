@@ -15,7 +15,7 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
-    "data-handle",
+    "data-types",
     "ipdb>=0.13.13",
     "pytest>=8.3.4",
     "pytest-xdist>=3.6.1",
@@ -24,7 +24,7 @@ dev = [
 [tool.uv.sources]
 parse-sweeps = { path = "../parse-sweeps", editable = true }
 activator = { path = "../activator", editable = true }
-data-handle = { path = "../data-handle", editable = true }
+data-types = { path = "../data-types", editable = true }
 
 [tool.setuptools.packages.find]
 exclude = ["output*"]

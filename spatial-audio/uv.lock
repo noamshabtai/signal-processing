@@ -7,14 +7,14 @@ name = "audio-handle"
 version = "0.1.0"
 source = { editable = "../audio-handle" }
 dependencies = [
-    { name = "data-handle" },
+    { name = "data-types" },
     { name = "numpy" },
     { name = "pyaudio" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "data-handle", editable = "../data-handle" },
+    { name = "data-types", editable = "../data-types" },
     { name = "numpy", specifier = ">=2.2.3" },
     { name = "pyaudio", specifier = ">=0.2.14" },
 ]
@@ -55,9 +55,9 @@ wheels = [
 ]
 
 [[package]]
-name = "data-handle"
+name = "data-types"
 version = "0.1.0"
-source = { editable = "../data-handle" }
+source = { editable = "../data-types" }
 dependencies = [
     { name = "numpy" },
 ]

@@ -1,12 +1,12 @@
 import audio_handle.utils
-import data_handle.frequency
 import numpy as np
 import quaternion
 
 
 class SpatialAudio:
     def __init__(self, **kwargs):
-        self.frequency = data_handle.frequency.Frequency(**kwargs)
+        self.nfft = kwargs["nfft"]
+        self.nfrequencies = self.nfft // 2 + 1
         self.initial_azimuth_CH = np.float64(kwargs["initial_azimuth"])
         self.initial_elevation_CH = np.float64(kwargs["initial_elevation"])
         self.CH = len(self.initial_azimuth_CH)
@@ -14,7 +14,7 @@ class SpatialAudio:
         self.hrtf_dtype = kwargs["hrtf"]["dtype"]
         with open(self.hrtf_path, "rb") as fid:
             self.HRTF_DOAx2xK = (
-                np.frombuffer(fid.read(), dtype=self.hrtf_dtype).reshape((-1, 2, self.frequency.nfrequencies)) / self.CH
+                np.frombuffer(fid.read(), dtype=self.hrtf_dtype).reshape((-1, 2, self.nfrequencies)) / self.CH
             )
         self.azimuth_CH = self.initial_azimuth_CH.copy()
         self.elevation_CH = self.initial_elevation_CH.copy()
