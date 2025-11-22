@@ -5,7 +5,6 @@ import time
 
 import numpy as np
 import parse_sweeps.parse_sweeps
-import wraplogging.wraplogging
 
 mp.set_start_method("spawn", force=True)
 
@@ -36,13 +35,6 @@ def get_parser():
         help="directory to place bin and the png files.",
     )
     parser.add_argument(
-        "-p",
-        "--parallel-processing",
-        dest="parallel",
-        action="store_true",
-        help="load results instead of executing tests and save them.",
-    )
-    parser.add_argument(
         "-r",
         "--results",
         dest="results",
@@ -60,8 +52,6 @@ def get_cliargs(parser):
 
 class Analysis:
     def __init__(self, activator, cliargs):
-        self.logger = wraplogging.wraplogging.create_logger(__name__)
-
         self.activator_class = activator
         self.activator_kwargs_list = parse_sweeps.parse_sweeps.parse_sweeps(cliargs.yaml_path)
         self.total_number_of_cases = len(self.activator_kwargs_list)
@@ -71,22 +61,18 @@ class Analysis:
         self.activator_kwargs_list = [self.activator_kwargs_list[ind] for ind in self.cases]
         self.results = {key: [] for key in cliargs.results}
         self.output_dir = pathlib.Path(cliargs.output_dir)
-        self.parallel = cliargs.parallel
 
     def extract_results(self, activator, **kwargs):
         pass
 
     def log_output(self, activation_index):
-        if self.parallel:
-            print(f"Activation {activation_index}/{self.nactivations} |")
-        else:
-            ellapsed = time.time() - self.start_time
-            eta = ellapsed * (self.nactivations - activation_index) / activation_index
-            self.logger.info(
-                f"Activation {activation_index}/{self.nactivations} ({100*activation_index/self.nactivations:.2f}%) | "
-                f"Elapsed: {ellapsed:.2f}s | ETA:"
-                f"{eta:.2f}s"
-            )
+        ellapsed = time.time() - self.start_time
+        eta = ellapsed * (self.nactivations - activation_index) / activation_index
+        print(
+            f"Activation {activation_index}/{self.nactivations} ({100*activation_index/self.nactivations:.2f}%) | ",
+            f"Elapsed: {ellapsed:.2f}s | ETA:",
+            f"{eta:.2f}s",
+        )
 
     def single_activation(self, kwargs):
         kwargs["output"]["dir"] = self.output_dir / f"output{kwargs['current_case']:0{self.case_ndigits}}"
@@ -104,14 +90,8 @@ class Analysis:
             kwargs | {"activation_index": i, "current_case": j}
             for i, j, kwargs in zip(range(len(self.cases)), self.cases, self.activator_kwargs_list)
         ]
-        if self.parallel:
-            import concurrent.futures
-
-            with concurrent.futures.ProcessPoolExecutor() as executor:
-                executor.map(self.single_activation, kwargs_list)
-        else:
-            for kwargs in kwargs_list:
-                self.single_activation(kwargs)
+        for kwargs in kwargs_list:
+            self.single_activation(kwargs)
 
 
 if __name__ == "__main__":

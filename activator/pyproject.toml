@@ -8,7 +8,6 @@ dependencies = [
     "data-types",
     "matplotlib>=3.10.0",
     "system",
-    "wraplogging",
 ]
 
 [build-system]
@@ -26,7 +25,6 @@ dev = [
 parse-sweeps = { path = "../parse-sweeps", editable = true }
 system = { path = "../system", editable = true }
 data-types = { path = "../data-types", editable = true }
-wraplogging = { path = "../wraplogging", editable = true }
 
 [tool.setuptools.packages.find]
 exclude = ["output*"]
