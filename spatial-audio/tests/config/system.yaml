@@ -28,13 +28,13 @@ base:
 
 cases:
   - test:
-      sweeps:
+      sweep:
         nsamples:
           - 256
           - 1024
           - 2048
     system:
-      sweeps:
+      sweep:
         spatial_audio:
           - hrtf:
               path: hrtf/hrtf_16khz_low_res.bin

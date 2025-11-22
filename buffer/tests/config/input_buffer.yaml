@@ -3,7 +3,7 @@ cases:
     dtype: float32
     buffer_size: 1000
     step_size: 32
-    sweeps:
+    sweep:
       channel_shape:
         - [1, 4]
         - [4, 1]

@@ -16,13 +16,13 @@ build-backend = "hatchling.build"
 dev = [
     "activator",
     "ipdb>=0.13.13",
-    "parse-sweeps",
+    "parametrize-tests",
     "pytest>=8.3.4",
     "pytest-xdist>=3.6.1",
 ]
 
 [tool.uv.sources]
-parse-sweeps = { path = "../parse-sweeps", editable = true }
+parametrize-tests = { path = "../parametrize-tests", editable = true }
 activator = { path = "../activator", editable = true }
 system = { path = "../system", editable = true }
 

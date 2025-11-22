@@ -6,7 +6,7 @@ import analysis.instances.analysis
 import data_types.conversions
 import deepmerge
 import numpy as np
-import parse_sweeps.parse_sweeps
+import parametrize_tests.yaml_sweep_parser
 
 
 def prepare_data(**data_kwargs):
@@ -24,7 +24,7 @@ def prepare_data(**data_kwargs):
 def test_analysis(kwargs, project_dir, tmp_path):
     cliargs = argparse.Namespace()
     cliargs.yaml_path = project_dir / kwargs["yaml_path"]
-    activator_kwargs = parse_sweeps.parse_sweeps.parse_sweeps(cliargs.yaml_path)[0]
+    activator_kwargs = parametrize_tests.yaml_sweep_parser.parse(cliargs.yaml_path)[0]
     activator_kwargs["output"]["dir"] = tmp_path / activator_kwargs["output"]["dir"]
     activator_kwargs["input"]["path"] = tmp_path / pathlib.Path(activator_kwargs["input"]["path"]).name
     prepare_data(**activator_kwargs)

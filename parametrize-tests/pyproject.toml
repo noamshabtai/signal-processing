@@ -1,7 +1,7 @@
 [project]
-name = "parse-sweeps"
+name = "parametrize-tests"
 version = "0.1.0"
-description = "Add your description here"
+description = "YAML-based test parametrization utilities"
 readme = "README.md"
 authors = [
     { name = "Noam Shabtai", email = "shabtai.noam@gmail.com" }

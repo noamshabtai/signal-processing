@@ -12,7 +12,7 @@ base:
         dtype: float32
 cases:
   - simulation:
-      sweeps:
+      sweep:
         nsamples:
           - 256
           - 1024

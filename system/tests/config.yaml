@@ -2,7 +2,7 @@ cases:
   - name: reflecting modules
     input_buffer:
       buffer_size: 64
-      sweeps:
+      sweep:
         channel_shape:
           - [1, 2]
           - [2, 1]

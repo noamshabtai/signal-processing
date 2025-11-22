@@ -17,9 +17,9 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
-    "parse-sweeps",
+    "parametrize-tests",
     "pytest>=9.0.1",
 ]
 
 [tool.uv.sources]
-parse-sweeps = { path = "../parse-sweeps", editable = true }
+parametrize-tests = { path = "../parametrize-tests", editable = true }

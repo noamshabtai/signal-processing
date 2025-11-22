@@ -4,7 +4,7 @@ cases:
       path: input.bin
       dtype: int16
     simulation:
-      sweeps:
+      sweep:
         nsamples:
           - 50
           - 100

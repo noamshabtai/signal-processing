@@ -17,11 +17,11 @@ build-backend = "hatchling.build"
 [dependency-groups]
 dev = [
     "ipdb>=0.13.13",
-    "parse-sweeps",
+    "parametrize-tests",
     "pytest>=8.3.5",
     "pytest-mock>=3.14.0",
 ]
 
 [tool.uv.sources]
-parse-sweeps = { path = "../parse-sweeps", editable = true }
+parametrize-tests = { path = "../parametrize-tests", editable = true }
 data-types = { path = "../data-types", editable = true }

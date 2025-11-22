@@ -1,7 +1,7 @@
 import pathlib
 import sys
 
-import parse_sweeps.parse_sweeps
+import parametrize_tests.yaml_sweep_parser
 import pytest
 
 project_dir = pathlib.Path(__file__).parent
@@ -16,7 +16,7 @@ def root_dir():
 def create_fixture(fixture):
     yaml_path = tests_dir / "config" / f"{fixture}.yaml"
 
-    @pytest.fixture(scope="session", params=parse_sweeps.parse_sweeps.parse_sweeps(yaml_path))
+    @pytest.fixture(scope="session", params=parametrize_tests.yaml_sweep_parser.parse(yaml_path))
     def k(request):
         return request.param
 

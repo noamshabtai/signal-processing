@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "activator",
-    "parse-sweeps",
+    "parametrize-tests",
 ]
 
 [build-system]
@@ -22,7 +22,7 @@ dev = [
 ]
 
 [tool.uv.sources]
-parse-sweeps = { path = "../parse-sweeps", editable = true }
+parametrize-tests = { path = "../parametrize-tests", editable = true }
 activator = { path = "../activator", editable = true }
 data-types = { path = "../data-types", editable = true }
 

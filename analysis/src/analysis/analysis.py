@@ -4,7 +4,7 @@ import pathlib
 import time
 
 import numpy as np
-import parse_sweeps.parse_sweeps
+import parametrize_tests.yaml_sweep_parser
 
 mp.set_start_method("spawn", force=True)
 
@@ -53,7 +53,7 @@ def get_cliargs(parser):
 class Analysis:
     def __init__(self, activator, cliargs):
         self.activator_class = activator
-        self.activator_kwargs_list = parse_sweeps.parse_sweeps.parse_sweeps(cliargs.yaml_path)
+        self.activator_kwargs_list = parametrize_tests.yaml_sweep_parser.parse(cliargs.yaml_path)
         self.total_number_of_cases = len(self.activator_kwargs_list)
         self.case_ndigits = np.int16(np.log10(self.total_number_of_cases - 1)) + 1
         self.nactivations = len(self.activator_kwargs_list)

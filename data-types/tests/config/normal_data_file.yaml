@@ -1,6 +1,6 @@
 cases:
   - path: test_normal_data_file.bin
-    sweeps:
+    sweep:
       mean:
         - 0.0
         - 100.0

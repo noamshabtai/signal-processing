@@ -1,5 +1,5 @@
 cases:
-  - sweeps:
+  - sweep:
       mean:
         - 0.0
         - 100.0

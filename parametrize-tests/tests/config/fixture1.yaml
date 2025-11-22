@@ -4,25 +4,25 @@ base:
 cases:
   - name: case1
     fs: 16e3
-    sweeps:
+    sweep:
       input_file:
         - input1.bin
         - input2.bin
     module1:
       buffer_size: 1024
-      sweeps:
+      sweep:
         step_size:
           - 128
           - 512
 
   - name: case2
     fs: 44.1e3
-    sweeps:
+    sweep:
       input_file:
         - input3.bin
     module2:
       other_param: some_value
-      sweeps:
+      sweep:
         factor:
           - 1.5
           - 2.0

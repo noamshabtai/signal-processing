@@ -14,10 +14,10 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
-    "parse-sweeps",
+    "parametrize-tests",
     "pytest>=8.3.4",
     "pytest-xdist>=3.6.1",
 ]
 
 [tool.uv.sources]
-parse-sweeps = { path = "../parse-sweeps", editable = true }
+parametrize-tests = { path = "../parametrize-tests", editable = true }
