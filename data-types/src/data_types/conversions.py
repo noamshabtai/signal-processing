@@ -23,17 +23,6 @@ def normal_data_file(**kwargs):
         normal_data(**kwargs).ravel(order="F").tofile(file)
 
 
-def make_yaml_safe(data):
-    if isinstance(data, dict):
-        return {k: make_yaml_safe(v) for k, v in data.items()}
-    elif isinstance(data, list):
-        return [make_yaml_safe(v) for v in data]
-    elif isinstance(data, (int, float, str, bool, type(None))):
-        return data
-    else:
-        return str(data)
-
-
 def get_int_type_from_nbits(nbits):
     return np.int8 if nbits == 8 else np.int16 if nbits == 16 else np.int32 if nbits == 32 else np.int64
 

@@ -62,4 +62,3 @@ def test_analysis(kwargs, project_dir, tmp_path):
         assert (output_dir / "reflector2.bin").is_file()
         assert (output_dir / "reflector1.png").is_file()
         assert (output_dir / "reflector2.png").is_file()
-        assert (output_dir / "params.yaml").is_file()

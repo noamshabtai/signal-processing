@@ -2,10 +2,8 @@ import itertools
 import pathlib
 import time
 
-import data_types.conversions
 import matplotlib.pyplot as plt
 import numpy as np
-import yaml
 
 
 class Activator:
@@ -82,9 +80,6 @@ class Activator:
         self.total_nbytes = pathlib.Path(self.input_path).stat().st_size
         self.nsteps = self.total_nbytes // self.read_nbytes
         self.step = 0
-
-        self.params_path = self.output_dir / "params.yaml"
-        self.kwargs = kwargs
 
         self.completed = False
 
@@ -172,9 +167,6 @@ class Activator:
 
         if self.plot_save or self.plot_show:
             self.display_plot()
-
-        with open(self.params_path, "w") as fid:
-            yaml.dump(data_types.conversions.make_yaml_safe(self.kwargs), fid, default_flow_style=False)
 
         if self.input_source == "mic":
             self.input_stream.stop_stream()

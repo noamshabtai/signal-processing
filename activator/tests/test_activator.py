@@ -40,8 +40,6 @@ def test_activator(kwargs, tmp_path):
         input_data = np.fromfile(f, dtype=input_dtype).reshape(file_shape, order="F")
     assert input_data.nbytes == np.prod(channel_shape) * nsamples * input_dtype.itemsize
 
-    assert (kwargs["output"]["dir"] / "params.yaml").exists()
-
     if act.system.input_buffer.full:
         with open(kwargs["output"]["dir"] / (modules[-1] + ".bin"), "rb") as f:
             output_data = np.fromfile(f, dtype=output_dtype)
