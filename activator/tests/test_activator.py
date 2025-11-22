@@ -1,20 +1,18 @@
 import pathlib
 
 import activator.instances.activator
-import data_types.conversions
 import numpy as np
 
 
 def prepare_data(**data_kwargs):
-    k = dict(
-        mean=0,
-        std=1,
-        channel_shape=data_kwargs["system"]["input_buffer"]["channel_shape"],
-        nsamples=data_kwargs["simulation"]["nsamples"],
-        dtype=np.dtype(data_kwargs["input"]["dtype"]),
-        path=data_kwargs["input"]["path"],
-    )
-    data_types.conversions.normal_data_file(**k)
+    channel_shape = data_kwargs["system"]["input_buffer"]["channel_shape"]
+    nsamples = data_kwargs["simulation"]["nsamples"]
+    dtype = np.dtype(data_kwargs["input"]["dtype"])
+    path = data_kwargs["input"]["path"]
+
+    data = np.random.normal(loc=0.0, scale=1.0, size=channel_shape + [nsamples]).astype(dtype)
+    with open(path, "wb") as fid:
+        data.tofile(fid)
 
 
 def test_activator(kwargs, tmp_path):
