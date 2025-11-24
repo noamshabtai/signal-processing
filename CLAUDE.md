@@ -255,6 +255,110 @@ Modules extending the `System` class should:
 - **Root Cause**: Python import system uses flat namespaces
 - **Status**: Known limitation, accepted as part of workflow
 
+## Planned Refactoring: audio-handle → audio-io
+
+### Objective
+Reorganize audio-handle package into audio-io with better separation of concerns and move coordinate functions to dedicated coordinates package.
+
+### Plan
+
+#### Step 1: Create New Branch
+```bash
+git checkout -b refactor-audio-io
+```
+
+#### Step 2: Rename Package
+- Rename `audio-handle/` → `audio-io/`
+- Rename package: `audio_handle` → `audio_io`
+- Update all references in:
+  - Root `pyproject.toml` dependencies and `[tool.uv.sources]`
+  - All dependent packages: `spatial-audio`, `analysis`
+  - Update imports across codebase
+
+#### Step 3: Reorganize audio-io Module Structure
+
+**Current:** `audio-io/src/audio_io/utils.py` (172 lines, mixed functionality)
+
+**Target structure:**
+```
+audio-io/src/audio_io/
+├── __init__.py
+├── files.py       # WAV file I/O
+├── conversions.py # Data format conversions
+└── devices.py     # PyAudio device management
+```
+
+**files.py** - WAV file operations:
+- `read_entire_wav_file(path)` - line 84
+- `read_frame_from_wav_file(fid, nsamples)` - line 93
+- `read_frame_from_wav_file_and_loop(fid, nsamples, nchannels, dtype)` - line 101
+- `set_wav_file_for_writing(path, fs, nchannels, nbits)` - line 110
+
+**conversions.py** - Data format conversions:
+- `bytes_to_chunk(data_bytes, nchannels, dtype)` - line 80
+- `np_dtype_to_pa_format(dtype)` - line 8
+- `lin2db(lin)` - line 166
+- `db2lin(db)` - line 170
+- `freq_index(freq, nfft, fs)` - line 162
+
+**devices.py** - PyAudio device management:
+- `print_device_indices(p, direction, host=0)` - line 23
+- `audio_device_index(p, direction, str_to_find, host=0)` - line 35
+- `realtek_output_index(p, host=0)` - line 48
+- `vb_cable_input_index(p, host=0)` - line 52
+- `find_input_device_index()` - line 56
+- `find_output_device_index()` - line 68
+- `read_frame_from_pyaudio(stream, nsamples, nchannels, dtype)` - line 119
+- `read_frame_from_pyaudio_indata(indata, nchannels, dtype)` - line 123
+
+#### Step 4: Move Coordinate Functions to coordinates Package
+
+**From audio-io/utils.py (to be removed):**
+- `sph2cart_ned(r, az, el)` - line 127 (uses radians)
+- `cart2sph_ned(x, y, z)` - line 135
+- `sph2cart_enu(r, az, inc)` - line 142 (uses radians)
+- `cart2sph_enu(x, y, z)` - line 150
+- `distance_to(v)` - line 158
+
+**Merge into coordinates/src/coordinates/coordinates.py:**
+- Existing: `spherical_to_ned(R, theta_deg, phi_deg)` - uses degrees
+- Add all functions from audio-io above
+- Maintain both radian and degree versions where applicable
+
+**Update dependencies:**
+- `spatial-audio` currently imports `audio_handle.utils.sph2cart_ned` and `cart2sph_ned`
+- Change to import from `coordinates` package
+- Add `coordinates` to `spatial-audio/pyproject.toml` dependencies
+
+#### Step 5: Update Test Structure
+
+**audio-io tests** - split `tests/test_audio_handle.py` into:
+- `tests/test_files.py` - tests for lines 156-247
+- `tests/test_conversions.py` - tests for lines 9-18, 149-154, 346-357
+- `tests/test_devices.py` - tests for lines 20-147, 250-262
+
+**coordinates tests** - extend `tests/test_coordinates.py`:
+- Add tests from `audio-handle/tests/test_audio_handle.py` lines 265-343
+- Test coordinate conversion functions (roundtrip tests)
+
+#### Step 6: Implementation Steps (TDD)
+
+1. **Create new branch**
+2. **Rename package** (audio-handle → audio-io)
+3. **Run tests** - they will fail due to import errors
+4. **Create test files** with proper imports from new structure
+5. **Run tests** - they will fail because modules don't exist yet
+6. **Create new module files** (files.py, conversions.py, devices.py) and move functions
+7. **Update coordinates package** with coordinate functions
+8. **Update all imports** in dependent packages
+9. **Run full test suite** - verify all 95+ tests pass
+10. **Update CLAUDE.md** with completed refactoring
+
+### Current State
+- Working on `refactor-src-layout` branch with uncommitted changes
+- All 95 tests passing
+- Ready to start refactoring once committed
+
 ## Notes
 - The project is under active development
 - Some READMEs are placeholders
