@@ -1,11 +1,12 @@
 import pathlib
+import sys
 
-import parametrize_tests.yaml_sweep_parser
-import pytest
+import parametrize_tests.fixtures
 
-yaml_path = pathlib.Path(__file__).parent / "tests" / "config.yaml"
-
-
-@pytest.fixture(scope="session", params=parametrize_tests.yaml_sweep_parser.parse(yaml_path))
-def kwargs(request):
-    return request.param
+tests_dir = pathlib.Path(__file__).parent / "tests"
+config_dir = tests_dir / "config"
+module = sys.modules[__name__]
+for fixture in [
+    "system",
+]:
+    parametrize_tests.fixtures.setattr_kwargs(fixture, config_dir, module)

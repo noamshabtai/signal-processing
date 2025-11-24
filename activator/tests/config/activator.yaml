@@ -21,4 +21,5 @@ cases:
       show: False
       save: True
     log:
-      rate: 2
+      sweep:
+        rate: [1, 2]

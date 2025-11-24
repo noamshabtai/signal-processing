@@ -4,8 +4,8 @@ cases:
       dir: outputs
     sweep:
       yaml_path:
-        - tests/activator_config0.yaml
-        - tests/activator_config1.yaml
+        - tests/config/activator_config0.yaml
+        - tests/config/activator_config1.yaml
       indices:
         - [1]
         - [0]

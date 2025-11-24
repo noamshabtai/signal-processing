@@ -12,6 +12,7 @@ class Activator:
 
     def __init__(self, activated_system, **kwargs):
         self.DEBUG = kwargs.get("DEBUG", False)
+        self.max_steps = kwargs.get("max_steps", None)
 
         self.plot_show = kwargs["plot"]["show"]
         self.plot_save = kwargs["plot"]["save"]
@@ -129,6 +130,8 @@ class Activator:
                 self.system.outputs[key].astype(dtype).ravel(order="F").tofile(fid)
             if self.output_destination == "speaker":
                 self.output_stream.write(data[-1].astype(self.output_dtype[-1]).tobytes())
+            if self.max_steps and self.step >= self.max_steps:
+                break
 
         self.completed = True
         self.close()
@@ -149,9 +152,9 @@ class Activator:
                             plt.plot(data[channel_index].imag, label=f"channel {channel_index} imag")
                         else:
                             plt.plot(data[channel_index], label=f"channel {channel_index}")
+                    plt.title(list(self.system.modules.keys())[i])
                     self.post_figure_hook(plt, i, data)
                     plt.legend()
-                    plt.title(list(self.system.modules.keys())[i])
                     plt.tight_layout()
                     if self.plot_save:
                         plt.savefig(self.png_path[i])

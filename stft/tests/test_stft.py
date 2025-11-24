@@ -14,11 +14,11 @@ def prepare_data(channel_shape, nsamples, step_size, dtype):
     return data.reshape(channel_shape + [-1] + [step_size])
 
 
-def test_analysis(kwargs):
-    buffer_size = kwargs["system"]["input_buffer"]["buffer_size"]
-    channel_shape = kwargs["system"]["input_buffer"]["channel_shape"]
-    dtype = kwargs["system"]["synthesis"]["output_buffer"]["dtype"]
-    sampling_frequency = kwargs["system"]["analysis"]["sampling_frequency"]
+def test_analysis(kwargs_stft):
+    buffer_size = kwargs_stft["system"]["input_buffer"]["buffer_size"]
+    channel_shape = kwargs_stft["system"]["input_buffer"]["channel_shape"]
+    dtype = kwargs_stft["system"]["synthesis"]["output_buffer"]["dtype"]
+    sampling_frequency = kwargs_stft["system"]["analysis"]["sampling_frequency"]
 
     analysis_kwargs = {
         "nfft": buffer_size,
@@ -40,11 +40,11 @@ def test_analysis(kwargs):
     assert np.iscomplexobj(frame_fft)
 
 
-def test_synthesis(kwargs):
-    buffer_size = kwargs["system"]["input_buffer"]["buffer_size"]
-    step_size = kwargs["system"]["input_buffer"]["step_size"]
-    channel_shape = kwargs["system"]["input_buffer"]["channel_shape"]
-    dtype = kwargs["system"]["synthesis"]["output_buffer"]["dtype"]
+def test_synthesis(kwargs_stft):
+    buffer_size = kwargs_stft["system"]["input_buffer"]["buffer_size"]
+    step_size = kwargs_stft["system"]["input_buffer"]["step_size"]
+    channel_shape = kwargs_stft["system"]["input_buffer"]["channel_shape"]
+    dtype = kwargs_stft["system"]["synthesis"]["output_buffer"]["dtype"]
 
     nfrequencies = buffer_size // 2 + 1
 
@@ -71,12 +71,12 @@ def test_synthesis(kwargs):
     assert output.dtype == np.dtype(dtype)
 
 
-def test_analysis_synthesis_roundtrip(kwargs):
-    buffer_size = kwargs["system"]["input_buffer"]["buffer_size"]
-    step_size = kwargs["system"]["input_buffer"]["step_size"]
-    channel_shape = kwargs["system"]["input_buffer"]["channel_shape"]
-    dtype = kwargs["system"]["synthesis"]["output_buffer"]["dtype"]
-    sampling_frequency = kwargs["system"]["analysis"]["sampling_frequency"]
+def test_analysis_synthesis_roundtrip(kwargs_stft):
+    buffer_size = kwargs_stft["system"]["input_buffer"]["buffer_size"]
+    step_size = kwargs_stft["system"]["input_buffer"]["step_size"]
+    channel_shape = kwargs_stft["system"]["input_buffer"]["channel_shape"]
+    dtype = kwargs_stft["system"]["synthesis"]["output_buffer"]["dtype"]
+    sampling_frequency = kwargs_stft["system"]["analysis"]["sampling_frequency"]
 
     analysis_kwargs = {
         "nfft": buffer_size,
@@ -126,12 +126,12 @@ def test_analysis_synthesis_roundtrip(kwargs):
     assert np.allclose(reconstructed_step, earliest_buffered_input_step, rtol=0.01)
 
 
-def test_stft(kwargs):
-    system = stft.instances.system.System(**kwargs["system"])
+def test_stft(kwargs_stft):
+    system = stft.instances.system.System(**kwargs_stft["system"])
 
     data = prepare_data(
         channel_shape=system.input_buffer.channel_shape,
-        nsamples=kwargs["simulation"]["nsamples"],
+        nsamples=kwargs_stft["simulation"]["nsamples"],
         step_size=system.input_buffer.step_size,
         dtype=system.input_buffer.dtype,
     )

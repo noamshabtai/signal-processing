@@ -1,12 +1,9 @@
 import argparse
-import multiprocessing as mp
 import pathlib
 import time
 
 import numpy as np
 import parametrize_tests.yaml_sweep_parser
-
-mp.set_start_method("spawn", force=True)
 
 
 def get_parser():
@@ -55,7 +52,9 @@ class Analysis:
         self.activator_class = activator
         self.activator_kwargs_list = parametrize_tests.yaml_sweep_parser.parse(cliargs.yaml_path)
         self.total_number_of_cases = len(self.activator_kwargs_list)
-        self.case_ndigits = np.int16(np.log10(self.total_number_of_cases - 1)) + 1
+        self.case_ndigits = (
+            np.int16(np.log10(self.total_number_of_cases - 1)) + 1 if self.total_number_of_cases > 1 else 1
+        )
         self.nactivations = len(self.activator_kwargs_list)
         self.cases = cliargs.indices if cliargs.indices else np.arange(self.nactivations)
         self.activator_kwargs_list = [self.activator_kwargs_list[ind] for ind in self.cases]
@@ -69,12 +68,12 @@ class Analysis:
         ellapsed = time.time() - self.start_time
         eta = ellapsed * (self.nactivations - activation_index) / activation_index
         print(
-            f"Activation {activation_index}/{self.nactivations} ({100*activation_index/self.nactivations:.2f}%) | ",
-            f"Elapsed: {ellapsed:.2f}s | ETA:",
-            f"{eta:.2f}s",
+            f"Activation {activation_index}/{self.nactivations} ({100*activation_index/self.nactivations:.2f}%) | "
+            f"Elapsed: {ellapsed:.2f}s | ETA:"
+            f"{eta:.2f}s"
         )
 
-    def single_activation(self, kwargs):
+    def activate_single_case(self, kwargs):
         kwargs["output"]["dir"] = self.output_dir / f"output{kwargs['current_case']:0{self.case_ndigits}}"
         with self.activator_class(**kwargs) as act:
             act.log_rate *= 10
@@ -91,7 +90,7 @@ class Analysis:
             for i, j, kwargs in zip(range(len(self.cases)), self.cases, self.activator_kwargs_list)
         ]
         for kwargs in kwargs_list:
-            self.single_activation(kwargs)
+            self.activate_single_case(kwargs)
 
 
 if __name__ == "__main__":

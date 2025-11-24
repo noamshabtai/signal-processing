@@ -1,22 +1,15 @@
 import pathlib
+import sys
 
-import parametrize_tests.yaml_sweep_parser
-import pytest
+import parametrize_tests.fixtures
 
-spatial_audio_yaml_path = pathlib.Path(__file__).parent / "tests" / "config" / "spatial_audio.yaml"
-system_yaml_path = pathlib.Path(__file__).parent / "tests" / "config" / "system.yaml"
+tests_dir = pathlib.Path(__file__).parent / "tests"
+config_dir = tests_dir / "config"
+module = sys.modules[__name__]
+for fixture in [
+    "spatial_audio",
+    "system",
+]:
+    parametrize_tests.fixtures.setattr_kwargs(fixture, config_dir, module)
 
-
-@pytest.fixture(scope="session", params=parametrize_tests.yaml_sweep_parser.parse(spatial_audio_yaml_path))
-def kwargs_spatial_audio(request):
-    return request.param
-
-
-@pytest.fixture(scope="session", params=parametrize_tests.yaml_sweep_parser.parse(system_yaml_path))
-def kwargs_system(request):
-    return request.param
-
-
-@pytest.fixture(scope="session")
-def project_dir():
-    return pathlib.Path(__file__).parent
+parametrize_tests.fixtures.setattr_project_dir(tests_dir, module)

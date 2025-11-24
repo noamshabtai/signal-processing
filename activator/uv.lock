@@ -14,7 +14,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "parse-sweeps" },
+    { name = "parametrize-tests" },
     { name = "pytest" },
     { name = "pytest-xdist" },
 ]
@@ -28,7 +28,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "parse-sweeps", editable = "../parse-sweeps" },
+    { name = "parametrize-tests", editable = "../parametrize-tests" },
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
 ]
@@ -46,7 +46,7 @@ requires-dist = [{ name = "numpy", specifier = ">=2.2.3" }]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "parse-sweeps", editable = "../parse-sweeps" },
+    { name = "parametrize-tests", editable = "../parametrize-tests" },
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
 ]
@@ -123,7 +123,7 @@ requires-dist = [{ name = "numpy", specifier = ">=2.3.5" }]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "parse-sweeps", editable = "../parse-sweeps" },
+    { name = "parametrize-tests", editable = "../parametrize-tests" },
     { name = "pytest", specifier = ">=9.0.1" },
 ]
 
@@ -340,9 +340,9 @@ wheels = [
 ]
 
 [[package]]
-name = "parse-sweeps"
+name = "parametrize-tests"
 version = "0.1.0"
-source = { editable = "../parse-sweeps" }
+source = { editable = "../parametrize-tests" }
 dependencies = [
     { name = "deepmerge" },
     { name = "pyyaml" },
@@ -521,7 +521,7 @@ requires-dist = [{ name = "buffer", editable = "../buffer" }]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "parse-sweeps", editable = "../parse-sweeps" },
+    { name = "parametrize-tests", editable = "../parametrize-tests" },
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
 ]

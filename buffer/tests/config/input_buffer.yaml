@@ -1,8 +1,10 @@
+base:
+  dtype: float32
+  buffer_size: 1000
+  step_size: 32
+
 cases:
-  - name: non equal step size
-    dtype: float32
-    buffer_size: 1000
-    step_size: 32
+  -
     sweep:
       channel_shape:
         - [1, 4]
