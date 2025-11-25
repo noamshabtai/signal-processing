@@ -29,7 +29,8 @@ class Activator:
         self.input_source = kwargs["input"]["source"]
         self.output_destination = kwargs["output"]["destination"]
         if self.input_source == "mic" or self.output_destination == "speaker":
-            import audio_handle.audio_handle
+            import audio_io.conversions
+            import audio_io.devices
             import pyaudio
 
             self.pyaudio = pyaudio.PyAudio()
@@ -39,12 +40,12 @@ class Activator:
                 self.input_fid = open(self.input_path, "rb")
             case "mic":
                 self.fs = kwargs["input"]["fs"]
-                self.input_stream = self.pyaudioopen(
-                    format=audio_handle.audio_handle.np_dtype_to_pa_format(self.system.input_buffer.dtype),
+                self.input_stream = self.pyaudio.open(
+                    format=audio_io.conversions.np_dtype_to_pa_format(self.system.input_buffer.dtype),
                     channels=np.prod(self.system.input_buffer.channel_shape),
                     rate=self.fs,
                     input=True,
-                    input_device_index=audio_handle.audio_handle.find_input_device_index(),
+                    input_device_index=audio_io.devices.find_input_device_index(),
                     frames_per_buffer=self.system.input_buffer.step_size,
                 )
 
@@ -53,12 +54,12 @@ class Activator:
         self.output_filename = [module + ".bin" for module in self.system.modules]
         if self.output_destination == "speaker":
             self.output_filename[-1] = self.output_filename[-1].replace(".bin", ".wav")
-            self.output_stream = self.pyaudioopen(
-                format=audio_handle.audio_handle.np_dtype_to_pa_format(self.output_dtype[-1]),
+            self.output_stream = self.pyaudio.open(
+                format=audio_io.conversions.np_dtype_to_pa_format(self.output_dtype[-1]),
                 channels=np.prod(self.system.output_buffer[-1].channel_shape),
                 rate=self.fs,
                 output=True,
-                output_device_index=audio_handle.audio_handle.find_output_device_index(),
+                output_device_index=audio_io.devices.find_output_device_index(),
                 frames_per_buffer=self.system.input_buffer.step_size,
             )
 

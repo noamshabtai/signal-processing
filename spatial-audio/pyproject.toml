@@ -8,7 +8,8 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "audio-handle",
+    "audio-io",
+    "coordinates",
     "numpy>=2.3.5",
     "numpy-quaternion>=2024.0.12",
     "stft",
@@ -29,5 +30,6 @@ dev = [
 
 [tool.uv.sources]
 parametrize-tests = { path = "../parametrize-tests", editable = true }
-audio-handle = { path = "../audio-handle", editable = true }
+audio-io = { path = "../audio-io", editable = true }
+coordinates = { path = "../coordinates", editable = true }
 stft = { path = "../stft", editable = true }

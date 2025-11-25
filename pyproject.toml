@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "analysis",
-    "audio-handle",
+    "audio-io",
     "coordinates",
     "data-types",
     "spatial-audio",
@@ -23,6 +23,6 @@ dev = [
 [tool.uv.sources]
 analysis = { path = "analysis", editable = true }
 data-types = { path = "data-types", editable = true }
-audio-handle = { path = "audio-handle", editable = true }
+audio-io = { path = "audio-io", editable = true }
 spatial-audio = { path = "spatial-audio", editable = true }
 coordinates = { path = "coordinates", editable = true }

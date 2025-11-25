@@ -50,9 +50,9 @@ dev = [
 ]
 
 [[package]]
-name = "audio-handle"
+name = "audio-io"
 version = "0.1.0"
-source = { editable = "audio-handle" }
+source = { editable = "audio-io" }
 dependencies = [
     { name = "data-types" },
     { name = "numpy" },
@@ -739,7 +739,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "analysis" },
-    { name = "audio-handle" },
+    { name = "audio-io" },
     { name = "coordinates" },
     { name = "data-types" },
     { name = "spatial-audio" },
@@ -756,7 +756,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "analysis", editable = "analysis" },
-    { name = "audio-handle", editable = "audio-handle" },
+    { name = "audio-io", editable = "audio-io" },
     { name = "coordinates", editable = "coordinates" },
     { name = "data-types", editable = "data-types" },
     { name = "spatial-audio", editable = "spatial-audio" },
@@ -784,7 +784,8 @@ name = "spatial-audio"
 version = "0.1.0"
 source = { editable = "spatial-audio" }
 dependencies = [
-    { name = "audio-handle" },
+    { name = "audio-io" },
+    { name = "coordinates" },
     { name = "numpy" },
     { name = "numpy-quaternion" },
     { name = "stft" },
@@ -792,7 +793,8 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "audio-handle", editable = "audio-handle" },
+    { name = "audio-io", editable = "audio-io" },
+    { name = "coordinates", editable = "coordinates" },
     { name = "numpy", specifier = ">=2.3.5" },
     { name = "numpy-quaternion", specifier = ">=2024.0.12" },
     { name = "stft", editable = "stft" },

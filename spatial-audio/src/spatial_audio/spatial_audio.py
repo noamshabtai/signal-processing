@@ -1,4 +1,4 @@
-import audio_handle.utils
+import coordinates.coordinates
 import numpy as np
 import quaternion
 
@@ -62,7 +62,7 @@ class SpatialAudio:
         self.head_orientation = self.global_orientation.conjugate() * Qx * Qy * Qz
 
     def combine_head_orientation(self):
-        x_CH, y_CH, z_CH = audio_handle.utils.sph2cart_ned(
+        x_CH, y_CH, z_CH = coordinates.coordinates.spherical_to_ned(
             1, np.deg2rad(self.azimuth_CH), np.deg2rad(self.elevation_CH)
         )
         location_CHx3 = np.vstack((x_CH, y_CH, z_CH)).T
@@ -71,7 +71,7 @@ class SpatialAudio:
             self.head_orientation.conjugate() * quaternion_location_CH * self.head_orientation
         )
         rotated_location_CHx3 = quaternion.as_float_array(quaternion_rotated_location_CH)[:, 1:]
-        r_CH, azimuth_CH, elevation_CH = audio_handle.utils.cart2sph_ned(*rotated_location_CHx3.T)
+        r_CH, azimuth_CH, elevation_CH = coordinates.coordinates.ned_to_spherical(*rotated_location_CHx3.T)
         return np.rad2deg(elevation_CH), np.rad2deg(azimuth_CH)
 
     def fetch_hrtf(self, elevation_CH, azimuth_CH):
