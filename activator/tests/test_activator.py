@@ -1,4 +1,5 @@
 import pathlib
+import wave
 
 import activator.instances.activator
 import numpy as np
@@ -11,8 +12,18 @@ def create_input_file(**params):
     dtype = np.dtype(params["input"]["dtype"])
     path = params["input"]["path"]
     data = np.random.normal(loc=0.0, scale=1.0, size=channel_shape + [nsamples]).astype(dtype)
-    with path.open("wb") as fid:
-        data.tofile(fid)
+
+    if path.suffix.lower() == ".wav":
+        nchannels = np.prod(channel_shape)
+        fs = params["input"].get("fs", 44100)
+        with wave.open(str(path), "wb") as fid:
+            fid.setnchannels(nchannels)
+            fid.setsampwidth(dtype.itemsize)
+            fid.setframerate(fs)
+            fid.writeframes(data.ravel(order="F").tobytes())
+    else:
+        with path.open("wb") as fid:
+            data.tofile(fid)
 
 
 def test_activator(kwargs_activator, tmp_path):
@@ -34,8 +45,13 @@ def test_activator(kwargs_activator, tmp_path):
 
     modules = list(tested.system.modules.keys())
 
-    with open(kwargs["input"]["path"], "rb") as f:
-        input_data = np.fromfile(f, dtype=input_dtype).reshape(file_shape, order="F")
+    if kwargs["input"]["path"].suffix.lower() == ".wav":
+        with wave.open(str(kwargs["input"]["path"]), "rb") as f:
+            input_bytes = f.readframes(f.getnframes())
+            input_data = np.frombuffer(input_bytes, dtype=input_dtype).reshape(file_shape, order="F")
+    else:
+        with open(kwargs["input"]["path"], "rb") as f:
+            input_data = np.fromfile(f, dtype=input_dtype).reshape(file_shape, order="F")
     assert input_data.nbytes == np.prod(channel_shape) * nsamples * input_dtype.itemsize
 
     if tested.system.input_buffer.full:

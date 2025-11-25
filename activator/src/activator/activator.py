@@ -37,7 +37,13 @@ class Activator:
         match self.input_source:
             case "file":
                 self.input_path = pathlib.Path(kwargs["input"]["path"]).expanduser()
-                self.input_fid = open(self.input_path, "rb")
+                self.is_wav = self.input_path.suffix.lower() == ".wav"
+                if self.is_wav:
+                    import wave
+
+                    self.input_fid = wave.open(str(self.input_path), "rb")
+                else:
+                    self.input_fid = open(self.input_path, "rb")
             case "mic":
                 self.fs = kwargs["input"]["fs"]
                 self.input_stream = self.pyaudio.open(
@@ -110,7 +116,11 @@ class Activator:
         while (
             len(
                 data := (
-                    self.input_fid.read(self.read_nbytes)
+                    (
+                        self.input_fid.readframes(self.system.input_buffer.step_size)
+                        if self.is_wav
+                        else self.input_fid.read(self.read_nbytes)
+                    )
                     if self.input_source == "file"
                     else (
                         self.input_stream.read(self.system.input_buffer.step_size)

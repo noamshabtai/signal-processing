@@ -1,25 +1,46 @@
+base:
+  input:
+    dtype: int16
+  system:
+    input_buffer:
+      step_size: 10
+      buffer_size: 50
+  output:
+    dtype: [int32, int64]
+    dir: output
+  plot:
+    show: False
+    save: True
+
 cases:
-  - name: execute when buffer full
+  - name: execute with binary file
     input:
       path: input.bin
-      dtype: int16
+    system:
+      input_buffer:
+        channel_shape: [2,3]
     simulation:
       sweep:
         nsamples:
           - 10
           - 50
           - 100
+    log:
+      sweep:
+        rate: [1, 2]
+  - name: execute with wav file
+    input:
+      path: input.wav
+      fs: 44100
     system:
       input_buffer:
-        channel_shape: [2,3]
-        step_size: 10
-        buffer_size: 50
-    output:
-      dtype: [int32, int64]
-      dir: output
-    plot:
-      show: False
-      save: True
+        channel_shape: [2]
+    simulation:
+      sweep:
+        nsamples:
+          - 10
+          - 50
+          - 100
     log:
       sweep:
         rate: [1, 2]
