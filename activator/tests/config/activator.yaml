@@ -1,13 +1,13 @@
 base:
   input:
     dtype: int16
+  output:
+    dtype: [int32, int64]
+    dir: output
   system:
     input_buffer:
       step_size: 10
       buffer_size: 50
-  output:
-    dtype: [int32, int64]
-    dir: output
   plot:
     show: False
     save: True
@@ -15,7 +15,10 @@ base:
 cases:
   - name: execute with binary file
     input:
+      source: file
       path: input.bin
+    output:
+      destination: file
     system:
       input_buffer:
         channel_shape: [2,3]
@@ -24,14 +27,16 @@ cases:
         nsamples:
           - 10
           - 50
-          - 100
     log:
       sweep:
         rate: [1, 2]
   - name: execute with wav file
     input:
+      source: file
       path: input.wav
-      fs: 44100
+      fs: 16000
+    output:
+      destination: file
     system:
       input_buffer:
         channel_shape: [2]
@@ -40,7 +45,36 @@ cases:
         nsamples:
           - 10
           - 50
-          - 100
     log:
       sweep:
         rate: [1, 2]
+  - name: execute with mic input
+    input:
+      source: mic
+      fs: 16000
+    output:
+      destination: file
+    system:
+      input_buffer:
+        channel_shape: [2]
+    simulation:
+      nsamples: 10
+    max_steps: 1
+    log:
+      rate: 1
+  - name: execute with speaker output
+    input:
+      source: file
+      path: input.wav
+      fs: 16000
+    output:
+      destination: speaker
+      dtype: [int16, int16]
+    system:
+      input_buffer:
+        channel_shape: [2]
+    simulation:
+      nsamples: 10
+    max_steps: 1
+    log:
+      rate: 1

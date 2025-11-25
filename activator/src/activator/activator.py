@@ -29,11 +29,26 @@ class Activator:
         self.input_source = kwargs["input"]["source"]
         self.output_destination = kwargs["output"]["destination"]
         if self.input_source == "mic" or self.output_destination == "speaker":
-            import audio_io.conversions
-            import audio_io.devices
             import pyaudio
 
             self.pyaudio = pyaudio.PyAudio()
+
+        self._setup_input(kwargs)
+        self._setup_output(kwargs)
+
+        self.read_nbytes = (
+            np.prod(self.system.input_buffer.channel_shape)
+            * self.system.input_buffer.dtype.itemsize
+            * self.system.input_buffer.step_size
+        )
+        if self.input_source == "file":
+            self.total_nbytes = pathlib.Path(self.input_path).stat().st_size
+            self.nsteps = self.total_nbytes // self.read_nbytes
+        self.step = 0
+
+        self.completed = False
+
+    def _setup_input(self, kwargs):
         match self.input_source:
             case "file":
                 self.input_path = pathlib.Path(kwargs["input"]["path"]).expanduser()
@@ -42,9 +57,15 @@ class Activator:
                     import wave
 
                     self.input_fid = wave.open(str(self.input_path), "rb")
+                    self.fs = self.input_fid.getframerate()
                 else:
                     self.input_fid = open(self.input_path, "rb")
+                    if "fs" in kwargs["input"]:
+                        self.fs = kwargs["input"]["fs"]
             case "mic":
+                import audio_io.conversions
+                import audio_io.devices
+
                 self.fs = kwargs["input"]["fs"]
                 self.input_stream = self.pyaudio.open(
                     format=audio_io.conversions.np_dtype_to_pa_format(self.system.input_buffer.dtype),
@@ -55,6 +76,10 @@ class Activator:
                     frames_per_buffer=self.system.input_buffer.step_size,
                 )
 
+    def _setup_output(self, kwargs):
+        import audio_io.conversions
+        import audio_io.devices
+
         self.output_dtype = [np.dtype(dtype) for dtype in kwargs["output"]["dtype"]]
 
         self.output_filename = [module + ".bin" for module in self.system.modules]
@@ -62,7 +87,7 @@ class Activator:
             self.output_filename[-1] = self.output_filename[-1].replace(".bin", ".wav")
             self.output_stream = self.pyaudio.open(
                 format=audio_io.conversions.np_dtype_to_pa_format(self.output_dtype[-1]),
-                channels=np.prod(self.system.output_buffer[-1].channel_shape),
+                channels=np.prod(kwargs["output"]["channel_shape"][-1]),
                 rate=self.fs,
                 output=True,
                 output_device_index=audio_io.devices.find_output_device_index(),
@@ -80,17 +105,6 @@ class Activator:
             for channel_shape, step_size in zip(self.output_channel_shape, self.output_step_size)
         ]
 
-        self.read_nbytes = (
-            np.prod(self.system.input_buffer.channel_shape)
-            * self.system.input_buffer.dtype.itemsize
-            * self.system.input_buffer.step_size
-        )
-        self.total_nbytes = pathlib.Path(self.input_path).stat().st_size
-        self.nsteps = self.total_nbytes // self.read_nbytes
-        self.step = 0
-
-        self.completed = False
-
     def pre_hook(self):
         pass
 
@@ -101,8 +115,8 @@ class Activator:
         self.step += 1
         if not self.step % self.log_rate:
             ellapsed = time.time() - self.start_time
-            eta = ellapsed * (self.nsteps - self.step) / self.step
             if self.input_source == "file":
+                eta = ellapsed * (self.nsteps - self.step) / self.step
                 print(
                     f"Step {self.step}/{self.nsteps} ({100*self.step/self.nsteps:.2f}%) | ",
                     f"Elapsed: {ellapsed:.2f}s | ETA:",
@@ -175,16 +189,17 @@ class Activator:
                         plt.close()
 
     def close(self):
-        self.input_fid.close()
+        if self.input_source == "file":
+            self.input_fid.close()
+        elif self.input_source == "mic":
+            self.input_stream.stop_stream()
+            self.input_stream.close()
+
         for fid in self.output_fid:
             fid.close()
 
         if self.plot_save or self.plot_show:
             self.display_plot()
-
-        if self.input_source == "mic":
-            self.input_stream.stop_stream()
-            self.input_stream.close()
 
         if self.output_destination == "speaker":
             self.output_stream.stop_stream()

@@ -8,13 +8,14 @@ def bytes_to_chunk(data_bytes, nchannels, dtype):
 
 def np_dtype_to_pa_format(dtype):
     dtype_to_pa_format = {
-        np.int16: pyaudio.paInt16,
-        np.int32: pyaudio.paInt32,
-        np.float32: pyaudio.paFloat32,
-        np.uint8: pyaudio.paUInt8,
-        np.int8: pyaudio.paInt8,
+        np.dtype(np.int16): pyaudio.paInt16,
+        np.dtype(np.int32): pyaudio.paInt32,
+        np.dtype(np.float32): pyaudio.paFloat32,
+        np.dtype(np.uint8): pyaudio.paUInt8,
+        np.dtype(np.int8): pyaudio.paInt8,
     }
 
+    dtype = np.dtype(dtype)
     if dtype not in dtype_to_pa_format:
         raise ValueError(f"Unsupported dtype: {dtype}")
 

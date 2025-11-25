@@ -26,9 +26,10 @@ def create_input_file(**params):
             data.tofile(fid)
 
 
-def test_activator(kwargs_activator, tmp_path):
+def test_activator(kwargs_activator, tmp_path, mocker):
     kwargs = kwargs_activator
-    kwargs["input"]["path"] = tmp_path / pathlib.Path(kwargs["input"]["path"]).name
+    if "path" in kwargs["input"]:
+        kwargs["input"]["path"] = tmp_path / pathlib.Path(kwargs["input"]["path"]).name
     kwargs["output"]["dir"] = tmp_path / "output"
     channel_shape = kwargs["system"]["input_buffer"]["channel_shape"]
     file_shape = [-1] + channel_shape
@@ -39,26 +40,40 @@ def test_activator(kwargs_activator, tmp_path):
     step_size = kwargs["system"]["input_buffer"]["step_size"]
     nsteps = max(0, (nsamples - buffer_size) // step_size + 1)
 
-    create_input_file(**kwargs)
+    if kwargs["input"]["source"] == "mic" or kwargs["output"]["destination"] == "speaker":
+        mock_pyaudio = mocker.patch("pyaudio.PyAudio")
+        mock_stream = mocker.MagicMock()
+        mock_stream.read.return_value = (
+            np.random.normal(loc=0.0, scale=1.0, size=np.prod(channel_shape) * step_size).astype(input_dtype).tobytes()
+        )
+        mock_pyaudio.return_value.open.return_value = mock_stream
+        mocker.patch("audio_io.devices.find_input_device_index", return_value=0)
+        mocker.patch("audio_io.devices.find_output_device_index", return_value=0)
+
+    if kwargs["input"]["source"] == "file":
+        create_input_file(**kwargs)
+
     with activator.instances.activator.Activator(**kwargs) as tested:
         tested.execute()
 
     modules = list(tested.system.modules.keys())
 
-    if kwargs["input"]["path"].suffix.lower() == ".wav":
-        with wave.open(str(kwargs["input"]["path"]), "rb") as f:
-            input_bytes = f.readframes(f.getnframes())
-            input_data = np.frombuffer(input_bytes, dtype=input_dtype).reshape(file_shape, order="F")
-    else:
-        with open(kwargs["input"]["path"], "rb") as f:
-            input_data = np.fromfile(f, dtype=input_dtype).reshape(file_shape, order="F")
-    assert input_data.nbytes == np.prod(channel_shape) * nsamples * input_dtype.itemsize
+    if kwargs["input"]["source"] == "file":
+        if kwargs["input"]["path"].suffix.lower() == ".wav":
+            with wave.open(str(kwargs["input"]["path"]), "rb") as f:
+                input_bytes = f.readframes(f.getnframes())
+                input_data = np.frombuffer(input_bytes, dtype=input_dtype).reshape(file_shape, order="F")
+        else:
+            with open(kwargs["input"]["path"], "rb") as f:
+                input_data = np.fromfile(f, dtype=input_dtype).reshape(file_shape, order="F")
+        assert input_data.nbytes == np.prod(channel_shape) * nsamples * input_dtype.itemsize
 
     if tested.system.input_buffer.full:
         with open(kwargs["output"]["dir"] / (modules[-1] + ".bin"), "rb") as fid:
             output_data = np.fromfile(fid, dtype=output_dtype)
         assert output_data.nbytes == np.prod(channel_shape) * nsteps * step_size * output_dtype.itemsize
-        assert np.prod(output_data.ndim) or output_data == input_data[: np.prod(channel_shape) * nsteps * step_size]
+        if kwargs["input"]["source"] == "file":
+            assert np.prod(output_data.ndim) or output_data == input_data[: np.prod(channel_shape) * nsteps * step_size]
 
         for module in modules:
             assert (kwargs["output"]["dir"] / (module + ".bin")).exists()

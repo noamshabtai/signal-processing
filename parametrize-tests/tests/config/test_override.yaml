@@ -1,0 +1,17 @@
+base:
+  input:
+    source: file
+    dtype: int16
+  output:
+    destination: file
+  value: 100
+
+cases:
+  - name: override_source
+    input:
+      source: mic
+      fs: 44100
+  - name: override_value
+    value: 200
+  - name: no_override
+    other_param: test

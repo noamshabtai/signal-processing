@@ -1,6 +1,7 @@
 cases:
   - name: dummy activator float
     input:
+      source: file
       path: input.bin
       dtype: float32
     simulation:
@@ -14,6 +15,7 @@ cases:
         step_size: 10
         buffer_size: 50
     output:
+      destination: file
       dtype: [float32, float64]
       dir: output
     plot:

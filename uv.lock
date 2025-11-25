@@ -7,15 +7,19 @@ name = "activator"
 version = "0.1.0"
 source = { editable = "activator" }
 dependencies = [
+    { name = "audio-io" },
     { name = "data-types" },
     { name = "matplotlib" },
+    { name = "pyaudio" },
     { name = "system" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "audio-io", editable = "audio-io" },
     { name = "data-types", editable = "data-types" },
     { name = "matplotlib", specifier = ">=3.10.0" },
+    { name = "pyaudio", specifier = ">=0.2.14" },
     { name = "system", editable = "system" },
 ]
 
@@ -23,6 +27,7 @@ requires-dist = [
 dev = [
     { name = "parametrize-tests", editable = "parametrize-tests" },
     { name = "pytest", specifier = ">=8.3.4" },
+    { name = "pytest-mock", specifier = ">=3.14.0" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
 ]
 
