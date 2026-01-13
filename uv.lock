@@ -789,6 +789,7 @@ name = "spatial-audio"
 version = "0.1.0"
 source = { editable = "spatial-audio" }
 dependencies = [
+    { name = "activator" },
     { name = "audio-io" },
     { name = "coordinates" },
     { name = "numpy" },
@@ -798,6 +799,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "activator", editable = "activator" },
     { name = "audio-io", editable = "audio-io" },
     { name = "coordinates", editable = "coordinates" },
     { name = "numpy", specifier = ">=2.3.5" },

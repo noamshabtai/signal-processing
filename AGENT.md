@@ -1,3 +1,7 @@
+# AI Agent Development Notes
+
+This file contains notes and conventions for developing this project with the help of an AI agent.
+
 # Signal Processing Portfolio Project
 
 ## Project Overview
@@ -10,7 +14,6 @@ This is a Python-based signal processing monorepo implementing real-time audio p
 #### Low-Level Components
 - **buffer** - Manages input/output buffers for audio data streaming
 - **data_handle** - Data utilities and frequency domain operations
-- **wraplogging** - Logging utilities wrapper
 
 #### Processing Modules
 - **stft** - Short-Time Fourier Transform implementation
@@ -28,10 +31,20 @@ This is a Python-based signal processing monorepo implementing real-time audio p
   - Quaternion-based 3D head orientation tracking
   - Multiple virtual sound sources at configurable azimuths/elevations
   - Input: CH channels (mono sources) → Output: Stereo (binauralized)
-  - Dependencies: `audio-handle`, `stft`, `system`, `numpy-quaternion`
+  - Dependencies: `stft`, `system`, `numpy-quaternion`, `coordinates`
 
 - **analysis** - Audio analysis utilities
-- **audio_handle** - Audio file I/O and handling
+  - Batch processing framework for running multiple activator instances
+  - YAML-based configuration with case management
+
+- **audio-io** - Minimal audio I/O utilities
+  - **conversions.py** - Format conversion utilities
+    - `np_dtype_to_pa_format()` - Convert numpy dtypes to PyAudio format constants
+    - `bytes_to_chunk()` - Convert interleaved bytes to channel-first numpy arrays
+    - `freq_index()`, `lin2db()`, `db2lin()` - Audio math utilities
+  - Dependencies: `data-types`, `numpy`, `pyaudio`
+  - **Note**: Device detection removed (now uses PyAudio defaults)
+  - **Note**: WAV file functions removed (use Python's built-in `wave` module)
 
 #### System Components
 - **system** - Base System class that manages modules, buffers, and execution flow
@@ -40,6 +53,22 @@ This is a Python-based signal processing monorepo implementing real-time audio p
   - Supports debug mode
 
 - **activator** - Module activation and lifecycle management
+  - **base.py** - Abstract base class (`Activator`)
+    - Defines common interface: `execute()`, `cleanup()`, context manager support
+    - Handles system instantiation and dtype configuration
+  - **activator.py** - Loop-based file-to-file activator (`Activator`)
+    - Reads from file (.bin or .wav), processes through system, writes to file (.bin)
+    - Progress logging with ETA calculation
+    - Optional plotting and debug output
+    - Dependencies: `matplotlib`, `numpy`, system module
+  - **audio_demo.py** - Real-time callback-based activator (`Activator`)
+    - Generic activator for any system (passed as parameter)
+    - Reads from WAV file in loop, outputs to PyAudio stream
+    - Supports per-channel gain control
+    - Input peak normalization for clipping prevention
+    - Dependencies: `pyaudio`, `audio-io`, `wave`
+  - **Tests**: 12 tests (8 activator + 4 audio_demo)
+  - **Note**: Source and destination are always files (no mic/speaker support)
 
 #### Utilities
 - **parse_sweeps** - Sweep signal parsing utilities
@@ -48,14 +77,17 @@ This is a Python-based signal processing monorepo implementing real-time audio p
 ### Dependency Graph
 ```
 signal-processing (root)
-├── analysis
-├── audio-handle
-├── data-handle
-└── spatial-audio
-    ├── audio-handle
-    ├── system
-    │   └── buffer
-    └── quaternion
+├── analysis → activator
+├── audio-io → data-types, pyaudio
+├── activator → audio-io, system, matplotlib
+├── coordinates
+├── data-types
+├── spatial-audio
+│   ├── stft → system, buffer
+│   ├── system → buffer
+│   ├── coordinates
+│   └── numpy-quaternion
+└── spatial-audio-demo → activator, spatial-audio
 ```
 
 ## Development Setup
@@ -100,10 +132,9 @@ pytest spatial_audio/tests/
 - Multiple modules modified: activator, analysis, buffer, data_handle, system
 
 ### Active Development Areas
-1. Spatial audio system integration
-2. Test configuration standardization (YAML-based)
-3. Module instance management patterns
-4. Activator completion flag functionality
+1. Real-time spatial audio GUI development (`spatial-audio-demo/`)
+2. Performance optimization for HRTF convolution
+3. Additional spatial audio processing modes (ambisonic encoding)
 
 ## File Organization
 
@@ -255,109 +286,61 @@ Modules extending the `System` class should:
 - **Root Cause**: Python import system uses flat namespaces
 - **Status**: Known limitation, accepted as part of workflow
 
-## Planned Refactoring: audio-handle → audio-io
+### Activator Architecture Refactoring ✅
+- **Base Activator Class** (`activator/src/activator/base.py`)
+  - Abstract base class defining common activator interface
+  - All activators inherit from `base.Activator`
+  - Implements context manager protocol (`__enter__`, `__exit__`)
+  - Automatic cleanup on context exit if not completed
 
-### Objective
-Reorganize audio-handle package into audio-io with better separation of concerns and move coordinate functions to dedicated coordinates package.
+- **Loop-Based Activator** (`activator/src/activator/activator.py`)
+  - File-to-file processing only (removed mic/speaker support)
+  - Supports both .bin and .wav file formats
+  - Input/output always file-based (no streaming devices)
+  - Automatic progress logging with ETA calculation
 
-### Plan
+- **Audio Demo Activator** (`activator/src/activator/audio_demo.py`)
+  - Generic real-time activator (works with any system)
+  - Takes system class as parameter (e.g., `spatial_audio.system.System`)
+  - Callback-based PyAudio streaming
+  - Input peak analysis for clipping prevention
+  - Per-channel gain control support
+  - Used by `spatial-audio-demo/demo.py`
 
-#### Step 1: Create New Branch
-```bash
-git checkout -b refactor-audio-io
-```
+- **Tests**: 12 passing tests
+  - 8 tests for loop-based activator
+  - 4 tests for audio_demo activator (with mocked PyAudio)
+  - Removed base activator tests (redundant with concrete tests)
 
-#### Step 2: Rename Package
-- Rename `audio-handle/` → `audio-io/`
-- Rename package: `audio_handle` → `audio_io`
-- Update all references in:
-  - Root `pyproject.toml` dependencies and `[tool.uv.sources]`
-  - All dependent packages: `spatial-audio`, `analysis`
-  - Update imports across codebase
+### audio-io Module Cleanup ✅
+- **Removed unused components**:
+  - `devices.py` - Device detection functions (find_input_device_index, find_output_device_index)
+    - Reason: Device detection didn't work reliably, now using PyAudio defaults
+  - `files.py` - WAV file I/O wrapper functions
+    - Reason: Not used anywhere, activators use Python's built-in `wave` module directly
+  - `test_audio_devices.py` - Tests for removed device functions
+  - `test_audio_files.py` - Tests for removed file functions
+  - `audio_handle.yaml` - Obsolete config file from old naming
 
-#### Step 3: Reorganize audio-io Module Structure
+- **Retained functionality**:
+  - `conversions.py` - Essential format conversion utilities
+    - Used by `audio_demo.py` for PyAudio format conversion
+  - `test_audio_conversions.py` - Tests for conversion functions (hardcoded, no YAML needed)
 
-**Current:** `audio-io/src/audio_io/utils.py` (172 lines, mixed functionality)
+- **Result**: Minimal, focused module with only actively used code
 
-**Target structure:**
-```
-audio-io/src/audio_io/
-├── __init__.py
-├── files.py       # WAV file I/O
-├── conversions.py # Data format conversions
-└── devices.py     # PyAudio device management
-```
+## Code Style Guidelines
 
-**files.py** - WAV file operations:
-- `read_entire_wav_file(path)` - line 84
-- `read_frame_from_wav_file(fid, nsamples)` - line 93
-- `read_frame_from_wav_file_and_loop(fid, nsamples, nchannels, dtype)` - line 101
-- `set_wav_file_for_writing(path, fs, nchannels, nbits)` - line 110
+### Import Conventions
+- **NO** `from X import Y` (except local imports: `from . import module`)
+- **NO** `import X as Y` shortcuts (except `numpy as np` and `matplotlib.pyplot as plt`)
+- Use full module paths: `import module.submodule` then `module.submodule.Class()`
+- Rationale: Explicit imports improve code clarity and avoid namespace pollution
 
-**conversions.py** - Data format conversions:
-- `bytes_to_chunk(data_bytes, nchannels, dtype)` - line 80
-- `np_dtype_to_pa_format(dtype)` - line 8
-- `lin2db(lin)` - line 166
-- `db2lin(db)` - line 170
-- `freq_index(freq, nfft, fs)` - line 162
-
-**devices.py** - PyAudio device management:
-- `print_device_indices(p, direction, host=0)` - line 23
-- `audio_device_index(p, direction, str_to_find, host=0)` - line 35
-- `realtek_output_index(p, host=0)` - line 48
-- `vb_cable_input_index(p, host=0)` - line 52
-- `find_input_device_index()` - line 56
-- `find_output_device_index()` - line 68
-- `read_frame_from_pyaudio(stream, nsamples, nchannels, dtype)` - line 119
-- `read_frame_from_pyaudio_indata(indata, nchannels, dtype)` - line 123
-
-#### Step 4: Move Coordinate Functions to coordinates Package
-
-**From audio-io/utils.py (to be removed):**
-- `sph2cart_ned(r, az, el)` - line 127 (uses radians)
-- `cart2sph_ned(x, y, z)` - line 135
-- `sph2cart_enu(r, az, inc)` - line 142 (uses radians)
-- `cart2sph_enu(x, y, z)` - line 150
-- `distance_to(v)` - line 158
-
-**Merge into coordinates/src/coordinates/coordinates.py:**
-- Existing: `spherical_to_ned(R, theta_deg, phi_deg)` - uses degrees
-- Add all functions from audio-io above
-- Maintain both radian and degree versions where applicable
-
-**Update dependencies:**
-- `spatial-audio` currently imports `audio_handle.utils.sph2cart_ned` and `cart2sph_ned`
-- Change to import from `coordinates` package
-- Add `coordinates` to `spatial-audio/pyproject.toml` dependencies
-
-#### Step 5: Update Test Structure
-
-**audio-io tests** - split `tests/test_audio_handle.py` into:
-- `tests/test_files.py` - tests for lines 156-247
-- `tests/test_conversions.py` - tests for lines 9-18, 149-154, 346-357
-- `tests/test_devices.py` - tests for lines 20-147, 250-262
-
-**coordinates tests** - extend `tests/test_coordinates.py`:
-- Add tests from `audio-handle/tests/test_audio_handle.py` lines 265-343
-- Test coordinate conversion functions (roundtrip tests)
-
-#### Step 6: Implementation Steps (TDD)
-
-1. **Create new branch**
-2. **Rename package** (audio-handle → audio-io)
-3. **Run tests** - they will fail due to import errors
-4. **Create test files** with proper imports from new structure
-5. **Run tests** - they will fail because modules don't exist yet
-6. **Create new module files** (files.py, conversions.py, devices.py) and move functions
-7. **Update coordinates package** with coordinate functions
-8. **Update all imports** in dependent packages
-9. **Run full test suite** - verify all 95+ tests pass
-10. **Update CLAUDE.md** with completed refactoring
-
-### Current State
-- Working on `refactor-src-layout` branch with uncommitted changes
-- All 95 tests passing
-- Ready to start refactoring once committed
+### Testing Approach
+- Mock external dependencies (PyAudio, file I/O) in tests when appropriate
+- Use YAML configuration files for parametrized tests
+- Prefer hardcoded test values when tests are simple (no need for YAML overhead)
 
 ## Notes
 - The project is under active development

@@ -1,0 +1,27 @@
+base:
+  spatial_audio:
+    nfft: 512
+    sampling_frequency: 16000
+    hrtf:
+      dtype: complex64
+      sampling_frequency: 16000
+    azimuth:
+      symmetric: True
+      span: 90
+    elevation:
+      span: 30
+
+cases:
+  - name: mono
+    sweep:
+      test:
+        - input:
+            azimuth: [0.0]
+            elevation: [0.0]
+    spatial_audio:
+      hrtf:
+        path: hrtf/hrtf_16khz_low_res.bin
+      azimuth:
+        resolution: 10
+      elevation:
+        resolution: 10

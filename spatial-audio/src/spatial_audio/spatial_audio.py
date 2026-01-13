@@ -19,9 +19,6 @@ class SpatialAudio:
         self.azimuth_CH = self.initial_azimuth_CH.copy()
         self.elevation_CH = self.initial_elevation_CH.copy()
 
-        self.channel_gain_db = kwargs["channel_gain_db"] if "channel_gain_db" in kwargs else np.zeros(self.CH)
-        self.channel_gain = 10 ** (self.channel_gain_db / 20)
-
         self.azimuth_symmetric = kwargs["azimuth"]["symmetric"]
         self.azimuth_span = np.int32(kwargs["azimuth"]["span"])
         self.azimuth_resolution = np.int32(kwargs["azimuth"]["resolution"])
@@ -40,7 +37,7 @@ class SpatialAudio:
         self.elevation_max = max(self.elevation_range)
 
         self.reset_tracking()
-        self.binauralize()
+        self.mode = "binaural"  # Default mode
         self.set_doas()
 
     def tare_head_orientation(self, yaw, pitch, roll):
@@ -107,10 +104,13 @@ class SpatialAudio:
         self.HRTF_CHx2xK = self.fetch_hrtf(elevation_CH, azimuth_CH)
 
     def binauralize(self):
-        self.binaural = True
+        self.mode = "binaural"
 
     def monify(self):
-        self.binaural = False
+        self.mode = "mono"
+
+    def stereofy(self):
+        self.mode = "stereo"
 
     def reset_tracking(self):
         self.xaxis = np.array([1, 0, 0])
@@ -120,21 +120,27 @@ class SpatialAudio:
         self.set_head_orientation(0, 0, 0)
 
     def execute(self, frame_fft_CHxK):
-        return (
-            np.array(
+        if self.mode == "binaural":
+            output = np.array(
                 [
                     np.sum(
-                        np.array(
-                            [
-                                self.channel_gain[ch] * frame_fft_CHxK[ch] * self.HRTF_CHx2xK[ch, ear]
-                                for ch in range(self.CH)
-                            ]
-                        ),
+                        np.array([frame_fft_CHxK[ch] * self.HRTF_CHx2xK[ch, ear] for ch in range(self.CH)]),
                         axis=0,
                     )
                     for ear in range(2)
                 ]
             )
-            if self.binaural
-            else np.tile(np.mean(frame_fft_CHxK, axis=0), reps=(2, 1))
-        )
+            return output
+        elif self.mode == "stereo":
+            pan_angles = (self.azimuth_CH + 90) / 180 * np.pi / 2
+            left_gains = np.cos(pan_angles)
+            right_gains = np.sin(pan_angles)
+
+            left_output = np.sum(left_gains[:, np.newaxis] * frame_fft_CHxK, axis=0)
+            right_output = np.sum(right_gains[:, np.newaxis] * frame_fft_CHxK, axis=0)
+
+            output = np.array([left_output, right_output])
+            return output
+        else:
+            output = np.tile(np.mean(frame_fft_CHxK, axis=0), reps=(2, 1))
+            return output

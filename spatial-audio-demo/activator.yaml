@@ -1,0 +1,36 @@
+demo:
+  initial_gain_db: [-20.0, -20.0, -20.0]
+system:
+  input_buffer:
+    channel_shape: [3]
+    step_size: 128
+    buffer_size: 512
+    dtype: int16
+  analysis: {}
+  synthesis:
+    output_buffer:
+      dtype: float32
+  spatial_audio:
+    nfft: 512
+    sampling_frequency: 8000
+    initial_azimuth: [0.0, 90.0, 180.0]
+    initial_elevation: [0.0, 0.0, 0.0]
+    hrtf:
+      dtype: complex64
+      nfft: 512
+      sampling_frequency: 8000
+      path: ../spatial-audio/hrtf/hrtf_16khz_low_res.bin
+    azimuth:
+      symmetric: True
+      span: 90
+      resolution: 10
+    elevation:
+      span: 30
+      resolution: 10
+input: # Input configuration for DemoActivator
+  source: file
+  path: dummy_input.wav # IMPORTANT: Replace with the actual path to your WAV file
+output:
+  destination: speaker
+  dtype: int16 # Assuming float32 output from the system
+  channel_shape: [2] # Stereo output for binaural audio

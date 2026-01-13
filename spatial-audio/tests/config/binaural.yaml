@@ -4,12 +4,12 @@ base:
     sampling_frequency: 16000
     hrtf:
       dtype: complex64
+      sampling_frequency: 16000
     azimuth:
       symmetric: True
       span: 90
     elevation:
       span: 30
-
 
 cases:
   - name: low resolution
@@ -47,8 +47,6 @@ cases:
           expected:
             azimuth: [296.57, 0.0, 82.37]
             elevation: [-37.76, -0.0, -12.95]
-
-
 
     spatial_audio:
       hrtf:

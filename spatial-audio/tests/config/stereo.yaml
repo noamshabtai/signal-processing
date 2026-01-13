@@ -1,0 +1,42 @@
+base:
+  spatial_audio:
+    nfft: 512
+    sampling_frequency: 16000
+    hrtf:
+      dtype: complex64
+      sampling_frequency: 16000
+    azimuth:
+      symmetric: True
+      span: 90
+    elevation:
+      span: 30
+
+cases:
+  - name: stereo panning
+    sweep:
+      test:
+        - name: full_left
+          azimuth: [-90.0]
+          elevation: [0.0]
+          expected_left_gain: 1.0
+          expected_right_gain: 0.0
+
+        - name: center
+          azimuth: [0.0]
+          elevation: [0.0]
+          expected_left_gain: 0.7071  # sqrt(0.5)
+          expected_right_gain: 0.7071
+
+        - name: full_right
+          azimuth: [90.0]
+          elevation: [0.0]
+          expected_left_gain: 0.0
+          expected_right_gain: 1.0
+
+    spatial_audio:
+      hrtf:
+        path: hrtf/hrtf_16khz_low_res.bin
+      azimuth:
+        resolution: 10
+      elevation:
+        resolution: 10

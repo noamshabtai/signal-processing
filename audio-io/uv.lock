@@ -12,7 +12,7 @@ wheels = [
 ]
 
 [[package]]
-name = "audio-handle"
+name = "audio-io"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
@@ -24,7 +24,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "ipdb" },
-    { name = "parse-sweeps" },
+    { name = "parametrize-tests" },
     { name = "pytest" },
     { name = "pytest-mock" },
 ]
@@ -39,7 +39,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "ipdb", specifier = ">=0.13.13" },
-    { name = "parse-sweeps", editable = "../parse-sweeps" },
+    { name = "parametrize-tests", editable = "../parametrize-tests" },
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "pytest-mock", specifier = ">=3.14.0" },
 ]
@@ -66,7 +66,7 @@ requires-dist = [{ name = "numpy", specifier = ">=2.3.5" }]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "parse-sweeps", editable = "../parse-sweeps" },
+    { name = "parametrize-tests", editable = "../parametrize-tests" },
     { name = "pytest", specifier = ">=9.0.1" },
 ]
 
@@ -249,9 +249,9 @@ wheels = [
 ]
 
 [[package]]
-name = "parse-sweeps"
+name = "parametrize-tests"
 version = "0.1.0"
-source = { editable = "../parse-sweeps" }
+source = { editable = "../parametrize-tests" }
 dependencies = [
     { name = "deepmerge" },
     { name = "pyyaml" },

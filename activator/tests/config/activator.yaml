@@ -15,10 +15,7 @@ base:
 cases:
   - name: execute with binary file
     input:
-      source: file
       path: input.bin
-    output:
-      destination: file
     system:
       input_buffer:
         channel_shape: [2,3]
@@ -32,11 +29,8 @@ cases:
         rate: [1, 2]
   - name: execute with wav file
     input:
-      source: file
       path: input.wav
       fs: 16000
-    output:
-      destination: file
     system:
       input_buffer:
         channel_shape: [2]
@@ -48,33 +42,3 @@ cases:
     log:
       sweep:
         rate: [1, 2]
-  - name: execute with mic input
-    input:
-      source: mic
-      fs: 16000
-    output:
-      destination: file
-    system:
-      input_buffer:
-        channel_shape: [2]
-    simulation:
-      nsamples: 10
-    max_steps: 1
-    log:
-      rate: 1
-  - name: execute with speaker output
-    input:
-      source: file
-      path: input.wav
-      fs: 16000
-    output:
-      destination: speaker
-      dtype: [int16, int16]
-    system:
-      input_buffer:
-        channel_shape: [2]
-    simulation:
-      nsamples: 10
-    max_steps: 1
-    log:
-      rate: 1

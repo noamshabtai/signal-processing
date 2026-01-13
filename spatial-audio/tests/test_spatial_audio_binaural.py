@@ -3,8 +3,8 @@ import quaternion
 import spatial_audio.spatial_audio
 
 
-def test_spatial_audio_execute(kwargs_spatial_audio, project_dir):
-    kwargs = kwargs_spatial_audio
+def test_spatial_audio_execute(kwargs_binaural, project_dir):
+    kwargs = kwargs_binaural
     kwargs["spatial_audio"]["hrtf"]["path"] = project_dir / kwargs["spatial_audio"]["hrtf"]["path"]
     kwargs["spatial_audio"]["initial_azimuth"] = kwargs["test"]["input"]["azimuth"]
     kwargs["spatial_audio"]["initial_elevation"] = kwargs["test"]["input"]["elevation"]
@@ -22,8 +22,8 @@ def test_spatial_audio_execute(kwargs_spatial_audio, project_dir):
     assert np.allclose(output, expected_output, atol=1e-6)
 
 
-def test_spatial_audio(kwargs_spatial_audio, project_dir):
-    kwargs = kwargs_spatial_audio
+def test_spatial_audio(kwargs_binaural, project_dir):
+    kwargs = kwargs_binaural
     kwargs["spatial_audio"]["hrtf"]["path"] = project_dir / kwargs["spatial_audio"]["hrtf"]["path"]
     kwargs["spatial_audio"]["initial_azimuth"] = kwargs["test"]["input"]["azimuth"]
     kwargs["spatial_audio"]["initial_elevation"] = kwargs["test"]["input"]["elevation"]

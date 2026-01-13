@@ -1,0 +1,19 @@
+[project]
+name = "spatial-audio-demo"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "analysis",
+    "spatial-audio",
+]
+
+[tool.uv.sources]
+analysis = { path = "../analysis", editable = true }
+spatial-audio = { path = "../spatial-audio", editable = true }
+
+[dependency-groups]
+dev = [
+    "ipdb>=0.13.13",
+]
