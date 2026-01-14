@@ -1,4 +1,5 @@
 import wave
+from pathlib import Path
 
 import numpy as np
 
@@ -8,7 +9,8 @@ DURATION_S = 5  # 5 seconds
 N_CHANNELS = 3
 FREQUENCY_HZ = 440  # A4 note
 AMPLITUDE = 0.5
-OUTPUT_FILENAME = "../dummy_input.wav"
+SCRIPT_DIR = Path(__file__).parent
+OUTPUT_FILENAME = SCRIPT_DIR / "../dummy_input.wav"
 DTYPE = np.int16
 
 
@@ -32,7 +34,7 @@ def main():
         interleaved_data[i::N_CHANNELS] = (channels[i] * np.iinfo(DTYPE).max).astype(DTYPE)
 
     # Write to WAV file
-    with wave.open(OUTPUT_FILENAME, "wb") as wf:
+    with wave.open(str(OUTPUT_FILENAME), "wb") as wf:
         wf.setnchannels(N_CHANNELS)
         wf.setsampwidth(DTYPE().itemsize)
         wf.setframerate(SAMPLING_RATE)
