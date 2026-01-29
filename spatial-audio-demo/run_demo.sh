@@ -10,7 +10,7 @@ echo "Setting up virtual environment..."
 uv sync
 
 echo "Generating input audio..."
-.venv/bin/python scripts/create_dummy_input.py
+uv run python scripts/create_dummy_input.py
 
 echo "Running demo..."
-.venv/bin/python demo.py
+uv run python demo.py
