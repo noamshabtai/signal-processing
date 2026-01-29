@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 
 # Parameters
-SAMPLING_RATE = 48000
+SAMPLING_RATE = 8000
 DURATION_S = 5  # 5 seconds
 N_CHANNELS = 3
 FREQUENCY_HZ = 440  # A4 note
