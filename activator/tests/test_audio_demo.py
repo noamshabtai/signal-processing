@@ -1,8 +1,9 @@
 import unittest.mock
 import wave
 
-import activator.audio_demo
 import numpy as np
+
+import activator.audio_demo
 import system.instances.system
 
 

@@ -1,8 +1,8 @@
 import numpy as np
-import system.system
 
 import stft.analysis
 import stft.synthesis
+import system.system
 
 
 class System(system.system.System):

@@ -1,4 +1,5 @@
 import numpy as np
+
 import stft.analysis
 import stft.instances.system
 import stft.synthesis

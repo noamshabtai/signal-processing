@@ -1,8 +1,7 @@
+import spatial_audio.spatial_audio
 import stft.analysis
 import stft.synthesis
 import system.system
-
-import spatial_audio.spatial_audio
 
 
 class System(system.system.System):

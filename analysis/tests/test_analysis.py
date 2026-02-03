@@ -3,11 +3,12 @@ import pathlib
 import shlex
 import sys
 
-import analysis.analysis
-import analysis.instances.analysis
 import deepmerge
 import numpy as np
 import parametrize_tests.yaml_sweep_parser
+
+import analysis.analysis
+import analysis.instances.analysis
 
 
 def generate_input_file(yaml_path, tmp_path):
