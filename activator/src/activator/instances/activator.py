@@ -1,6 +1,5 @@
-import system.instances.system
-
 import activator.activator
+import system.instances.system
 
 
 class Activator(activator.activator.Activator):

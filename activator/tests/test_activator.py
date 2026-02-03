@@ -1,8 +1,9 @@
 import pathlib
 import wave
 
-import activator.instances.activator
 import numpy as np
+
+import activator.instances.activator
 
 
 def create_input_file(**params):

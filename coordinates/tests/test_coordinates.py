@@ -1,5 +1,6 @@
-import coordinates.coordinates
 import numpy as np
+
+import coordinates.coordinates
 
 
 def close(q, p):

@@ -1,5 +1,6 @@
-import buffer.buffer
 import numpy as np
+
+import buffer.buffer
 
 
 def test_input_buffer(kwargs_input_buffer):

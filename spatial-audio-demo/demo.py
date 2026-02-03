@@ -1,9 +1,10 @@
 import tkinter as tk
 
-import activator.audio_demo
 import numpy as np
 import spatial_audio.system
 import yaml
+
+import activator.audio_demo
 
 
 class Gui:

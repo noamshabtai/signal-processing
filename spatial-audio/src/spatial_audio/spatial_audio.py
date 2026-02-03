@@ -1,6 +1,7 @@
-import coordinates.coordinates
 import numpy as np
 import quaternion
+
+import coordinates.coordinates
 
 
 class SpatialAudio:

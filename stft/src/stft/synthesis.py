@@ -1,6 +1,7 @@
-import buffer.buffer
 import data_types.conversions
 import numpy as np
+
+import buffer.buffer
 
 
 class Synthesis:

@@ -1,6 +1,6 @@
-import activator.instances.activator
 import numpy as np
 
+import activator.instances.activator
 import analysis.analysis
 
 
