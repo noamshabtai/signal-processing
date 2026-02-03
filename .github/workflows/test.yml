@@ -1,0 +1,44 @@
+name: Tests and Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y portaudio19-dev pkg-config
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+
+    - name: Install dependencies
+      env:
+        CFLAGS: "-I/usr/include"
+        LDFLAGS: "-L/usr/lib/x86_64-linux-gnu"
+      run: |
+        uv sync
+
+    - name: Fix pre-commit for GitHub Actions
+      run: |
+        sed -i 's/git@github.com:/https:\/\/github.com\//g' .pre-commit-config.yaml
+
+    - name: Run pre-commit hooks (except pytest)
+      run: |
+        SKIP=pytest uv run pre-commit run --all-files
+
+    - name: Run tests
+      run: |
+        uv run pytest
