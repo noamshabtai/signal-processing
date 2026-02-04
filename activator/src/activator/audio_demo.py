@@ -5,10 +5,10 @@ import audio_io.conversions
 import numpy as np
 import pyaudio
 
-from . import base
+from . import base_demo
 
 
-class Activator(base.Activator):
+class Activator(base_demo.Activator):
     def __init__(self, activated_system, **kwargs):
         super().__init__(activated_system, **kwargs)
 

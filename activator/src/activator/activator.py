@@ -5,10 +5,10 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 
-from . import base
+from . import base_activator
 
 
-class Activator(base.Activator):
+class Activator(base_activator.Activator):
     def __init__(self, activated_system, **kwargs):
         self.DEBUG = kwargs.get("DEBUG", False)
         self.max_steps = kwargs.get("max_steps", None)
