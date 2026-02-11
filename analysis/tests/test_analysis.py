@@ -1,3 +1,4 @@
+import copy
 import io
 import pathlib
 import shlex
@@ -45,7 +46,7 @@ def extract_cliargs(indices, output_dir, yaml_path, monkeypatch):
 
 
 def test_analysis(kwargs_analysis, project_dir, tmp_path, monkeypatch):
-    kwargs = kwargs_analysis
+    kwargs = copy.deepcopy(kwargs_analysis)
     yaml_path = project_dir / kwargs["yaml_path"]
     generate_input_file(yaml_path, tmp_path)
 

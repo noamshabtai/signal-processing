@@ -1,3 +1,4 @@
+import copy
 import pathlib
 import wave
 
@@ -28,7 +29,7 @@ def create_input_file(**params):
 
 
 def test_activator(kwargs_activator, tmp_path, mocker):
-    kwargs = kwargs_activator
+    kwargs = copy.deepcopy(kwargs_activator)
     if "path" in kwargs["input"]:
         kwargs["input"]["path"] = tmp_path / pathlib.Path(kwargs["input"]["path"]).name
     kwargs["output"]["dir"] = tmp_path / "output"

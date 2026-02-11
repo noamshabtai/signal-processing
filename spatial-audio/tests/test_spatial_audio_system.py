@@ -1,9 +1,11 @@
+import copy
+
 import numpy as np
 import spatial_audio.system
 
 
 def test_system(kwargs_system, project_dir):
-    kwargs = kwargs_system
+    kwargs = copy.deepcopy(kwargs_system)
     kwargs["system"]["spatial_audio"]["hrtf"]["path"] = project_dir / kwargs["system"]["spatial_audio"]["hrtf"]["path"]
 
     system = spatial_audio.system.System(**kwargs["system"])

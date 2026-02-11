@@ -1,9 +1,11 @@
+import copy
+
 import numpy as np
 import spatial_audio.spatial_audio
 
 
 def test_stereo_mode_exists(kwargs_stereo, project_dir):
-    kwargs = kwargs_stereo
+    kwargs = copy.deepcopy(kwargs_stereo)
     kwargs["spatial_audio"]["hrtf"]["path"] = project_dir / kwargs["spatial_audio"]["hrtf"]["path"]
     kwargs["spatial_audio"]["initial_azimuth"] = kwargs["test"]["azimuth"]
     kwargs["spatial_audio"]["initial_elevation"] = kwargs["test"]["elevation"]
@@ -21,7 +23,7 @@ def test_stereo_mode_exists(kwargs_stereo, project_dir):
 
 
 def test_stereo_panning(kwargs_stereo, project_dir):
-    kwargs = kwargs_stereo
+    kwargs = copy.deepcopy(kwargs_stereo)
     kwargs["spatial_audio"]["hrtf"]["path"] = project_dir / kwargs["spatial_audio"]["hrtf"]["path"]
     kwargs["spatial_audio"]["initial_azimuth"] = kwargs["test"]["azimuth"]
     kwargs["spatial_audio"]["initial_elevation"] = kwargs["test"]["elevation"]
