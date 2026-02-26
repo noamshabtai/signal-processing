@@ -1,44 +1,4 @@
-base:
-  input:
-    dtype: int16
-  output:
-    dtype: [int32, int64]
-    dir: output
-  system:
-    input_buffer:
-      step_size: 10
-      buffer_size: 50
-  plot:
-    show: False
-    save: True
-
 cases:
-  - name: execute with binary file
-    input:
-      path: input.bin
-    system:
-      input_buffer:
-        channel_shape: [2,3]
-    simulation:
-      sweep:
-        nsamples:
-          - 10
-          - 50
-    log:
-      sweep:
-        rate: [1, 2]
-  - name: execute with wav file
-    input:
-      path: input.wav
-      fs: 16000
-    system:
-      input_buffer:
-        channel_shape: [2]
-    simulation:
-      sweep:
-        nsamples:
-          - 10
-          - 50
-    log:
-      sweep:
-        rate: [1, 2]
+  - name: activator
+    activator:
+      system: {}

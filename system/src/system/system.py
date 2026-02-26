@@ -10,7 +10,7 @@ class System:
         self.outputs = dict()
 
         self.DEBUG = kwargs.get("DEBUG", False)
-        self.execute_before_input_buffer_full = False
+        self.execute_before_input_buffer_full = kwargs.get("execute_before_input_buffer_full", False)
 
     def connect(self, module):
         pass

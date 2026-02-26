@@ -1,0 +1,11 @@
+cases:
+  - name: live input
+    activator:
+      input:
+        dtype: float32
+      system:
+        input_buffer:
+          step_size: 10
+          buffer_size: 50
+          channel_shape: [1]
+          dtype: float32

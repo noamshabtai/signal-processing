@@ -1,11 +1,13 @@
 base:
-  dtype: float32
-  buffer_size: 100
-  step_size: 22
+  output_buffer:
+    dtype: float32
+    buffer_size: 100
+    step_size: 22
 
 cases:
-  -
-    sweep:
-      channel_shape:
-        - [1]
-        - [3, 5]
+  - name: output buffer
+    output_buffer:
+      sweep:
+        channel_shape:
+          - [1]
+          - [3, 5]

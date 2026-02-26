@@ -1,5 +1,6 @@
 base:
-  stft:
+  system:
+    execute_before_input_buffer_full: true
     input_buffer:
       channel_shape: [1]
       step_size: 256
@@ -12,4 +13,10 @@ base:
         dtype: float32
 
 cases:
-  - name: stft roundtrip
+  - name: stft system
+    parameters:
+      sweep:
+        nsamples:
+          - 256
+          - 1024
+          - 2048

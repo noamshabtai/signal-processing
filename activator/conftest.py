@@ -9,7 +9,8 @@ module = sys.modules[__name__]
 for fixture in [
     "activator",
     "audio_demo",
-    "base_demo",
+    "file_input",
+    "live_input",
 ]:
     parametrize_tests.fixtures.setattr_kwargs(fixture, config_dir, module)
 

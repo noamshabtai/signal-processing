@@ -15,3 +15,7 @@ cases:
             - 1
             - 8
             - 64
+      sweep:
+        execute_before_input_buffer_full:
+          - true
+          - false

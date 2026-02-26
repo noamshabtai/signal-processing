@@ -1,11 +1,11 @@
 import abc
 
-from . import base_activator
+from . import activator
 
 
-class Activator(base_activator.Activator):
-    def __init__(self, activated_system, **kwargs):
-        super().__init__(activated_system, **kwargs)
+class Activator(activator.Activator):
+    def __init__(self, system_class, **kwargs):
+        super().__init__(system_class, **kwargs)
         self.running = False
 
     def process_frame(self, data):

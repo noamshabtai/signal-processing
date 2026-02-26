@@ -1,7 +1,8 @@
 base:
-  test:
+  parameters:
     sampling_frequency: 16000
   system:
+    execute_before_input_buffer_full: true
     input_buffer:
       channel_shape: [3]
       step_size: 256
@@ -27,7 +28,8 @@ base:
         span: 30
 
 cases:
-  - test:
+  - name: spatial audio system
+    parameters:
       sweep:
         nsamples:
           - 256

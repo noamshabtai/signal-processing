@@ -5,12 +5,12 @@ import audio_io.conversions
 import numpy as np
 import pyaudio
 
-from . import base_demo
+from . import live_input
 
 
-class Activator(base_demo.Activator):
-    def __init__(self, activated_system, **kwargs):
-        super().__init__(activated_system, **kwargs)
+class Activator(live_input.Activator):
+    def __init__(self, system_class, **kwargs):
+        super().__init__(system_class, **kwargs)
 
         if "demo" in kwargs and "initial_gain_db" in kwargs["demo"]:
             initial_gain_db = np.int16(kwargs["demo"]["initial_gain_db"])

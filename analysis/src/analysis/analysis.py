@@ -61,7 +61,7 @@ class Analysis:
         self.results = {key: [] for key in cliargs.results}
         self.output_dir = pathlib.Path(cliargs.output_dir)
 
-    def extract_results(self, activator, **kwargs):
+    def extract_results(self, activator, activator_kwargs):
         pass
 
     def log_output(self, activation_index):
@@ -74,11 +74,12 @@ class Analysis:
         )
 
     def activate_single_case(self, kwargs):
-        kwargs["output"]["dir"] = self.output_dir / f"output{kwargs['current_case']:0{self.case_ndigits}}"
-        with self.activator_class(**kwargs) as act:
+        activator_kwargs = kwargs["activator"]
+        activator_kwargs["output"]["dir"] = self.output_dir / f"output{kwargs['current_case']:0{self.case_ndigits}}"
+        with self.activator_class(**activator_kwargs) as act:
             act.log_rate *= 10
             act.execute()
-            self.extract_results(activator=act, **kwargs)
+            self.extract_results(activator=act, activator_kwargs=activator_kwargs)
         self.log_output(kwargs["activation_index"] + 1)
 
     def execute(self):
