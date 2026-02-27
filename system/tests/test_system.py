@@ -5,32 +5,21 @@ import numpy as np
 import system.system
 
 
-class Module:
-    def execute(self, chunk):
-        return chunk
-
-
 class System(system.system.System):
-    def __init__(self, **kwargs):
+    def __init__(self, mocker, **kwargs):
         super().__init__(**kwargs)
-        self.modules["first"] = Module()
-        self.modules["second"] = Module()
+        self.modules["first"] = mocker.Mock()
+        self.modules["second"] = mocker.Mock()
 
     def connect(self, module):
-        match module:
-            case "first":
-                self.inputs[module] = dict(chunk=self.input_buffer.buffer[..., : self.input_buffer.step_size])
-            case "second":
-                self.inputs[module] = dict(chunk=self.outputs["first"])
+        self.inputs[module] = {"key1": "value1", "key2": "value2"}
 
 
 def test_system(kwargs_system, mocker):
     kwargs = copy.deepcopy(kwargs_system)
-    tested = System(**kwargs["system"])
+    tested = System(mocker, **kwargs["system"])
 
     mocker.spy(tested, "connect")
-    mocker.spy(tested.modules["first"], "execute")
-    mocker.spy(tested.modules["second"], "execute")
 
     step_shape = tested.input_buffer.step_shape
     dtype = kwargs["system"]["input_buffer"]["dtype"]
@@ -41,10 +30,10 @@ def test_system(kwargs_system, mocker):
         if tested.execute_before_input_buffer_full or tested.input_buffer.full:
             tested.connect.assert_any_call("first")
             tested.connect.assert_any_call("second")
-            tested.modules["first"].execute.assert_called()
-            tested.modules["second"].execute.assert_called()
-            assert tested.outputs["first"] is tested.modules["first"].execute.spy_return
-            assert tested.outputs["second"] is tested.modules["second"].execute.spy_return
+            tested.modules["first"].execute.assert_called_with(**tested.inputs["first"])
+            tested.modules["second"].execute.assert_called_with(**tested.inputs["second"])
+            assert tested.outputs["first"] is tested.modules["first"].execute.return_value
+            assert tested.outputs["second"] is tested.modules["second"].execute.return_value
         else:
             tested.connect.assert_not_called()
             tested.modules["first"].execute.assert_not_called()

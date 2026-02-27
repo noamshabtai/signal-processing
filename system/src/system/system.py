@@ -5,15 +5,15 @@ class System:
     def __init__(self, **kwargs):
         self.input_buffer = buffer.buffer.InputBuffer(**kwargs["input_buffer"])
 
-        self.modules = dict()
-        self.inputs = dict()
-        self.outputs = dict()
+        self.modules = {}
+        self.inputs = {}
+        self.outputs = {}
 
         self.DEBUG = kwargs.get("DEBUG", False)
         self.execute_before_input_buffer_full = kwargs.get("execute_before_input_buffer_full", False)
 
     def connect(self, module):
-        pass
+        self.inputs[module] = {}
 
     def execute(self, chunk):
         self.input_buffer.push(chunk)
