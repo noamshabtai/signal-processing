@@ -56,20 +56,21 @@ class Activator(activator.Activator):
                 self.fs = kwargs["input"]["fs"]
 
     def _setup_output(self, kwargs):
-        self.output_dtype = [np.dtype(dtype) for dtype in kwargs["output"]["dtype"]]
-
-        self.output_filename = [module + ".bin" for module in self.system.modules]
-
-        self.output_path = [self.output_dir / filename for filename in self.output_filename]
-        self.png_path = [output_path.with_suffix(".png") for output_path in self.output_path] if self.plot_save else []
-
-        self.output_fid = [open(self.output_path[i], "wb") for i in range(len(self.output_dtype))]
-        self.output_channel_shape = kwargs["output"]["channel_shape"]
-        self.output_step_size = kwargs["output"]["step_size"]
-        self.output_step_shape = [
-            channel_shape + [step_size]
-            for channel_shape, step_size in zip(self.output_channel_shape, self.output_step_size)
-        ]
+        self.output_modules = {}
+        for module in self.system.modules:
+            if module not in kwargs["output"]:
+                continue
+            cfg = kwargs["output"][module]
+            path = self.output_dir / (module + ".bin")
+            self.output_modules[module] = {
+                "dtype": np.dtype(cfg["dtype"]),
+                "channel_shape": cfg["channel_shape"],
+                "step_size": cfg["step_size"],
+                "step_shape": cfg["channel_shape"] + [cfg["step_size"]],
+                "path": path,
+                "png_path": path.with_suffix(".png") if self.plot_save else None,
+                "fid": open(path, "wb"),
+            }
 
     def pre_hook(self):
         pass
@@ -103,11 +104,11 @@ class Activator(activator.Activator):
             data = np.frombuffer(data, dtype=self.input_dtype)
             data = np.reshape(data, self.input_step_shape, order="F")
             self.pre_hook()
-            self.system.execute(data)
+            self.process_frame(data)
             self.post_hook()
             self.log_output()
-            for fid, key, dtype in zip(self.output_fid, self.system.outputs, self.output_dtype):
-                self.system.outputs[key].astype(dtype).ravel(order="F").tofile(fid)
+            for module, cfg in self.output_modules.items():
+                self.system.outputs[module].astype(cfg["dtype"]).ravel(order="F").tofile(cfg["fid"])
             if self.max_steps and self.step >= self.max_steps:
                 break
 
@@ -118,24 +119,22 @@ class Activator(activator.Activator):
         pass
 
     def display_plot(self):
-        for i, path in enumerate(self.output_path):
-            if pathlib.Path(path).stat().st_size:
-                with open(path, "rb") as fid:
-                    data = np.fromfile(fid, dtype=self.output_dtype[i]).reshape(
-                        self.output_channel_shape[i] + [-1], order="F"
-                    )
-                    for channel_index in itertools.product(*[range(dim) for dim in self.output_channel_shape[i]]):
+        for module, cfg in self.output_modules.items():
+            if cfg["path"].stat().st_size:
+                with open(cfg["path"], "rb") as fid:
+                    data = np.fromfile(fid, dtype=cfg["dtype"]).reshape(cfg["channel_shape"] + [-1], order="F")
+                    for channel_index in itertools.product(*[range(dim) for dim in cfg["channel_shape"]]):
                         if np.iscomplexobj(data):
                             plt.plot(data[channel_index].real, label=f"channel {channel_index} real")
                             plt.plot(data[channel_index].imag, label=f"channel {channel_index} imag")
                         else:
                             plt.plot(data[channel_index], label=f"channel {channel_index}")
-                    plt.title(list(self.system.modules.keys())[i])
-                    self.post_figure_hook(plt, i, data)
+                    plt.title(module)
+                    self.post_figure_hook(plt, module, data)
                     plt.legend()
                     plt.tight_layout()
                     if self.plot_save:
-                        plt.savefig(self.png_path[i])
+                        plt.savefig(cfg["png_path"])
                     if self.plot_show:
                         plt.show()
                     else:
@@ -144,8 +143,8 @@ class Activator(activator.Activator):
     def cleanup(self):
         self.input_fid.close()
 
-        for fid in self.output_fid:
-            fid.close()
+        for cfg in self.output_modules.values():
+            cfg["fid"].close()
 
         if self.plot_save or self.plot_show:
             self.display_plot()

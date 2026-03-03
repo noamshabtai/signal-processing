@@ -5,10 +5,10 @@ import audio_io.conversions
 import numpy as np
 import pyaudio
 
-from . import live_input
+from . import activator
 
 
-class Activator(live_input.Activator):
+class Activator(activator.Activator):
     def __init__(self, system_class, **kwargs):
         super().__init__(system_class, **kwargs)
 
@@ -26,12 +26,6 @@ class Activator(live_input.Activator):
             * np.prod(self.system.input_buffer.channel_shape)
             * self.system.input_buffer.dtype.itemsize
         )
-
-        all_frames = self.input_fid.readframes(self.input_fid.getnframes())
-        input_data_all = np.frombuffer(all_frames, dtype=self.system.input_buffer.dtype)
-        input_dtype_info = np.iinfo(self.system.input_buffer.dtype)
-        self.input_peak_normalized = np.max(np.abs(input_data_all)) / input_dtype_info.max
-        self.input_fid.rewind()
 
         self.pyaudio = pyaudio.PyAudio()
         self.output_dtype = np.dtype(kwargs["output"]["dtype"])
@@ -60,10 +54,9 @@ class Activator(live_input.Activator):
         data = np.reshape(data, self.system.input_buffer.step_shape, order="F")
         data = data * self.channel_gain[:, np.newaxis]
 
-        self.system.execute(data)
+        self.process_frame(data)
 
-        output_key = list(self.system.outputs.keys())[-1]
-        output_data = self.system.outputs[output_key]
+        output_data = self.fetch_output()
         output_bytes = output_data.astype(self.output_dtype).ravel(order="F").tobytes()
 
         return (output_bytes, pyaudio.paContinue)

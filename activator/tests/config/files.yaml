@@ -1,0 +1,103 @@
+base:
+  activator:
+    input:
+      dtype: int16
+    output:
+      dir: output
+    system:
+      input_buffer:
+        step_size: 10
+        buffer_size: 50
+        dtype: int16
+    plot:
+      show: False
+      save: False
+
+cases:
+  - name: execute with binary file
+    activator:
+      input:
+        path: input.bin
+      system:
+        input_buffer:
+          channel_shape: [2,3]
+      output:
+        first:
+          dtype: int32
+          channel_shape: [1]
+          step_size: 10
+        second:
+          dtype: int64
+          channel_shape: [1]
+          step_size: 10
+      log:
+        sweep:
+          rate: [1, 2]
+    parameters:
+      sweep:
+        nsamples:
+          - 10
+          - 50
+  - name: execute with plot save
+    activator:
+      input:
+        path: input.bin
+      system:
+        input_buffer:
+          channel_shape: [1]
+      output:
+        first:
+          dtype: int32
+          channel_shape: [1]
+          step_size: 10
+        second:
+          dtype: int64
+          channel_shape: [1]
+          step_size: 10
+      plot:
+        save: True
+      log:
+        rate: 1
+    parameters:
+      nsamples: 50
+  - name: selective output
+    activator:
+      input:
+        path: input.bin
+      system:
+        input_buffer:
+          channel_shape: [1]
+      output:
+        first:
+          dtype: int32
+          channel_shape: [1]
+          step_size: 10
+      log:
+        rate: 1
+    parameters:
+      nsamples: 50
+  - name: execute with wav file
+    activator:
+      input:
+        path: input.wav
+        fs: 16000
+      system:
+        input_buffer:
+          channel_shape: [2]
+      output:
+        first:
+          dtype: int32
+          channel_shape: [1]
+          step_size: 10
+        second:
+          dtype: int64
+          channel_shape: [1]
+          step_size: 10
+      log:
+        sweep:
+          rate: [1, 2]
+    parameters:
+      sweep:
+        nsamples:
+          - 10
+          - 50

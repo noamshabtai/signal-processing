@@ -2,9 +2,12 @@ import copy
 import pathlib
 import wave
 
+import conftest
 import numpy as np
 
-import activator.file_input
+import activator.files
+
+Activator = conftest.make_activator_class(activator.files.Activator)
 
 
 def create_input_file(**kwargs):
@@ -27,45 +30,38 @@ def create_input_file(**kwargs):
             data.tofile(fid)
 
 
-def setup_kwargs(kwargs_file_input, tmp_path):
-    kwargs = copy.deepcopy(kwargs_file_input)
+def setup_kwargs(kwargs_files, tmp_path):
+    kwargs = copy.deepcopy(kwargs_files)
     kwargs["activator"]["input"]["path"] = tmp_path / pathlib.Path(kwargs["activator"]["input"]["path"]).name
     kwargs["activator"]["output"]["dir"] = tmp_path / "output"
     create_input_file(**kwargs)
     return kwargs
 
 
-def mock_system_class(mocker):
-    system_class = mocker.Mock()
-    system_class.return_value.modules = {"first": mocker.Mock(), "second": mocker.Mock()}
-    system_class.return_value.outputs = {}
+def test_system_execute_called_every_step(kwargs_files, tmp_path, mocker):
+    kwargs = setup_kwargs(kwargs_files, tmp_path)
 
-    def execute(chunk):
-        system_class.return_value.outputs = {module: chunk for module in system_class.return_value.modules}
-
-    system_class.return_value.execute.side_effect = execute
-    return system_class
-
-
-def test_system_execute_called_every_step(kwargs_file_input, tmp_path, mocker):
-    kwargs = setup_kwargs(kwargs_file_input, tmp_path)
-
-    system_class = mock_system_class(mocker)
-    with activator.file_input.Activator(system_class=system_class, **kwargs["activator"]) as tested:
+    with Activator(mocker, **kwargs["activator"]) as tested:
         tested.execute()
 
     assert tested.system.execute.call_count == tested.nsteps
 
 
-def test_output_files_created(kwargs_file_input, tmp_path, mocker):
-    kwargs = setup_kwargs(kwargs_file_input, tmp_path)
+def test_output_files_created(kwargs_files, tmp_path, mocker):
+    kwargs = setup_kwargs(kwargs_files, tmp_path)
     output_dir = kwargs["activator"]["output"]["dir"]
+    output_modules = {key for key in kwargs["activator"]["output"] if key != "dir"}
 
-    system = mock_system_class(mocker)
-    with activator.file_input.Activator(system_class=system, **kwargs["activator"]) as tested:
+    with Activator(mocker, **kwargs["activator"]) as tested:
         tested.execute()
 
     for module in tested.system.modules:
-        assert (output_dir / (module + ".bin")).exists()
-        if kwargs["activator"]["plot"]["save"]:
-            assert (output_dir / (module + ".png")).exists()
+        if module in output_modules:
+            assert (output_dir / (module + ".bin")).exists()
+            if kwargs["activator"]["plot"]["save"]:
+                assert (output_dir / (module + ".png")).exists()
+            else:
+                assert not (output_dir / (module + ".png")).exists()
+        else:
+            assert not (output_dir / (module + ".bin")).exists()
+            assert not (output_dir / (module + ".png")).exists()

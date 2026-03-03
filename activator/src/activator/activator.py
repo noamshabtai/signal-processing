@@ -13,5 +13,11 @@ class Activator:
     def execute(self):
         pass
 
+    def process_frame(self, data):
+        self.system.execute(data)
+
+    def fetch_output(self):
+        return list(self.system.outputs.values())[-1] if self.system.outputs else None
+
     def cleanup(self):
         pass

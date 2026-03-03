@@ -1,25 +1,12 @@
-import unittest.mock
+import copy
 import wave
 
+import conftest
 import numpy as np
 
 import activator.audio_demo
-import buffer.buffer
 
-
-def make_mock_system(mocker, **system_kwargs):
-    mock = mocker.Mock()
-    mock.input_buffer = buffer.buffer.InputBuffer(**system_kwargs["input_buffer"])
-    mock.modules = {"reflector": mocker.Mock()}
-    mock.outputs = {}
-
-    def execute(chunk):
-        mock.input_buffer.push(chunk)
-        if mock.input_buffer.full:
-            mock.outputs["reflector"] = chunk
-
-    mock.execute.side_effect = execute
-    return mock
+Activator = conftest.make_activator_class(activator.audio_demo.Activator)
 
 
 def create_test_wav(path, nchannels=1, duration_s=0.5, sampling_rate=16000):
@@ -43,60 +30,38 @@ def create_test_wav(path, nchannels=1, duration_s=0.5, sampling_rate=16000):
         wf.writeframes(interleaved_data.tobytes())
 
 
-def make_system_class(mocker):
-    return lambda **kw: make_mock_system(mocker, **kw)
+def setup_kwargs(kwargs_audio_demo, tmp_path):
+    kwargs = copy.deepcopy(kwargs_audio_demo)
+    wav_file = tmp_path / "test.wav"
+    create_test_wav(wav_file)
+    kwargs["activator"]["input"]["path"] = str(wav_file)
+    return kwargs
 
 
 def test_audio_demo_activator_initialization(kwargs_audio_demo, tmp_path, mocker):
-    wav_file = tmp_path / "test.wav"
-    create_test_wav(wav_file)
-    kwargs_audio_demo["activator"]["input"]["path"] = str(wav_file)
+    kwargs = setup_kwargs(kwargs_audio_demo, tmp_path)
+    mocker.patch("pyaudio.PyAudio")
 
-    with unittest.mock.patch("pyaudio.PyAudio"):
-        demo_activator = activator.audio_demo.Activator(
-            system_class=make_system_class(mocker), **kwargs_audio_demo["activator"]
-        )
-        assert demo_activator.system is not None
-        assert hasattr(demo_activator, "channel_gain")
-        demo_activator.cleanup()
-
-
-def test_audio_demo_activator_has_input_peak(kwargs_audio_demo, tmp_path, mocker):
-    wav_file = tmp_path / "test.wav"
-    create_test_wav(wav_file)
-    kwargs_audio_demo["activator"]["input"]["path"] = str(wav_file)
-
-    with unittest.mock.patch("pyaudio.PyAudio"):
-        demo_activator = activator.audio_demo.Activator(
-            system_class=make_system_class(mocker), **kwargs_audio_demo["activator"]
-        )
-        assert hasattr(demo_activator, "input_peak_normalized")
-        assert 0 <= demo_activator.input_peak_normalized <= 1
-        demo_activator.cleanup()
+    tested = Activator(mocker, **kwargs["activator"])
+    assert tested.system is not None
+    assert hasattr(tested, "channel_gain")
+    tested.cleanup()
 
 
 def test_audio_demo_activator_has_stream(kwargs_audio_demo, tmp_path, mocker):
-    wav_file = tmp_path / "test.wav"
-    create_test_wav(wav_file)
-    kwargs_audio_demo["activator"]["input"]["path"] = str(wav_file)
+    kwargs = setup_kwargs(kwargs_audio_demo, tmp_path)
+    mocker.patch("pyaudio.PyAudio")
 
-    with unittest.mock.patch("pyaudio.PyAudio"):
-        demo_activator = activator.audio_demo.Activator(
-            system_class=make_system_class(mocker), **kwargs_audio_demo["activator"]
-        )
-        assert hasattr(demo_activator, "output_stream")
-        assert demo_activator.output_stream is not None
-        demo_activator.cleanup()
+    tested = Activator(mocker, **kwargs["activator"])
+    assert hasattr(tested, "output_stream")
+    assert tested.output_stream is not None
+    tested.cleanup()
 
 
 def test_audio_demo_activator_context_manager(kwargs_audio_demo, tmp_path, mocker):
-    wav_file = tmp_path / "test.wav"
-    create_test_wav(wav_file)
-    kwargs_audio_demo["activator"]["input"]["path"] = str(wav_file)
+    kwargs = setup_kwargs(kwargs_audio_demo, tmp_path)
+    mocker.patch("pyaudio.PyAudio")
 
-    with unittest.mock.patch("pyaudio.PyAudio"):
-        with activator.audio_demo.Activator(
-            system_class=make_system_class(mocker), **kwargs_audio_demo["activator"]
-        ) as demo_activator:
-            assert demo_activator.system is not None
-            assert demo_activator.output_stream is not None
+    with Activator(mocker, **kwargs["activator"]) as tested:
+        assert tested.system is not None
+        assert tested.output_stream is not None
