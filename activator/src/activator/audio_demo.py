@@ -9,8 +9,8 @@ from . import activator
 
 
 class Activator(activator.Activator):
-    def __init__(self, system_class, **kwargs):
-        super().__init__(system_class, **kwargs)
+    def __init__(self, System, **kwargs):
+        super().__init__(System, **kwargs)
 
         if "demo" in kwargs and "initial_gain_db" in kwargs["demo"]:
             initial_gain_db = np.int16(kwargs["demo"]["initial_gain_db"])

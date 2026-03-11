@@ -1,12 +1,16 @@
 import copy
+import unittest.mock
 import wave
 
 import conftest
 import numpy as np
+import pyaudio
 
 import activator.audio_demo
 
-Activator = conftest.make_activator_class(activator.audio_demo.Activator)
+pyaudio.PyAudio = unittest.mock.Mock()
+
+Activator = conftest.define_activator_class_with_mocked_system(activator.audio_demo.Activator)
 
 
 def create_test_wav(path, nchannels=1, duration_s=0.5, sampling_rate=16000):
@@ -38,30 +42,27 @@ def setup_kwargs(kwargs_audio_demo, tmp_path):
     return kwargs
 
 
-def test_audio_demo_activator_initialization(kwargs_audio_demo, tmp_path, mocker):
+def test_audio_demo_activator_initialization(kwargs_audio_demo, tmp_path):
     kwargs = setup_kwargs(kwargs_audio_demo, tmp_path)
-    mocker.patch("pyaudio.PyAudio")
 
-    tested = Activator(mocker, **kwargs["activator"])
+    tested = Activator(**kwargs["activator"])
     assert tested.system is not None
     assert hasattr(tested, "channel_gain")
     tested.cleanup()
 
 
-def test_audio_demo_activator_has_stream(kwargs_audio_demo, tmp_path, mocker):
+def test_audio_demo_activator_has_stream(kwargs_audio_demo, tmp_path):
     kwargs = setup_kwargs(kwargs_audio_demo, tmp_path)
-    mocker.patch("pyaudio.PyAudio")
 
-    tested = Activator(mocker, **kwargs["activator"])
+    tested = Activator(**kwargs["activator"])
     assert hasattr(tested, "output_stream")
     assert tested.output_stream is not None
     tested.cleanup()
 
 
-def test_audio_demo_activator_context_manager(kwargs_audio_demo, tmp_path, mocker):
+def test_audio_demo_activator_context_manager(kwargs_audio_demo, tmp_path):
     kwargs = setup_kwargs(kwargs_audio_demo, tmp_path)
-    mocker.patch("pyaudio.PyAudio")
 
-    with Activator(mocker, **kwargs["activator"]) as tested:
+    with Activator(**kwargs["activator"]) as tested:
         assert tested.system is not None
         assert tested.output_stream is not None

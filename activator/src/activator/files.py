@@ -9,7 +9,7 @@ from . import activator
 
 
 class Activator(activator.Activator):
-    def __init__(self, system_class, **kwargs):
+    def __init__(self, System, **kwargs):
         self.DEBUG = kwargs.get("DEBUG", False)
         self.max_steps = kwargs.get("max_steps", None)
 
@@ -23,7 +23,7 @@ class Activator(activator.Activator):
         if self.DEBUG:
             kwargs["system"]["output_dir"] = self.output_dir
 
-        super().__init__(system_class, **kwargs)
+        super().__init__(System, **kwargs)
 
         ib = kwargs["system"]["input_buffer"]
         self.input_dtype = np.dtype(kwargs["input"]["dtype"])

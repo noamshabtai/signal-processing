@@ -16,7 +16,6 @@ build-backend = "hatchling.build"
 dev = [
     "parametrize-tests",
     "pytest>=8.3.4",
-    "pytest-mock>=3.15.1",
     "pytest-xdist>=3.6.1",
 ]
 

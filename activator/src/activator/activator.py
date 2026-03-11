@@ -1,6 +1,6 @@
 class Activator:
-    def __init__(self, system_class, **kwargs):
-        self.system = system_class(**kwargs["system"])
+    def __init__(self, System, **kwargs):
+        self.system = System(**kwargs["system"])
         self.completed = False
 
     def __enter__(self):

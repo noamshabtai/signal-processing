@@ -1,26 +1,25 @@
 import pathlib
 import sys
+import unittest.mock
 
 import parametrize_tests.fixtures
 
 import buffer.buffer
 
 
-def make_activator_class(base_class):
-    class Activator(base_class):
-        def __init__(self, mocker, **kwargs):
-            system_class = mocker.Mock()
-            system_class.return_value.modules = {"first": mocker.Mock(), "second": mocker.Mock()}
-            system_class.return_value.outputs = {}
-
-            if "input_buffer" in kwargs.get("system", {}):
-                system_class.return_value.input_buffer = buffer.buffer.InputBuffer(**kwargs["system"]["input_buffer"])
+def define_activator_class_with_mocked_system(Base):
+    class Activator(Base):
+        def __init__(self, **kwargs):
+            System = unittest.mock.Mock()
+            System.return_value.modules = {"first": unittest.mock.Mock(), "second": unittest.mock.Mock()}
+            System.return_value.outputs = {}
+            System.return_value.input_buffer = buffer.buffer.InputBuffer(**kwargs["system"]["input_buffer"])
 
             def execute(chunk):
-                system_class.return_value.outputs = {module: chunk for module in system_class.return_value.modules}
+                System.return_value.outputs = {module: chunk for module in System.return_value.modules}
 
-            system_class.return_value.execute.side_effect = execute
-            super().__init__(system_class=system_class, **kwargs)
+            System.return_value.execute.side_effect = execute
+            super().__init__(System=System, **kwargs)
 
     return Activator
 

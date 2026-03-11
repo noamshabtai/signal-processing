@@ -1,34 +1,33 @@
 import copy
+import unittest.mock
 
 import conftest
 import numpy as np
 
 import activator.activator
 
-
-class SimpleActivator(activator.activator.Activator):
-    def __init__(self, mocker, **kwargs):
-        super().__init__(system_class=mocker.Mock(), **kwargs)
+Activator = conftest.define_activator_class_with_mocked_system(activator.activator.Activator)
 
 
-Activator = conftest.make_activator_class(activator.activator.Activator)
-
-
-def test_activator(kwargs_activator, mocker):
+def test_activator(kwargs_activator):
     kwargs = copy.deepcopy(kwargs_activator)
+    tested = Activator(**kwargs["activator"])
 
-    with SimpleActivator(mocker, **kwargs["activator"]) as tested:
+    tested.cleanup = unittest.mock.Mock()
+    with tested:
         assert tested.system is not None
-        mocker.spy(tested, "cleanup")
-        assert not tested.completed
-        tested.cleanup.assert_not_called()
-
     tested.cleanup.assert_called_once()
 
+    tested.cleanup.reset_mock()
+    with tested:
+        tested.completed = True
 
-def test_process_frame_calls_system_execute(kwargs_activator, mocker):
+    tested.cleanup.assert_not_called()
+
+
+def test_process_frame_calls_system_execute(kwargs_activator):
     kwargs = copy.deepcopy(kwargs_activator)
-    tested = Activator(mocker, **kwargs["activator"])
+    tested = Activator(**kwargs["activator"])
 
     test_data = np.zeros((1, 10), dtype=np.float32)
     tested.process_frame(test_data)
@@ -36,9 +35,9 @@ def test_process_frame_calls_system_execute(kwargs_activator, mocker):
     tested.system.execute.assert_called_once()
 
 
-def test_fetch_output_returns_last_output(kwargs_activator, mocker):
+def test_fetch_output_returns_last_output(kwargs_activator):
     kwargs = copy.deepcopy(kwargs_activator)
-    tested = Activator(mocker, **kwargs["activator"])
+    tested = Activator(**kwargs["activator"])
 
     test_data = np.zeros((1, 10), dtype=np.float32)
     tested.process_frame(test_data)
@@ -48,9 +47,9 @@ def test_fetch_output_returns_last_output(kwargs_activator, mocker):
     assert np.array_equal(result, tested.system.outputs[last_module])
 
 
-def test_fetch_output_returns_none_when_no_outputs(kwargs_activator, mocker):
+def test_fetch_output_returns_none_when_no_outputs(kwargs_activator):
     kwargs = copy.deepcopy(kwargs_activator)
-    tested = Activator(mocker, **kwargs["activator"])
+    tested = Activator(**kwargs["activator"])
 
     result = tested.fetch_output()
     assert result is None

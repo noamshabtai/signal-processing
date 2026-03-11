@@ -27,7 +27,6 @@ requires-dist = [
 dev = [
     { name = "parametrize-tests", editable = "parametrize-tests" },
     { name = "pytest", specifier = ">=8.3.4" },
-    { name = "pytest-mock", specifier = ">=3.14.0" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
 ]
 
@@ -825,7 +824,6 @@ requires-dist = [{ name = "buffer", editable = "buffer" }]
 dev = [
     { name = "parametrize-tests", editable = "parametrize-tests" },
     { name = "pytest", specifier = ">=8.3.4" },
-    { name = "pytest-mock", specifier = ">=3.15.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
 ]
 

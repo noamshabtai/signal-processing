@@ -7,7 +7,7 @@ import numpy as np
 
 import activator.files
 
-Activator = conftest.make_activator_class(activator.files.Activator)
+Activator = conftest.define_activator_class_with_mocked_system(activator.files.Activator)
 
 
 def create_input_file(**kwargs):
@@ -38,21 +38,21 @@ def setup_kwargs(kwargs_files, tmp_path):
     return kwargs
 
 
-def test_system_execute_called_every_step(kwargs_files, tmp_path, mocker):
+def test_system_execute_called_every_step(kwargs_files, tmp_path):
     kwargs = setup_kwargs(kwargs_files, tmp_path)
 
-    with Activator(mocker, **kwargs["activator"]) as tested:
+    with Activator(**kwargs["activator"]) as tested:
         tested.execute()
 
     assert tested.system.execute.call_count == tested.nsteps
 
 
-def test_output_files_created(kwargs_files, tmp_path, mocker):
+def test_output_files_created(kwargs_files, tmp_path):
     kwargs = setup_kwargs(kwargs_files, tmp_path)
     output_dir = kwargs["activator"]["output"]["dir"]
     output_modules = {key for key in kwargs["activator"]["output"] if key != "dir"}
 
-    with Activator(mocker, **kwargs["activator"]) as tested:
+    with Activator(**kwargs["activator"]) as tested:
         tested.execute()
 
     for module in tested.system.modules:
