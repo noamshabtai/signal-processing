@@ -4,11 +4,8 @@ import wave
 
 import conftest
 import numpy as np
-import pyaudio
 
 import activator.audio_demo
-
-pyaudio.PyAudio = unittest.mock.Mock()
 
 Activator = conftest.define_activator_class_with_mocked_system(activator.audio_demo.Activator)
 
@@ -42,7 +39,8 @@ def setup_kwargs(kwargs_audio_demo, tmp_path):
     return kwargs
 
 
-def test_audio_demo_activator_initialization(kwargs_audio_demo, tmp_path):
+@unittest.mock.patch("pyaudio.PyAudio")
+def test_audio_demo_activator_initialization(mock_pyaudio, kwargs_audio_demo, tmp_path):
     kwargs = setup_kwargs(kwargs_audio_demo, tmp_path)
 
     tested = Activator(**kwargs["activator"])
@@ -51,7 +49,8 @@ def test_audio_demo_activator_initialization(kwargs_audio_demo, tmp_path):
     tested.cleanup()
 
 
-def test_audio_demo_activator_has_stream(kwargs_audio_demo, tmp_path):
+@unittest.mock.patch("pyaudio.PyAudio")
+def test_audio_demo_activator_has_stream(mock_pyaudio, kwargs_audio_demo, tmp_path):
     kwargs = setup_kwargs(kwargs_audio_demo, tmp_path)
 
     tested = Activator(**kwargs["activator"])
@@ -60,7 +59,8 @@ def test_audio_demo_activator_has_stream(kwargs_audio_demo, tmp_path):
     tested.cleanup()
 
 
-def test_audio_demo_activator_context_manager(kwargs_audio_demo, tmp_path):
+@unittest.mock.patch("pyaudio.PyAudio")
+def test_audio_demo_activator_context_manager(mock_pyaudio, kwargs_audio_demo, tmp_path):
     kwargs = setup_kwargs(kwargs_audio_demo, tmp_path)
 
     with Activator(**kwargs["activator"]) as tested:

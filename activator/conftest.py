@@ -4,8 +4,6 @@ import unittest.mock
 
 import parametrize_tests.fixtures
 
-import buffer.buffer
-
 
 def define_activator_class_with_mocked_system(Base):
     class Activator(Base):
@@ -13,7 +11,6 @@ def define_activator_class_with_mocked_system(Base):
             System = unittest.mock.Mock()
             System.return_value.modules = {"first": unittest.mock.Mock(), "second": unittest.mock.Mock()}
             System.return_value.outputs = {}
-            System.return_value.input_buffer = buffer.buffer.InputBuffer(**kwargs["system"]["input_buffer"])
 
             def execute(chunk):
                 System.return_value.outputs = {module: chunk for module in System.return_value.modules}

@@ -12,20 +12,22 @@ class Activator(activator.Activator):
     def __init__(self, System, **kwargs):
         super().__init__(System, **kwargs)
 
+        ib = kwargs["system"]["input_buffer"]
+        channel_shape = ib["channel_shape"]
+        step_size = ib["step_size"]
+        self.input_dtype = np.dtype(ib["dtype"])
+        self.input_step_shape = channel_shape + [step_size]
+
         if "demo" in kwargs and "initial_gain_db" in kwargs["demo"]:
             initial_gain_db = np.int16(kwargs["demo"]["initial_gain_db"])
             self.channel_gain = np.float32(10 ** (initial_gain_db / 20))
         else:
-            self.channel_gain = np.ones(np.prod(self.system.input_buffer.channel_shape), dtype=np.float32)
+            self.channel_gain = np.ones(np.prod(channel_shape), dtype=np.float32)
 
         self.input_path = pathlib.Path(kwargs["input"]["path"]).expanduser()
         self.input_fid = wave.open(str(self.input_path), "rb")
         self.fs = self.input_fid.getframerate()
-        self.num_expected_bytes_per_file_read = (
-            self.system.input_buffer.step_size
-            * np.prod(self.system.input_buffer.channel_shape)
-            * self.system.input_buffer.dtype.itemsize
-        )
+        self.num_expected_bytes_per_file_read = step_size * np.prod(channel_shape) * self.input_dtype.itemsize
 
         self.pyaudio = pyaudio.PyAudio()
         self.output_dtype = np.dtype(kwargs["output"]["dtype"])
@@ -35,7 +37,7 @@ class Activator(activator.Activator):
             channels=self.output_channels,
             rate=self.fs,
             output=True,
-            frames_per_buffer=self.system.input_buffer.step_size,
+            frames_per_buffer=step_size,
             stream_callback=self.audio_callback,
         )
         self.output_stream.start_stream()
@@ -44,14 +46,14 @@ class Activator(activator.Activator):
         pass
 
     def audio_callback(self, in_data, frame_count, time_info, status):
-        data_bytes = self.input_fid.readframes(self.system.input_buffer.step_size)
+        data_bytes = self.input_fid.readframes(self.input_step_shape[-1])
 
         if len(data_bytes) < self.num_expected_bytes_per_file_read:
             self.input_fid.rewind()
-            data_bytes = self.input_fid.readframes(self.system.input_buffer.step_size)
+            data_bytes = self.input_fid.readframes(self.input_step_shape[-1])
 
-        data = np.frombuffer(data_bytes, dtype=self.system.input_buffer.dtype)
-        data = np.reshape(data, self.system.input_buffer.step_shape, order="F")
+        data = np.frombuffer(data_bytes, dtype=self.input_dtype)
+        data = np.reshape(data, self.input_step_shape, order="F")
         data = data * self.channel_gain[:, np.newaxis]
 
         self.process_frame(data)

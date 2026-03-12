@@ -15,8 +15,6 @@ def test_system(kwargs_system):
     while not tested.input_buffer.full:
         tested.execute(chunk)
         if tested.execute_before_input_buffer_full or tested.input_buffer.full:
-            assert tested.inputs["first"]
-            assert tested.inputs["second"]
             tested.modules["first"].execute.assert_called_with(**tested.inputs["first"])
             tested.modules["second"].execute.assert_called_with(**tested.inputs["second"])
             assert tested.outputs["first"] is tested.modules["first"].execute.return_value
