@@ -13,7 +13,10 @@ def define_activator_class_with_mocked_system(Base):
             System.return_value.outputs = {}
 
             def execute(chunk):
-                System.return_value.outputs = {module: chunk for module in System.return_value.modules}
+                System.return_value.outputs = {
+                    module: System.return_value.modules[module].execute.return_value
+                    for module in System.return_value.modules
+                }
 
             System.return_value.execute.side_effect = execute
             super().__init__(System=System, **kwargs)

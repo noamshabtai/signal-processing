@@ -53,11 +53,23 @@ def test_output_files_created(kwargs_files, tmp_path):
     output_modules = {key for key in kwargs["activator"]["output"] if key != "dir"}
 
     with Activator(**kwargs["activator"]) as tested:
+        for module, cfg in tested.output_modules.items():
+            tested.system.modules[module].execute.return_value = np.random.normal(size=cfg["step_shape"]).astype(
+                cfg["dtype"]
+            )
         tested.execute()
 
     for module in tested.system.modules:
         if module in output_modules:
-            assert (output_dir / (module + ".bin")).exists()
+            cfg = kwargs["activator"]["output"][module]
+            path = output_dir / (module + ".bin")
+            data = np.fromfile(path, dtype=cfg["dtype"]).reshape(cfg["channel_shape"] + [-1], order="F")
+            expected = tested.system.modules[module].execute.return_value
+            for step in range(tested.nsteps):
+                start = step * cfg["step_size"]
+                end = start + cfg["step_size"]
+                assert np.array_equal(data[..., start:end], expected)
+
             if kwargs["activator"]["plot"]["save"]:
                 assert (output_dir / (module + ".png")).exists()
             else:

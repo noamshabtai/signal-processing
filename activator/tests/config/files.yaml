@@ -11,40 +11,25 @@ base:
         dtype: int16
     plot:
       show: False
-      save: False
 
 cases:
-  - name: execute with binary file
-    activator:
-      input:
-        path: input.bin
-      system:
-        input_buffer:
-          channel_shape: [2,3]
-      output:
-        first:
-          dtype: int32
-          channel_shape: [1]
-          step_size: 10
-        second:
-          dtype: int64
-          channel_shape: [1]
-          step_size: 10
-      log:
-        sweep:
-          rate: [1, 2]
-    parameters:
+  - parameters:
       sweep:
         nsamples:
-          - 10
-          - 50
-  - name: execute with plot save
+          - 20
+          - 30
     activator:
       input:
-        path: input.bin
+        sweep:
+          path:
+            - input.bin
+            - input.wav
       system:
         input_buffer:
-          channel_shape: [1]
+          sweep:
+            channel_shape:
+              - [1]
+              - [2,3]
       output:
         first:
           dtype: int32
@@ -52,52 +37,15 @@ cases:
           step_size: 10
         second:
           dtype: int64
-          channel_shape: [1]
+          channel_shape: [2,3]
           step_size: 10
       plot:
-        save: True
-      log:
-        rate: 1
-    parameters:
-      nsamples: 50
-  - name: selective output
-    activator:
-      input:
-        path: input.bin
-      system:
-        input_buffer:
-          channel_shape: [1]
-      output:
-        first:
-          dtype: int32
-          channel_shape: [1]
-          step_size: 10
-      log:
-        rate: 1
-    parameters:
-      nsamples: 50
-  - name: execute with wav file
-    activator:
-      input:
-        path: input.wav
-        fs: 16000
-      system:
-        input_buffer:
-          channel_shape: [2]
-      output:
-        first:
-          dtype: int32
-          channel_shape: [1]
-          step_size: 10
-        second:
-          dtype: int64
-          channel_shape: [1]
-          step_size: 10
+        sweep:
+          save:
+            - False
+            - True
       log:
         sweep:
-          rate: [1, 2]
-    parameters:
-      sweep:
-        nsamples:
-          - 10
-          - 50
+          rate:
+            - 1
+            - 2
