@@ -1,21 +1,35 @@
 base:
   activator:
     input:
-      path: ~/audio/test.wav
+      path: input.wav
     output:
       dtype: int16
-      channel_shape: [1]
     system:
       input_buffer:
-        channel_shape: [1]
-        step_size: 256
-        buffer_size: 1024
-        dtype: int16
-      output_buffer:
-        channel_shape: [1]
         step_size: 256
         buffer_size: 1024
         dtype: int16
 
 cases:
-  - name: audio demo
+  - parameters:
+      sweep:
+        sampling_rate:
+          - 16000
+          - 44100
+    activator:
+      demo:
+        sweep:
+          initial_gain_db:
+            - 0
+            - -6
+      system:
+        input_buffer:
+          sweep:
+            channel_shape:
+              - [1]
+              - [2]
+      output:
+        sweep:
+          channel_shape:
+            - [1]
+            - [2]

@@ -19,8 +19,9 @@ class Activator(activator.Activator):
         self.input_step_shape = channel_shape + [step_size]
 
         if "demo" in kwargs and "initial_gain_db" in kwargs["demo"]:
-            initial_gain_db = np.int16(kwargs["demo"]["initial_gain_db"])
-            self.channel_gain = np.float32(10 ** (initial_gain_db / 20))
+            initial_gain_db = np.array(kwargs["demo"]["initial_gain_db"])
+            gain = np.float32(10 ** (initial_gain_db / 20))
+            self.channel_gain = np.broadcast_to(np.atleast_1d(gain), (int(np.prod(channel_shape)),)).astype(np.float32)
         else:
             self.channel_gain = np.ones(np.prod(channel_shape), dtype=np.float32)
 

@@ -10,7 +10,6 @@ from . import activator
 
 class Activator(activator.Activator):
     def __init__(self, System, **kwargs):
-        self.DEBUG = kwargs.get("DEBUG", False)
         self.max_steps = kwargs.get("max_steps", None)
 
         self.plot_show = kwargs["plot"]["show"]
@@ -18,10 +17,6 @@ class Activator(activator.Activator):
         self.log_rate = kwargs["log"]["rate"]
         self.output_dir = pathlib.Path(kwargs["output"]["dir"])
         self.output_dir.mkdir(parents=True, exist_ok=True)
-
-        kwargs["system"]["DEBUG"] = self.DEBUG
-        if self.DEBUG:
-            kwargs["system"]["output_dir"] = self.output_dir
 
         super().__init__(System, **kwargs)
 

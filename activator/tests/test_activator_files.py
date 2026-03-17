@@ -46,6 +46,25 @@ def test_system_execute_called_every_step(kwargs_files, tmp_path):
 
     assert tested.system.execute.call_count == tested.nsteps
 
+    ib = kwargs["activator"]["system"]["input_buffer"]
+    channel_shape = ib["channel_shape"]
+    step_size = ib["step_size"]
+    input_dtype = np.dtype(kwargs["activator"]["input"]["dtype"])
+    step_shape = channel_shape + [step_size]
+    path = kwargs["activator"]["input"]["path"]
+    read_nbytes = int(np.prod(channel_shape)) * input_dtype.itemsize * step_size
+
+    if path.suffix.lower() == ".wav":
+        with wave.open(str(path), "rb") as fid:
+            for step in range(tested.nsteps):
+                expected = np.frombuffer(fid.readframes(step_size), dtype=input_dtype).reshape(step_shape, order="F")
+                assert np.array_equal(tested.system.execute.call_args_list[step][0][0], expected)
+    else:
+        with open(path, "rb") as fid:
+            for step in range(tested.nsteps):
+                expected = np.frombuffer(fid.read(read_nbytes), dtype=input_dtype).reshape(step_shape, order="F")
+                assert np.array_equal(tested.system.execute.call_args_list[step][0][0], expected)
+
 
 def test_output_files_created(kwargs_files, tmp_path):
     kwargs = setup_kwargs(kwargs_files, tmp_path)
