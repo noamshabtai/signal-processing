@@ -29,16 +29,16 @@ def create_input_file(**kwargs):
         wf.writeframes(data.ravel(order="F").tobytes())
 
 
-def setup_kwargs(kwargs_audio_demo, tmp_path):
+def direct_fid_to_tmp_path(kwargs_audio_demo, tmp_path):
     kwargs = copy.deepcopy(kwargs_audio_demo)
     kwargs["activator"]["input"]["path"] = tmp_path / pathlib.Path(kwargs["activator"]["input"]["path"]).name
-    create_input_file(**kwargs)
     return kwargs
 
 
 @unittest.mock.patch("pyaudio.PyAudio")
 def test_stream_opened_with_correct_params(mock_pyaudio, kwargs_audio_demo, tmp_path):
-    kwargs = setup_kwargs(kwargs_audio_demo, tmp_path)
+    kwargs = direct_fid_to_tmp_path(kwargs_audio_demo, tmp_path)
+    create_input_file(**kwargs)
     tested = Activator(**kwargs["activator"])
 
     ib = kwargs["activator"]["system"]["input_buffer"]
@@ -56,7 +56,8 @@ def test_stream_opened_with_correct_params(mock_pyaudio, kwargs_audio_demo, tmp_
 
 @unittest.mock.patch("pyaudio.PyAudio")
 def test_channel_gain(mock_pyaudio, kwargs_audio_demo, tmp_path):
-    kwargs = setup_kwargs(kwargs_audio_demo, tmp_path)
+    kwargs = direct_fid_to_tmp_path(kwargs_audio_demo, tmp_path)
+    create_input_file(**kwargs)
     tested = Activator(**kwargs["activator"])
 
     initial_gain_db = np.array(kwargs["activator"]["demo"]["initial_gain_db"])
@@ -70,7 +71,8 @@ def test_channel_gain(mock_pyaudio, kwargs_audio_demo, tmp_path):
 
 @unittest.mock.patch("pyaudio.PyAudio")
 def test_start_stream(mock_pyaudio, kwargs_audio_demo, tmp_path):
-    kwargs = setup_kwargs(kwargs_audio_demo, tmp_path)
+    kwargs = direct_fid_to_tmp_path(kwargs_audio_demo, tmp_path)
+    create_input_file(**kwargs)
     tested = Activator(**kwargs["activator"])
 
     mock_pyaudio.return_value.open.return_value.start_stream.assert_called_once()
@@ -79,19 +81,30 @@ def test_start_stream(mock_pyaudio, kwargs_audio_demo, tmp_path):
 
 @unittest.mock.patch("pyaudio.PyAudio")
 def test_audio_callback_chunk(mock_pyaudio, kwargs_audio_demo, tmp_path):
-    kwargs = setup_kwargs(kwargs_audio_demo, tmp_path)
+    kwargs = direct_fid_to_tmp_path(kwargs_audio_demo, tmp_path)
+    create_input_file(**kwargs)
     tested = Activator(**kwargs["activator"])
 
-    ib = kwargs["activator"]["system"]["input_buffer"]
-    step_size = ib["step_size"]
-    input_dtype = np.dtype(ib["dtype"])
-    step_shape = ib["channel_shape"] + [step_size]
-
+    step_size = kwargs["activator"]["system"]["input_buffer"]["step_size"]
     tested.audio_callback(None, step_size, None, None)
 
-    with wave.open(str(kwargs["activator"]["input"]["path"]), "rb") as wf:
-        expected = np.frombuffer(wf.readframes(step_size), dtype=input_dtype).reshape(step_shape, order="F")
-    expected = expected * tested.channel_gain[:, np.newaxis]
+    expected = next(conftest.read_input_chunks(kwargs)) * tested.channel_gain[:, np.newaxis]
 
-    assert np.array_equal(tested.system.execute.call_args[0][0], expected)
+    assert np.array_equal(tested.system.execute.call_args.args[0], expected)
     tested.cleanup()
+
+
+@unittest.mock.patch("pyaudio.PyAudio")
+def test_cleanup(mock_pyaudio, kwargs_audio_demo, tmp_path):
+    kwargs = direct_fid_to_tmp_path(kwargs_audio_demo, tmp_path)
+    create_input_file(**kwargs)
+    tested = Activator(**kwargs["activator"])
+
+    stream = mock_pyaudio.return_value.open.return_value
+    with unittest.mock.patch.object(tested.input_fid, "close") as mock_input_close:
+        tested.cleanup()
+
+    stream.stop_stream.assert_called_once()
+    stream.close.assert_called_once()
+    mock_pyaudio.return_value.terminate.assert_called_once()
+    mock_input_close.assert_called_once()
