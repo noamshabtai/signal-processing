@@ -9,6 +9,13 @@ import activator.activator
 Activator = conftest.define_activator_class_with_mocked_system(activator.activator.Activator)
 
 
+def test_defaults():
+    tested = Activator()
+    assert tested.channel_shape == [1]
+    assert tested.step_size == 1
+    assert tested.step_shape == [1, 1]
+
+
 def test_activator(kwargs_activator):
     kwargs = copy.deepcopy(kwargs_activator)
     tested = Activator(**kwargs["activator"])

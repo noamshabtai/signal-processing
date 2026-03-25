@@ -12,26 +12,22 @@ class Activator(activator.Activator):
     def __init__(self, System, **kwargs):
         self.max_steps = kwargs.get("max_steps", None)
 
-        self.plot_show = kwargs["plot"]["show"]
-        self.plot_save = kwargs["plot"]["save"]
-        self.log_rate = kwargs["log"]["rate"]
-        self.output_dir = pathlib.Path(kwargs["output"]["dir"])
+        self.plot_show = kwargs.get("plot", {}).get("show", False)
+        self.plot_save = kwargs.get("plot", {}).get("save", False)
+        self.log_rate = kwargs.get("log", {}).get("rate", 0)
+        self.output_dir = pathlib.Path(kwargs.get("output", {}).get("dir", "."))
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         super().__init__(System, **kwargs)
 
-        ib = kwargs["system"]["input_buffer"]
-        self.input_dtype = np.dtype(kwargs["input"]["dtype"])
-        channel_shape = ib["channel_shape"]
-        step_size = ib["step_size"]
-        self.input_step_shape = channel_shape + [step_size]
+        self.input_dtype = np.dtype(kwargs.get("input", {}).get("dtype", np.int16))
 
         self._setup_input(kwargs)
         self._setup_output(kwargs)
 
-        self.read_nbytes = np.prod(channel_shape) * self.input_dtype.itemsize * step_size
+        self.read_nbytes = np.prod(self.channel_shape) * self.input_dtype.itemsize * self.step_size
         if self.is_wav:
-            self.total_nbytes = self.input_fid.getnframes() * np.prod(channel_shape) * self.input_dtype.itemsize
+            self.total_nbytes = self.input_fid.getnframes() * np.prod(self.channel_shape) * self.input_dtype.itemsize
         else:
             self.total_nbytes = pathlib.Path(self.input_path).stat().st_size
         self.nsteps = self.total_nbytes // self.read_nbytes
@@ -89,7 +85,7 @@ class Activator(activator.Activator):
         while (
             len(
                 data := (
-                    self.input_fid.readframes(self.input_step_shape[-1])
+                    self.input_fid.readframes(self.step_shape[-1])
                     if self.is_wav
                     else self.input_fid.read(self.read_nbytes)
                 )
@@ -97,7 +93,7 @@ class Activator(activator.Activator):
             == self.read_nbytes
         ):
             data = np.frombuffer(data, dtype=self.input_dtype)
-            data = np.reshape(data, self.input_step_shape, order="F")
+            data = np.reshape(data, self.step_shape, order="F")
             self.pre_hook()
             self.process_frame(data)
             self.post_hook()
