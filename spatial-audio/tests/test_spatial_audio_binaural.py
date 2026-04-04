@@ -8,8 +8,8 @@ import spatial_audio.spatial_audio
 def test_spatial_audio_execute(kwargs_binaural, project_dir):
     kwargs = copy.deepcopy(kwargs_binaural)
     kwargs["spatial_audio"]["hrtf"]["path"] = project_dir / kwargs["spatial_audio"]["hrtf"]["path"]
-    kwargs["spatial_audio"]["initial_azimuth"] = kwargs["test"]["input"]["azimuth"]
-    kwargs["spatial_audio"]["initial_elevation"] = kwargs["test"]["input"]["elevation"]
+    kwargs["spatial_audio"]["initial_azimuth"] = kwargs["parameters"]["input"]["azimuth"]
+    kwargs["spatial_audio"]["initial_elevation"] = kwargs["parameters"]["input"]["elevation"]
     tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["spatial_audio"])
 
     CH = len(kwargs["spatial_audio"]["initial_azimuth"])
@@ -27,8 +27,8 @@ def test_spatial_audio_execute(kwargs_binaural, project_dir):
 def test_spatial_audio(kwargs_binaural, project_dir):
     kwargs = copy.deepcopy(kwargs_binaural)
     kwargs["spatial_audio"]["hrtf"]["path"] = project_dir / kwargs["spatial_audio"]["hrtf"]["path"]
-    kwargs["spatial_audio"]["initial_azimuth"] = kwargs["test"]["input"]["azimuth"]
-    kwargs["spatial_audio"]["initial_elevation"] = kwargs["test"]["input"]["elevation"]
+    kwargs["spatial_audio"]["initial_azimuth"] = kwargs["parameters"]["input"]["azimuth"]
+    kwargs["spatial_audio"]["initial_elevation"] = kwargs["parameters"]["input"]["elevation"]
     tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["spatial_audio"])
     tested.tare_head_orientation(0, 0, 0)
     assert tested.global_orientation == quaternion.quaternion(1, 0, 0, 0)
@@ -42,11 +42,11 @@ def test_spatial_audio(kwargs_binaural, project_dir):
     assert np.allclose(el, tested.elevation_CH)
     assert np.allclose(np.mod(az, 360), np.mod(tested.azimuth_CH, 360))
 
-    tested.set_head_orientation(**kwargs["test"]["orientation"])
+    tested.set_head_orientation(**kwargs["parameters"]["orientation"])
     el, az = tested.combine_head_orientation()
-    assert np.allclose(el, kwargs["test"]["expected"]["elevation"], atol=1)
+    assert np.allclose(el, kwargs["parameters"]["expected"]["elevation"], atol=1)
     valid_idx = np.where(np.abs(np.abs(el) - 90) > 1)[0]
     az = az[valid_idx]
-    expected_az = np.array(kwargs["test"]["expected"]["azimuth"])[valid_idx]
+    expected_az = np.array(kwargs["parameters"]["expected"]["azimuth"])[valid_idx]
     delta = (az - expected_az + 180) % 360 - 180
     assert np.all(np.abs(delta) < 1)

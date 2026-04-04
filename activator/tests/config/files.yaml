@@ -1,0 +1,69 @@
+base:
+  parameters:
+    nsamples: 30
+  activator:
+    input:
+      dtype: int16
+      path: input.bin
+    output:
+      dir: output
+      first:
+        dtype: int32
+        channel_shape: [1]
+        step_size: 10
+      second:
+        dtype: int64
+        channel_shape: [2,3]
+        step_size: 10
+    system:
+      input_buffer:
+        step_size: 10
+        buffer_size: 50
+        dtype: int16
+        channel_shape: [1]
+    plot:
+      show: False
+      save: False
+    log:
+      rate: 1
+
+cases:
+  - name: no_steps
+    parameters:
+      nsamples: 5
+
+  - name: one_step
+    parameters:
+      nsamples: 10
+
+  - name: wav
+    activator:
+      input:
+        path: input.wav
+
+  - name: multichannel
+    activator:
+      system:
+        input_buffer:
+          channel_shape: [2, 3]
+
+  - name: plot_save
+    activator:
+      plot:
+        save: True
+
+  - name: log_rate_2
+    activator:
+      log:
+        rate: 2
+
+  - name: input_dtype_float32
+    activator:
+      input:
+        dtype: float32
+
+  - name: system_dtype_float32
+    activator:
+      system:
+        input_buffer:
+          dtype: float32

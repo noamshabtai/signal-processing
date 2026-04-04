@@ -1,25 +1,26 @@
 cases:
   - name: dummy activator float
-    input:
-      source: file
-      path: input.bin
-      dtype: float32
-    simulation:
-      sweep:
-        nsamples:
-          - 50
-          - 100
-    system:
-      input_buffer:
-        channel_shape: [2,3]
-        step_size: 10
-        buffer_size: 50
-    output:
-      destination: file
-      dtype: [float32, float64]
-      dir: output
-    plot:
-      show: False
-      save: True
-    log:
-      rate: 2
+    activator:
+      input:
+        source: file
+        path: input.bin
+        dtype: float32
+      simulation:
+        sweep:
+          nsamples:
+            - 50
+            - 100
+      system:
+        input_buffer:
+          channel_shape: [2,3]
+          step_size: 10
+          buffer_size: 50
+      output:
+        destination: file
+        dtype: [float32, float64]
+        dir: output
+      plot:
+        show: False
+        save: True
+      log:
+        rate: 2

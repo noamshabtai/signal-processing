@@ -8,7 +8,6 @@ import system.system
 class System(system.system.System):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.execute_before_input_buffer_full = True
 
         kwargs["analysis"]["nfft"] = kwargs["input_buffer"]["buffer_size"]
         kwargs["analysis"]["buffer_size"] = kwargs["input_buffer"]["buffer_size"]

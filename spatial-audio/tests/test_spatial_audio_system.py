@@ -14,7 +14,7 @@ def test_system(kwargs_system, project_dir):
     ]
 
     zeros_chunk = np.zeros(input_chunk_shape, dtype=kwargs["system"]["input_buffer"]["dtype"])
-    while not system.input_buffer.full:
+    while not system.input_buffer.ready:
         system.execute(zeros_chunk)
 
     impulse_chunk = np.zeros(input_chunk_shape, dtype=kwargs["system"]["input_buffer"]["dtype"])

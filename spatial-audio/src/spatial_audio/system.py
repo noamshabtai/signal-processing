@@ -7,7 +7,6 @@ import system.system
 class System(system.system.System):
     def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
-        self.execute_before_input_buffer_full = True
 
         kwargs["analysis"]["nfft"] = kwargs["spatial_audio"]["nfft"]
         kwargs["analysis"]["buffer_size"] = kwargs["input_buffer"]["buffer_size"]

@@ -1,75 +1,84 @@
+import copy
 import unittest.mock
-import wave
 
+import audio_io.conversions
+import conftest
 import numpy as np
 
 import activator.audio_demo
-import system.instances.system
+
+Activator = conftest.define_activator_class_with_mocked_system(activator.audio_demo.Activator)
 
 
-def create_test_wav(path, nchannels=1, duration_s=0.5, sampling_rate=16000):
-    t = np.linspace(0.0, duration_s, int(sampling_rate * duration_s), endpoint=False)
+@unittest.mock.patch("pyaudio.PyAudio")
+def test_stream_opened_with_correct_params(mock_pyaudio, kwargs_audio_demo, tmp_path):
+    kwargs = copy.deepcopy(kwargs_audio_demo)
+    conftest.arrange_tmp_path_in_kwargs(kwargs, tmp_path)
+    conftest.create_input_file(**kwargs)
 
-    channels = []
-    for i in range(nchannels):
-        freq = 440 * (i + 1)
-        sine_wave = 0.5 * np.sin(2 * np.pi * freq * t)
-        channels.append(sine_wave)
-
-    dtype = np.int16
-    interleaved_data = np.empty(len(t) * nchannels, dtype=dtype)
-    for i in range(nchannels):
-        interleaved_data[i::nchannels] = (channels[i] * np.iinfo(dtype).max).astype(dtype)
-
-    with wave.open(str(path), "wb") as wf:
-        wf.setnchannels(nchannels)
-        wf.setsampwidth(dtype().itemsize)
-        wf.setframerate(sampling_rate)
-        wf.writeframes(interleaved_data.tobytes())
+    ib = kwargs["activator"]["system"]["input_buffer"]
+    output = kwargs["activator"]["output"]
+    with Activator(**kwargs["activator"]) as tested:
+        tested.pyaudio.open.assert_called_once_with(
+            format=audio_io.conversions.np_dtype_to_pa_format(np.dtype(output["dtype"])),
+            channels=int(np.prod(output["channel_shape"])),
+            rate=kwargs["parameters"]["sampling_rate"],
+            output=True,
+            frames_per_buffer=ib["step_size"],
+            stream_callback=tested.audio_callback,
+        )
 
 
-def test_audio_demo_activator_initialization(kwargs_audio_demo, tmp_path):
-    wav_file = tmp_path / "test.wav"
-    create_test_wav(wav_file)
-    kwargs_audio_demo["input"]["path"] = str(wav_file)
+@unittest.mock.patch("pyaudio.PyAudio")
+def test_channel_gain(mock_pyaudio, kwargs_audio_demo, tmp_path):
+    kwargs = copy.deepcopy(kwargs_audio_demo)
+    conftest.arrange_tmp_path_in_kwargs(kwargs, tmp_path)
+    conftest.create_input_file(**kwargs)
 
-    with unittest.mock.patch("pyaudio.PyAudio"):
-        demo_activator = activator.audio_demo.Activator(system.instances.system.System, **kwargs_audio_demo)
-        assert demo_activator.system is not None
-        assert hasattr(demo_activator, "channel_gain")
-        demo_activator.cleanup()
-
-
-def test_audio_demo_activator_has_input_peak(kwargs_audio_demo, tmp_path):
-    wav_file = tmp_path / "test.wav"
-    create_test_wav(wav_file)
-    kwargs_audio_demo["input"]["path"] = str(wav_file)
-
-    with unittest.mock.patch("pyaudio.PyAudio"):
-        demo_activator = activator.audio_demo.Activator(system.instances.system.System, **kwargs_audio_demo)
-        assert hasattr(demo_activator, "input_peak_normalized")
-        assert 0 <= demo_activator.input_peak_normalized <= 1
-        demo_activator.cleanup()
+    with Activator(**kwargs["activator"]) as tested:
+        initial_gain_db = np.array(kwargs["activator"]["demo"]["initial_gain_db"])
+        gain = np.float32(10 ** (initial_gain_db / 20))
+        expected = np.broadcast_to(
+            np.atleast_1d(gain), (int(np.prod(kwargs["activator"]["system"]["input_buffer"]["channel_shape"])),)
+        ).astype(np.float32)
+        assert np.array_equal(tested.channel_gain, expected)
 
 
-def test_audio_demo_activator_has_stream(kwargs_audio_demo, tmp_path):
-    wav_file = tmp_path / "test.wav"
-    create_test_wav(wav_file)
-    kwargs_audio_demo["input"]["path"] = str(wav_file)
+@unittest.mock.patch("pyaudio.PyAudio")
+def test_start_stream(mock_pyaudio, kwargs_audio_demo, tmp_path):
+    kwargs = copy.deepcopy(kwargs_audio_demo)
+    conftest.arrange_tmp_path_in_kwargs(kwargs, tmp_path)
+    conftest.create_input_file(**kwargs)
 
-    with unittest.mock.patch("pyaudio.PyAudio"):
-        demo_activator = activator.audio_demo.Activator(system.instances.system.System, **kwargs_audio_demo)
-        assert hasattr(demo_activator, "output_stream")
-        assert demo_activator.output_stream is not None
-        demo_activator.cleanup()
+    with Activator(**kwargs["activator"]) as tested:
+        tested.output_stream.start_stream.assert_called_once()
 
 
-def test_audio_demo_activator_context_manager(kwargs_audio_demo, tmp_path):
-    wav_file = tmp_path / "test.wav"
-    create_test_wav(wav_file)
-    kwargs_audio_demo["input"]["path"] = str(wav_file)
+@unittest.mock.patch("pyaudio.PyAudio")
+def test_audio_callback_chunk(mock_pyaudio, kwargs_audio_demo, tmp_path):
+    kwargs = copy.deepcopy(kwargs_audio_demo)
+    conftest.arrange_tmp_path_in_kwargs(kwargs, tmp_path)
+    conftest.create_input_file(**kwargs)
 
-    with unittest.mock.patch("pyaudio.PyAudio"):
-        with activator.audio_demo.Activator(system.instances.system.System, **kwargs_audio_demo) as demo_activator:
-            assert demo_activator.system is not None
-            assert demo_activator.output_stream is not None
+    with Activator(**kwargs["activator"]) as tested:
+        step_size = kwargs["activator"]["system"]["input_buffer"]["step_size"]
+        tested.audio_callback(None, step_size, None, None)
+
+        expected = next(conftest.read_input_chunks(kwargs)) * tested.channel_gain[:, np.newaxis]
+        assert np.array_equal(tested.system.execute.call_args.args[0], expected)
+
+
+@unittest.mock.patch("pyaudio.PyAudio")
+def test_cleanup(mock_pyaudio, kwargs_audio_demo, tmp_path):
+    kwargs = copy.deepcopy(kwargs_audio_demo)
+    conftest.arrange_tmp_path_in_kwargs(kwargs, tmp_path)
+    conftest.create_input_file(**kwargs)
+    tested = Activator(**kwargs["activator"])
+
+    with unittest.mock.patch.object(tested.input_fid, "close") as mock_input_close:
+        tested.cleanup()
+
+    tested.output_stream.stop_stream.assert_called_once()
+    tested.output_stream.close.assert_called_once()
+    tested.pyaudio.terminate.assert_called_once()
+    mock_input_close.assert_called_once()

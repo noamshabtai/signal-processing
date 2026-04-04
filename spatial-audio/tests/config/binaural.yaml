@@ -14,7 +14,7 @@ base:
 cases:
   - name: low resolution
     sweep:
-      test:
+      parameters:
         - input:
             azimuth: [0.0, 90.0, 180.0]
             elevation: [0.0, 0.0, 0.0]

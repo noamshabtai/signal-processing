@@ -4,28 +4,37 @@ import pathlib
 import shlex
 import sys
 
-import deepmerge
-import numpy as np
-import parametrize_tests.yaml_sweep_parser
-
 import analysis.analysis
-import analysis.instances.analysis
 
 
-def generate_input_file(yaml_path, tmp_path):
-    kwargs = parametrize_tests.yaml_sweep_parser.parse(yaml_path)[0]
-    kwargs["output"]["dir"] = tmp_path / kwargs["output"]["dir"]
-    kwargs["input"]["path"] = tmp_path / pathlib.Path(kwargs["input"]["path"]).name
+class MockActivator:
+    def __init__(self, **kwargs):
+        self.log_rate = kwargs.get("log", {}).get("rate", 1)
+        self.output_dir = pathlib.Path(kwargs["output"]["dir"])
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.completed = False
 
-    nsamples = kwargs["simulation"]["nsamples"]
-    channel_shape = kwargs["system"]["input_buffer"]["channel_shape"]
-    nsamples = kwargs["simulation"]["nsamples"]
-    dtype = np.dtype(kwargs["input"]["dtype"])
-    path = kwargs["input"]["path"]
-    data = np.random.normal(loc=0.0, scale=1.0, size=channel_shape + [nsamples]).astype(dtype)
+    def execute(self):
+        self.completed = True
 
-    with path.open("wb") as fid:
-        data.tofile(fid)
+    def cleanup(self):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        if not self.completed:
+            self.cleanup()
+
+
+class Analysis(analysis.analysis.Analysis):
+    def __init__(self, cliargs):
+        cliargs.results = ["nsamples"]
+        super().__init__(activator=MockActivator, cliargs=cliargs)
+
+    def extract_results(self, activator, activator_kwargs):
+        self.results["nsamples"].append(activator_kwargs["simulation"]["nsamples"])
 
 
 def extract_cliargs(indices, output_dir, yaml_path, monkeypatch):
@@ -37,7 +46,7 @@ def extract_cliargs(indices, output_dir, yaml_path, monkeypatch):
 
     argv = shlex.split(line)
     rem_argv = sys.argv
-    monkeypatch.setattr(sys, "argv", ["python -m analysis.analysis.instances.analysis", *argv])
+    monkeypatch.setattr(sys, "argv", ["python -m analysis.analysis", *argv])
     parser = analysis.analysis.get_parser()
     cliargs = analysis.analysis.get_cliargs(parser)
     sys.argv = rem_argv
@@ -47,37 +56,19 @@ def extract_cliargs(indices, output_dir, yaml_path, monkeypatch):
 
 def test_analysis(kwargs_analysis, project_dir, tmp_path, monkeypatch):
     kwargs = copy.deepcopy(kwargs_analysis)
-    yaml_path = project_dir / kwargs["yaml_path"]
-    generate_input_file(yaml_path, tmp_path)
+    yaml_path = project_dir / kwargs["parameters"]["yaml_path"]
 
-    output_dir = tmp_path / kwargs["output"]["dir"]
-    indices = kwargs["indices"]
+    output_dir = tmp_path / kwargs["parameters"]["output"]["dir"]
+    indices = kwargs["parameters"]["indices"]
     cliargs = extract_cliargs(indices, output_dir, yaml_path, monkeypatch)
 
-    tested = analysis.instances.analysis.Analysis(cliargs=cliargs)
-    merger = deepmerge.Merger([(dict, ["merge"])], ["override"], ["override"])
-    tested.activator_kwargs_list = [
-        merger.merge(
-            activator_kwargs,
-            {
-                "output": {"dir": tmp_path / activator_kwargs["output"]["dir"]},
-                "input": {"path": tmp_path / activator_kwargs["input"]["path"]},
-            },
-        )
-        for activator_kwargs in tested.activator_kwargs_list
-    ]
-
+    tested = Analysis(cliargs=cliargs)
     tested.execute()
 
-    assert len(tested.results) == 3
     nexecutes = len(cliargs.indices)
-    assert [len(tested.results[key]) == nexecutes for key in tested.results]
+    assert len(tested.results["nsamples"]) == nexecutes
 
     assert pathlib.Path(cliargs.output_dir).is_dir()
     for i in cliargs.indices:
         output_dir = pathlib.Path(cliargs.output_dir) / f"output{i}"
         assert output_dir.is_dir()
-        assert (output_dir / "reflector1.bin").is_file()
-        assert (output_dir / "reflector2.bin").is_file()
-        assert (output_dir / "reflector1.png").is_file()
-        assert (output_dir / "reflector2.png").is_file()

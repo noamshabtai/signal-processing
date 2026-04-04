@@ -1,20 +1,39 @@
 base:
-  input:
-    path: ~/audio/test.wav
-  output:
-    dtype: int16
-    channel_shape: [1]
-  system:
-    input_buffer:
-      channel_shape: [1]
-      step_size: 256
-      buffer_size: 1024
+  parameters:
+    nsamples: 1000
+  activator:
+    input:
+      path: input.wav
       dtype: int16
-    output_buffer:
-      channel_shape: [1]
-      step_size: 256
-      buffer_size: 1024
+    output:
       dtype: int16
+    system:
+      input_buffer:
+        step_size: 256
+        buffer_size: 1024
+        dtype: int16
 
 cases:
-  - {}
+  - name: mono_unity_gain
+    parameters:
+      sampling_rate: 16000
+    activator:
+      demo:
+        initial_gain_db: 0
+      system:
+        input_buffer:
+          channel_shape: [1]
+      output:
+        channel_shape: [1]
+
+  - name: stereo_attenuated
+    parameters:
+      sampling_rate: 44100
+    activator:
+      demo:
+        initial_gain_db: -6.0
+      system:
+        input_buffer:
+          channel_shape: [2]
+      output:
+        channel_shape: [2]

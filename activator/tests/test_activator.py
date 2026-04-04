@@ -1,70 +1,62 @@
 import copy
-import pathlib
-import wave
+import unittest.mock
 
+import conftest
 import numpy as np
 
-import activator.instances.activator
+import activator.activator
+
+Activator = conftest.define_activator_class_with_mocked_system(activator.activator.Activator)
 
 
-def create_input_file(**params):
-    nsamples = params["simulation"]["nsamples"]
-    channel_shape = params["system"]["input_buffer"]["channel_shape"]
-    nsamples = params["simulation"]["nsamples"]
-    dtype = np.dtype(params["input"]["dtype"])
-    path = params["input"]["path"]
-    data = np.random.normal(loc=0.0, scale=1.0, size=channel_shape + [nsamples]).astype(dtype)
-
-    if path.suffix.lower() == ".wav":
-        nchannels = np.prod(channel_shape)
-        fs = params["input"].get("fs", 44100)
-        with wave.open(str(path), "wb") as fid:
-            fid.setnchannels(nchannels)
-            fid.setsampwidth(dtype.itemsize)
-            fid.setframerate(fs)
-            fid.writeframes(data.ravel(order="F").tobytes())
-    else:
-        with path.open("wb") as fid:
-            data.tofile(fid)
+def test_defaults():
+    tested = Activator()
+    assert tested.channel_shape == [1]
+    assert tested.step_size == 1
+    assert tested.step_shape == [1, 1]
 
 
-def test_activator(kwargs_activator, tmp_path, mocker):
+def test_activator(kwargs_activator):
     kwargs = copy.deepcopy(kwargs_activator)
-    if "path" in kwargs["input"]:
-        kwargs["input"]["path"] = tmp_path / pathlib.Path(kwargs["input"]["path"]).name
-    kwargs["output"]["dir"] = tmp_path / "output"
-    channel_shape = kwargs["system"]["input_buffer"]["channel_shape"]
-    file_shape = [-1] + channel_shape
-    input_dtype = np.dtype(kwargs["input"]["dtype"])
-    output_dtype = np.dtype(kwargs["output"]["dtype"][-1])
-    nsamples = kwargs["simulation"]["nsamples"]
-    buffer_size = kwargs["system"]["input_buffer"]["buffer_size"]
-    step_size = kwargs["system"]["input_buffer"]["step_size"]
-    nsteps = max(0, (nsamples - buffer_size) // step_size + 1)
+    tested = Activator(**kwargs["activator"])
 
-    create_input_file(**kwargs)
+    tested.cleanup = unittest.mock.Mock()
+    with tested:
+        assert tested.system is not None
+    tested.cleanup.assert_called_once()
 
-    with activator.instances.activator.Activator(**kwargs) as tested:
-        tested.execute()
+    tested.cleanup.reset_mock()
+    with tested:
+        tested.completed = True
 
-    modules = list(tested.system.modules.keys())
+    tested.cleanup.assert_not_called()
 
-    if kwargs["input"]["path"].suffix.lower() == ".wav":
-        with wave.open(str(kwargs["input"]["path"]), "rb") as f:
-            input_bytes = f.readframes(f.getnframes())
-            input_data = np.frombuffer(input_bytes, dtype=input_dtype).reshape(file_shape, order="F")
-    else:
-        with open(kwargs["input"]["path"], "rb") as f:
-            input_data = np.fromfile(f, dtype=input_dtype).reshape(file_shape, order="F")
-    assert input_data.nbytes == np.prod(channel_shape) * nsamples * input_dtype.itemsize
 
-    if tested.system.input_buffer.full:
-        with open(kwargs["output"]["dir"] / (modules[-1] + ".bin"), "rb") as fid:
-            output_data = np.fromfile(fid, dtype=output_dtype)
-        assert output_data.nbytes == np.prod(channel_shape) * nsteps * step_size * output_dtype.itemsize
-        assert np.prod(output_data.ndim) or output_data == input_data[: np.prod(channel_shape) * nsteps * step_size]
+def test_process_frame_calls_system_execute(kwargs_activator):
+    kwargs = copy.deepcopy(kwargs_activator)
+    tested = Activator(**kwargs["activator"])
 
-        for module in modules:
-            assert (kwargs["output"]["dir"] / (module + ".bin")).exists()
-            if kwargs["plot"]["save"]:
-                assert (kwargs["output"]["dir"] / (module + ".png")).exists()
+    test_data = np.zeros((1, 10), dtype=np.float32)
+    tested.process_frame(test_data)
+
+    tested.system.execute.assert_called_once()
+
+
+def test_fetch_output_returns_last_output(kwargs_activator):
+    kwargs = copy.deepcopy(kwargs_activator)
+    tested = Activator(**kwargs["activator"])
+
+    test_data = np.zeros((1, 10), dtype=np.float32)
+    tested.process_frame(test_data)
+
+    result = tested.fetch_output()
+    last_module = list(tested.system.modules.keys())[-1]
+    assert np.array_equal(result, tested.system.outputs[last_module])
+
+
+def test_fetch_output_returns_none_when_no_outputs(kwargs_activator):
+    kwargs = copy.deepcopy(kwargs_activator)
+    tested = Activator(**kwargs["activator"])
+
+    result = tested.fetch_output()
+    assert result is None

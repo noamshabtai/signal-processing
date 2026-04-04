@@ -5,33 +5,28 @@ import audio_io.conversions
 import numpy as np
 import pyaudio
 
-from . import base_demo
+from . import activator
 
 
-class Activator(base_demo.Activator):
-    def __init__(self, activated_system, **kwargs):
-        super().__init__(activated_system, **kwargs)
+class Activator(activator.Activator):
+    def __init__(self, System, **kwargs):
+        super().__init__(System, **kwargs)
+
+        self.input_dtype = np.dtype(kwargs.get("system", {}).get("input_buffer", {}).get("dtype", np.int16))
 
         if "demo" in kwargs and "initial_gain_db" in kwargs["demo"]:
-            initial_gain_db = np.int16(kwargs["demo"]["initial_gain_db"])
-            self.channel_gain = np.float32(10 ** (initial_gain_db / 20))
+            initial_gain_db = np.array(kwargs["demo"]["initial_gain_db"])
+            gain = np.float32(10 ** (initial_gain_db / 20))
+            self.channel_gain = np.broadcast_to(np.atleast_1d(gain), (int(np.prod(self.channel_shape)),)).astype(
+                np.float32
+            )
         else:
-            self.channel_gain = np.ones(np.prod(self.system.input_buffer.channel_shape), dtype=np.float32)
+            self.channel_gain = np.ones(np.prod(self.channel_shape), dtype=np.float32)
 
         self.input_path = pathlib.Path(kwargs["input"]["path"]).expanduser()
         self.input_fid = wave.open(str(self.input_path), "rb")
         self.fs = self.input_fid.getframerate()
-        self.num_expected_bytes_per_file_read = (
-            self.system.input_buffer.step_size
-            * np.prod(self.system.input_buffer.channel_shape)
-            * self.system.input_buffer.dtype.itemsize
-        )
-
-        all_frames = self.input_fid.readframes(self.input_fid.getnframes())
-        input_data_all = np.frombuffer(all_frames, dtype=self.system.input_buffer.dtype)
-        input_dtype_info = np.iinfo(self.system.input_buffer.dtype)
-        self.input_peak_normalized = np.max(np.abs(input_data_all)) / input_dtype_info.max
-        self.input_fid.rewind()
+        self.num_expected_bytes_per_file_read = self.step_size * np.prod(self.channel_shape) * self.input_dtype.itemsize
 
         self.pyaudio = pyaudio.PyAudio()
         self.output_dtype = np.dtype(kwargs["output"]["dtype"])
@@ -41,7 +36,7 @@ class Activator(base_demo.Activator):
             channels=self.output_channels,
             rate=self.fs,
             output=True,
-            frames_per_buffer=self.system.input_buffer.step_size,
+            frames_per_buffer=self.step_size,
             stream_callback=self.audio_callback,
         )
         self.output_stream.start_stream()
@@ -50,20 +45,19 @@ class Activator(base_demo.Activator):
         pass
 
     def audio_callback(self, in_data, frame_count, time_info, status):
-        data_bytes = self.input_fid.readframes(self.system.input_buffer.step_size)
+        data_bytes = self.input_fid.readframes(self.step_shape[-1])
 
         if len(data_bytes) < self.num_expected_bytes_per_file_read:
             self.input_fid.rewind()
-            data_bytes = self.input_fid.readframes(self.system.input_buffer.step_size)
+            data_bytes = self.input_fid.readframes(self.step_shape[-1])
 
-        data = np.frombuffer(data_bytes, dtype=self.system.input_buffer.dtype)
-        data = np.reshape(data, self.system.input_buffer.step_shape, order="F")
+        data = np.frombuffer(data_bytes, dtype=self.input_dtype)
+        data = np.reshape(data, self.step_shape, order="F")
         data = data * self.channel_gain[:, np.newaxis]
 
-        self.system.execute(data)
+        self.process_frame(data)
 
-        output_key = list(self.system.outputs.keys())[-1]
-        output_data = self.system.outputs[output_key]
+        output_data = self.fetch_output()
         output_bytes = output_data.astype(self.output_dtype).ravel(order="F").tobytes()
 
         return (output_bytes, pyaudio.paContinue)

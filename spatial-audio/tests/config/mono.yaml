@@ -14,7 +14,7 @@ base:
 cases:
   - name: mono
     sweep:
-      test:
+      parameters:
         - input:
             azimuth: [0.0]
             elevation: [0.0]
