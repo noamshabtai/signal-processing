@@ -5,7 +5,7 @@ base:
     step_size: 22
 
 cases:
-  - name: output buffer
+  - name: channel_shape
     output_buffer:
       sweep:
         channel_shape:
