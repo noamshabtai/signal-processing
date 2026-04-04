@@ -15,16 +15,16 @@ class Buffer:
 class InputBuffer(Buffer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.full = False
-        self.steps_to_full = self.buffer_size // self.step_size
+        self.ready = False
+        self.steps_to_ready = self.buffer_size // self.step_size
         self.step = 0
 
     def push(self, chunk):
         self.buffer = np.roll(self.buffer, -self.step_size, axis=-1)
         self.buffer[..., -self.step_size :] = chunk
         self.step += 1
-        if self.step == self.steps_to_full:
-            self.full = True
+        if self.step == self.steps_to_ready:
+            self.ready = True
 
 
 class OutputBuffer(Buffer):

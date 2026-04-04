@@ -140,7 +140,7 @@ def test_stft(kwargs_stft_system):
     for i in range(data.shape[-2]):
         chunk = data.take(i, axis=-2)
         system.execute(chunk)
-        if system.input_buffer.full:
+        if system.input_buffer.ready:
             step_ratio = system.modules["synthesis"].step_ratio
             previous_chunk = data.take(i - int(step_ratio) + 1, axis=-2)
             assert np.allclose(system.outputs["synthesis"], previous_chunk, rtol=0.01)

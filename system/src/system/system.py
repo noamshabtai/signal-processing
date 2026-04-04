@@ -17,7 +17,7 @@ class System:
 
     def execute(self, chunk):
         self.input_buffer.push(chunk)
-        if self.execute_before_input_buffer_full or self.input_buffer.full:
+        if self.execute_before_input_buffer_full or self.input_buffer.ready:
             for module in self.modules:
                 self.connect(module)
                 self.outputs[module] = self.modules[module].execute(**self.inputs[module])

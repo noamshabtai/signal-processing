@@ -1,7 +1,10 @@
 base:
+  parameters:
+    nsamples: 1000
   activator:
     input:
       path: input.wav
+      dtype: int16
     output:
       dtype: int16
     system:
@@ -11,25 +14,26 @@ base:
         dtype: int16
 
 cases:
-  - parameters:
-      sweep:
-        sampling_rate:
-          - 16000
-          - 44100
+  - name: mono_unity_gain
+    parameters:
+      sampling_rate: 16000
     activator:
       demo:
-        sweep:
-          initial_gain_db:
-            - 0
-            - -6
+        initial_gain_db: 0
       system:
         input_buffer:
-          sweep:
-            channel_shape:
-              - [1]
-              - [2]
+          channel_shape: [1]
       output:
-        sweep:
-          channel_shape:
-            - [1]
-            - [2]
+        channel_shape: [1]
+
+  - name: stereo_attenuated
+    parameters:
+      sampling_rate: 44100
+    activator:
+      demo:
+        initial_gain_db: -6.0
+      system:
+        input_buffer:
+          channel_shape: [2]
+      output:
+        channel_shape: [2]

@@ -12,9 +12,9 @@ def test_system(kwargs_system):
     dtype = kwargs["system"]["input_buffer"]["dtype"]
     chunk = np.random.normal(loc=10, scale=10, size=step_shape).astype(dtype)
 
-    while not tested.input_buffer.full:
+    while not tested.input_buffer.ready:
         tested.execute(chunk)
-        if tested.execute_before_input_buffer_full or tested.input_buffer.full:
+        if tested.execute_before_input_buffer_full or tested.input_buffer.ready:
             tested.modules["first"].execute.assert_called_with(**tested.inputs["first"])
             tested.modules["second"].execute.assert_called_with(**tested.inputs["second"])
             assert tested.outputs["first"] is tested.modules["first"].execute.return_value
