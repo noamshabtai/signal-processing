@@ -1,21 +1,37 @@
+base:
+  system:
+    input_buffer:
+      buffer_size: 64
+      step_size: 8
+      channel_shape: [1, 2]
+      dtype: int16
+    execute_before_input_buffer_full: false
+
 cases:
-  - name: reflecting modules
+  - name: channel_shape
     system:
       input_buffer:
-        buffer_size: 64
         sweep:
           channel_shape:
             - [1, 2]
             - [2, 1]
             - [2, 3]
-          dtype:
-            - int16
-            - float32
-          step_size:
-            - 1
-            - 8
-            - 64
-      sweep:
-        execute_before_input_buffer_full:
-          - true
-          - false
+
+  - name: dtype_float32
+    system:
+      input_buffer:
+        dtype: float32
+
+  - name: step_size_1
+    system:
+      input_buffer:
+        step_size: 1
+
+  - name: step_size_equals_buffer
+    system:
+      input_buffer:
+        step_size: 64
+
+  - name: execute_before_ready
+    system:
+      execute_before_input_buffer_full: true

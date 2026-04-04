@@ -3,13 +3,12 @@ import buffer.buffer
 
 class System:
     def __init__(self, **kwargs):
-        self.input_buffer = buffer.buffer.InputBuffer(**kwargs["input_buffer"])
+        self.input_buffer = buffer.buffer.InputBuffer(**kwargs.get("input_buffer", {}))
 
         self.modules = {}
         self.inputs = {}
         self.outputs = {}
 
-        self.DEBUG = kwargs.get("DEBUG", False)
         self.execute_before_input_buffer_full = kwargs.get("execute_before_input_buffer_full", False)
 
     def connect(self, module):
