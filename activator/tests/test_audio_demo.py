@@ -1,5 +1,6 @@
 import copy
 import unittest.mock
+import wave
 
 import audio_io.conversions
 import conftest
@@ -66,6 +67,22 @@ def test_audio_callback_chunk(mock_pyaudio, kwargs_audio_demo, tmp_path):
 
         expected = next(conftest.read_input_chunks(kwargs)) * tested.channel_gain[:, np.newaxis]
         assert np.array_equal(tested.system.execute.call_args.args[0], expected)
+
+
+@unittest.mock.patch("pyaudio.PyAudio")
+def test_input_peak_normalized(mock_pyaudio, kwargs_audio_demo, tmp_path):
+    kwargs = copy.deepcopy(kwargs_audio_demo)
+    conftest.arrange_tmp_path_in_kwargs(kwargs, tmp_path)
+    conftest.create_input_file(**kwargs)
+
+    dtype = np.dtype(kwargs["activator"]["input"]["dtype"])
+    path = kwargs["activator"]["input"]["path"]
+    with wave.open(str(path), "rb") as fid:
+        all_data = np.frombuffer(fid.readframes(fid.getnframes()), dtype=dtype)
+    expected = np.max(np.abs(all_data)) / np.iinfo(dtype).max
+
+    with Activator(**kwargs["activator"]) as tested:
+        assert tested.input_peak_normalized == expected
 
 
 @unittest.mock.patch("pyaudio.PyAudio")
