@@ -17,7 +17,11 @@ class Activator(activator.Activator):
         super().__init__(System, **kwargs)
 
         self.input_dtype = np.dtype(kwargs.get("system", {}).get("input_buffer", {}).get("dtype", np.int16))
+        self._setup_gain(kwargs)
+        self._setup_input(kwargs)
+        self._setup_output(kwargs)
 
+    def _setup_gain(self, kwargs):
         if "demo" in kwargs and "initial_gain_db" in kwargs["demo"]:
             initial_gain_db = np.array(kwargs["demo"]["initial_gain_db"])
             gain = np.float32(10 ** (initial_gain_db / 20))
@@ -27,15 +31,16 @@ class Activator(activator.Activator):
         else:
             self.channel_gain = np.ones(np.prod(self.channel_shape), dtype=np.float32)
 
+    def _setup_input(self, kwargs):
         self.input_path = pathlib.Path(kwargs["input"]["path"]).expanduser()
         self.input_fid = wave.open(str(self.input_path), "rb")
         self.fs = self.input_fid.getframerate()
         self._input_chunk_nbytes = self.step_size * np.prod(self.channel_shape) * self.input_dtype.itemsize
-
         all_data = np.frombuffer(self.input_fid.readframes(self.input_fid.getnframes()), dtype=self.input_dtype)
         self.input_peak_normalized = np.max(np.abs(all_data)) / np.iinfo(self.input_dtype).max
         self.input_fid.rewind()
 
+    def _setup_output(self, kwargs):
         self.pyaudio = pyaudio.PyAudio()
         self.output_dtype = np.dtype(kwargs["output"]["dtype"])
         self.output_channels = np.prod(kwargs["output"]["channel_shape"])
