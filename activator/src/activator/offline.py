@@ -28,6 +28,7 @@ class Activator(activator.Activator):
 
         self.nsteps = self._input_total_nbytes // self._input_chunk_nbytes
         self._step = 0
+        self._start_time = None
 
     def _read_wav_input_chunk(self):
         return self.input_fid.readframes(self.step_shape[-1])
@@ -79,13 +80,19 @@ class Activator(activator.Activator):
     def log_output(self):
         self._step += 1
         if self.log_rate and not self._step % self.log_rate:
-            elapsed = time.time() - self._start_time
-            eta = elapsed * (self.nsteps - self._step) / self._step
-            print(
-                f"Step {self._step}/{self.nsteps} ({100*self._step/self.nsteps:.2f}%) | ",
-                f"Elapsed: {elapsed:.2f}s | ETA:",
-                f"{eta:.2f}s",
-            )
+            self._log_progress()
+
+    def _log_progress(self):
+        has_started = self._start_time is not None
+        has_steps = self.nsteps > 0
+        elapsed = time.time() - self._start_time if has_started else 0
+        eta = elapsed * (self.nsteps - self._step) / self._step if self._step else 0
+        pct = 100 * self._step / self.nsteps if has_steps else 0
+        print(
+            f"Step {self._step}/{self.nsteps} ({pct:.2f}%) | ",
+            f"Elapsed: {elapsed:.2f}s | ETA:",
+            f"{eta:.2f}s",
+        )
 
     def execute(self):
         self._start_time = time.time()
@@ -98,7 +105,7 @@ class Activator(activator.Activator):
             self.log_output()
             for module, cfg in self.output_modules.items():
                 self.system.outputs[module].astype(cfg["dtype"]).ravel(order="F").tofile(cfg["fid"])
-            if self.max_steps and self.step >= self.max_steps:
+            if self.max_steps and self._step >= self.max_steps:
                 break
 
         self.completed = True

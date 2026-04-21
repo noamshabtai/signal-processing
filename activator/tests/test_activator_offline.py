@@ -18,6 +18,15 @@ def read_output_chunks(path, cfg):
             yield np.frombuffer(chunk, dtype=dtype).reshape(step_shape, order="F")
 
 
+def test_log_output_before_execute(kwargs_offline, tmp_path):
+    kwargs = copy.deepcopy(kwargs_offline)
+    conftest.arrange_tmp_path_in_kwargs(kwargs, tmp_path)
+    conftest.create_input_file(**kwargs)
+
+    with Activator(**kwargs["activator"]) as tested:
+        tested.log_output()
+
+
 def test_system_execute_called_with_chunk_from_file(kwargs_offline, tmp_path):
     kwargs = copy.deepcopy(kwargs_offline)
     conftest.arrange_tmp_path_in_kwargs(kwargs, tmp_path)
@@ -25,10 +34,11 @@ def test_system_execute_called_with_chunk_from_file(kwargs_offline, tmp_path):
 
     with Activator(**kwargs["activator"]) as tested:
         tested.execute()
-    assert tested.system.execute.call_count == tested.nsteps
+    expected_steps = min(tested.nsteps, tested.max_steps) if tested.max_steps else tested.nsteps
+    assert tested.system.execute.call_count == expected_steps
 
-    for step, expected in enumerate(conftest.read_input_chunks(kwargs)):
-        assert np.array_equal(tested.system.execute.call_args_list[step].args[0], expected)
+    for call, expected in zip(tested.system.execute.call_args_list, conftest.read_input_chunks(kwargs)):
+        assert np.array_equal(call.args[0], expected)
 
 
 def test_output_files_created(kwargs_offline, tmp_path):

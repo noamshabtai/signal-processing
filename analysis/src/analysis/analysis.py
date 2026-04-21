@@ -54,10 +54,15 @@ class Analysis:
         pass
 
     def log_output(self, activation_index):
-        elapsed = time.time() - self.start_time if self.start_time else 0
-        eta = elapsed * (self.nactivations - activation_index) / activation_index if activation_index else 0
+        has_started = self.start_time is not None
+        can_estimate_eta = activation_index > 0
+        has_activations = self.nactivations > 0
+
+        elapsed = time.time() - self.start_time if has_started else 0
+        eta = elapsed * (self.nactivations - activation_index) / activation_index if can_estimate_eta else 0
+        pct = 100 * activation_index / self.nactivations if has_activations else 0
         print(
-            f"Activation {activation_index}/{self.nactivations} ({100*activation_index/self.nactivations:.2f}%) | "
+            f"Activation {activation_index}/{self.nactivations} ({pct:.2f}%) | "
             f"Elapsed: {elapsed:.2f}s | ETA: {eta:.2f}s"
         )
 

@@ -73,6 +73,18 @@ def test_log_output_first_step(project_dir, tmp_path):
     tested.log_output(0)
 
 
+def test_log_output_zero_activations(project_dir, tmp_path):
+    cliargs = argparse.Namespace(
+        yaml_path=str(project_dir / "tests/config/activator_config0.yaml"),
+        indices=None,
+        output_dir=str(tmp_path),
+        results=[],
+    )
+    tested = analysis.analysis.Analysis(activator=MockActivator, cliargs=cliargs)
+    tested.nactivations = 0
+    tested.log_output(0)
+
+
 def test_activate_single_case_does_not_mutate_kwargs(project_dir, tmp_path):
     cliargs = argparse.Namespace(
         yaml_path=str(project_dir / "tests/config/activator_config0.yaml"),
