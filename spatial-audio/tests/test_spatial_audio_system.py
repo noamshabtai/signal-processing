@@ -4,6 +4,15 @@ import numpy as np
 import spatial_audio.system
 
 
+def test_execute_before_input_buffer_full(kwargs_system, project_dir):
+    kwargs = copy.deepcopy(kwargs_system)
+    kwargs["system"]["spatial_audio"]["hrtf"]["path"] = project_dir / kwargs["system"]["spatial_audio"]["hrtf"]["path"]
+    kwargs["system"].pop("execute_before_input_buffer_full", None)
+
+    system = spatial_audio.system.System(**kwargs["system"])
+    assert system.execute_before_input_buffer_full
+
+
 def test_system(kwargs_system, project_dir):
     kwargs = copy.deepcopy(kwargs_system)
     kwargs["system"]["spatial_audio"]["hrtf"]["path"] = project_dir / kwargs["system"]["spatial_audio"]["hrtf"]["path"]

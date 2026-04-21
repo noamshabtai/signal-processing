@@ -32,6 +32,10 @@ cases:
     parameters:
       nsamples: 5
 
+  - name: incomplete_final_chunk
+    parameters:
+      nsamples: 25
+
   - name: one_step
     parameters:
       nsamples: 10
