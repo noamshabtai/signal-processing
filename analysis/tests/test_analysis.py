@@ -1,3 +1,4 @@
+import argparse
 import copy
 import io
 import pathlib
@@ -52,6 +53,52 @@ def extract_cliargs(indices, output_dir, yaml_path, monkeypatch):
     sys.argv = rem_argv
 
     return cliargs
+
+
+def test_results_default(monkeypatch, project_dir, tmp_path):
+    monkeypatch.setattr(sys, "argv", ["prog"])
+    parser = analysis.analysis.get_parser()
+    cliargs = analysis.analysis.get_cliargs(parser)
+    assert cliargs.results == []
+
+
+def test_log_output_first_step(project_dir, tmp_path):
+    cliargs = argparse.Namespace(
+        yaml_path=str(project_dir / "tests/config/activator_config0.yaml"),
+        indices=None,
+        output_dir=str(tmp_path),
+        results=[],
+    )
+    tested = analysis.analysis.Analysis(activator=MockActivator, cliargs=cliargs)
+    tested.log_output(0)
+
+
+def test_log_output_zero_activations(project_dir, tmp_path):
+    cliargs = argparse.Namespace(
+        yaml_path=str(project_dir / "tests/config/activator_config0.yaml"),
+        indices=None,
+        output_dir=str(tmp_path),
+        results=[],
+    )
+    tested = analysis.analysis.Analysis(activator=MockActivator, cliargs=cliargs)
+    tested.nactivations = 0
+    tested.log_output(0)
+
+
+def test_activate_single_case_does_not_mutate_kwargs(project_dir, tmp_path):
+    cliargs = argparse.Namespace(
+        yaml_path=str(project_dir / "tests/config/activator_config0.yaml"),
+        indices=None,
+        output_dir=str(tmp_path),
+        results=[],
+    )
+    tested = analysis.analysis.Analysis(activator=MockActivator, cliargs=cliargs)
+    kwargs = copy.deepcopy(tested.activator_kwargs_list[0])
+    kwargs["activation_index"] = 0
+    kwargs["current_case"] = 0
+    original_output_dir = copy.deepcopy(kwargs["activator"]["output"]["dir"])
+    tested.activate_single_case(kwargs)
+    assert kwargs["activator"]["output"]["dir"] == original_output_dir
 
 
 def test_analysis(kwargs_analysis, project_dir, tmp_path, monkeypatch):

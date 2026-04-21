@@ -76,3 +76,7 @@ cases:
     activator:
       log:
         rate: 0
+
+  - name: max_steps
+    activator:
+      max_steps: 2
