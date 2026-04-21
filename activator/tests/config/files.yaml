@@ -67,3 +67,8 @@ cases:
       system:
         input_buffer:
           dtype: float32
+
+  - name: log_rate_0
+    activator:
+      log:
+        rate: 0

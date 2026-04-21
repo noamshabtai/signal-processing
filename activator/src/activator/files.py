@@ -71,12 +71,12 @@ class Activator(activator.Activator):
 
     def log_output(self):
         self.step += 1
-        if not self.step % self.log_rate:
-            ellapsed = time.time() - self.start_time
-            eta = ellapsed * (self.nsteps - self.step) / self.step
+        if self.log_rate and not self.step % self.log_rate:
+            elapsed = time.time() - self.start_time
+            eta = elapsed * (self.nsteps - self.step) / self.step
             print(
                 f"Step {self.step}/{self.nsteps} ({100*self.step/self.nsteps:.2f}%) | ",
-                f"Elapsed: {ellapsed:.2f}s | ETA:",
+                f"Elapsed: {elapsed:.2f}s | ETA:",
                 f"{eta:.2f}s",
             )
 
@@ -106,7 +106,7 @@ class Activator(activator.Activator):
         self.completed = True
         self.cleanup()
 
-    def post_figure_hook(self, plt, i, data):
+    def post_figure_hook(self, plt, module, data):
         pass
 
     def display_plot(self):
