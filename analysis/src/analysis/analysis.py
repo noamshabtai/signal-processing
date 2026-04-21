@@ -1,4 +1,5 @@
 import argparse
+import copy
 import pathlib
 import time
 
@@ -25,21 +26,11 @@ def get_parser():
         help="list of case indices, e.g. 0 4 8 9, or blank for all entries.",
     )
     parser.add_argument(
-        "-o",
-        "--output-dir",
-        dest="output_dir",
-        default="outputs",
-        help="directory to place bin and the png files.",
+        "-o", "--output-dir", dest="output_dir", default="outputs", help="directory to place bin and the png files."
     )
     parser.add_argument(
-        "-r",
-        "--results",
-        dest="results",
-        nargs="*",
-        type=str,
-        help="list of case indices, e.g. 0 4 8 9, or -1 for all entries.",
+        "-r", "--results", dest="results", nargs="*", type=str, default=[], help="list of result keys to collect."
     )
-
     return parser
 
 
@@ -51,33 +42,29 @@ class Analysis:
     def __init__(self, activator, cliargs):
         self.activator_class = activator
         self.activator_kwargs_list = parametrize_tests.yaml_sweep_parser.parse(cliargs.yaml_path)
-        self.total_number_of_cases = len(self.activator_kwargs_list)
-        self.case_ndigits = (
-            np.int16(np.log10(self.total_number_of_cases - 1)) + 1 if self.total_number_of_cases > 1 else 1
-        )
         self.nactivations = len(self.activator_kwargs_list)
+        self.case_ndigits = np.int16(np.log10(self.nactivations - 1)) + 1 if self.nactivations > 1 else 1
         self.cases = cliargs.indices if cliargs.indices else np.arange(self.nactivations)
         self.activator_kwargs_list = [self.activator_kwargs_list[ind] for ind in self.cases]
         self.results = {key: [] for key in cliargs.results}
         self.output_dir = pathlib.Path(cliargs.output_dir)
+        self.start_time = None
 
     def extract_results(self, activator, activator_kwargs):
         pass
 
     def log_output(self, activation_index):
-        ellapsed = time.time() - self.start_time
-        eta = ellapsed * (self.nactivations - activation_index) / activation_index
+        elapsed = time.time() - self.start_time if self.start_time else 0
+        eta = elapsed * (self.nactivations - activation_index) / activation_index if activation_index else 0
         print(
             f"Activation {activation_index}/{self.nactivations} ({100*activation_index/self.nactivations:.2f}%) | "
-            f"Elapsed: {ellapsed:.2f}s | ETA:"
-            f"{eta:.2f}s"
+            f"Elapsed: {elapsed:.2f}s | ETA: {eta:.2f}s"
         )
 
     def activate_single_case(self, kwargs):
-        activator_kwargs = kwargs["activator"]
+        activator_kwargs = copy.deepcopy(kwargs["activator"])
         activator_kwargs["output"]["dir"] = self.output_dir / f"output{kwargs['current_case']:0{self.case_ndigits}}"
         with self.activator_class(**activator_kwargs) as act:
-            act.log_rate *= 10
             act.execute()
             self.extract_results(activator=act, activator_kwargs=activator_kwargs)
         self.log_output(kwargs["activation_index"] + 1)
@@ -92,11 +79,3 @@ class Analysis:
         ]
         for kwargs in kwargs_list:
             self.activate_single_case(kwargs)
-
-
-if __name__ == "__main__":
-    parser = get_parser()
-    cliargs = get_cliargs(parser)
-    analysis = Analysis(cliargs)
-    analysis.execute()
-    print(analysis.results)
