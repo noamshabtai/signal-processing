@@ -4,9 +4,9 @@ import unittest.mock
 import conftest
 import numpy as np
 
-import activator.files
+import activator.offline
 
-Activator = conftest.define_activator_class_with_mocked_system(activator.files.Activator)
+Activator = conftest.define_activator_class_with_mocked_system(activator.offline.Activator)
 
 
 def read_output_chunks(path, cfg):
@@ -18,8 +18,8 @@ def read_output_chunks(path, cfg):
             yield np.frombuffer(chunk, dtype=dtype).reshape(step_shape, order="F")
 
 
-def test_system_execute_called_with_chunk_from_file(kwargs_files, tmp_path):
-    kwargs = copy.deepcopy(kwargs_files)
+def test_system_execute_called_with_chunk_from_file(kwargs_offline, tmp_path):
+    kwargs = copy.deepcopy(kwargs_offline)
     conftest.arrange_tmp_path_in_kwargs(kwargs, tmp_path)
     conftest.create_input_file(**kwargs)
 
@@ -31,8 +31,8 @@ def test_system_execute_called_with_chunk_from_file(kwargs_files, tmp_path):
         assert np.array_equal(tested.system.execute.call_args_list[step].args[0], expected)
 
 
-def test_output_files_created(kwargs_files, tmp_path):
-    kwargs = copy.deepcopy(kwargs_files)
+def test_output_files_created(kwargs_offline, tmp_path):
+    kwargs = copy.deepcopy(kwargs_offline)
     conftest.arrange_tmp_path_in_kwargs(kwargs, tmp_path)
     conftest.create_input_file(**kwargs)
     output_dir = kwargs["activator"]["output"]["dir"]
@@ -58,8 +58,8 @@ def test_output_files_created(kwargs_files, tmp_path):
             assert not (output_dir / (module + ".png")).exists()
 
 
-def test_cleanup(kwargs_files, tmp_path):
-    kwargs = copy.deepcopy(kwargs_files)
+def test_cleanup(kwargs_offline, tmp_path):
+    kwargs = copy.deepcopy(kwargs_offline)
     conftest.arrange_tmp_path_in_kwargs(kwargs, tmp_path)
     conftest.create_input_file(**kwargs)
 
