@@ -1,14 +1,17 @@
 import copy
 
-import spatial_audio.spatial_audio
+import conftest
+import numpy as np
 
 
-def test_mono_mode_exists(kwargs_mono, project_dir):
-    kwargs = copy.deepcopy(kwargs_mono)
-    kwargs["spatial_audio"]["hrtf"]["path"] = project_dir / kwargs["spatial_audio"]["hrtf"]["path"]
-    kwargs["spatial_audio"]["initial_azimuth"] = kwargs["parameters"]["input"]["azimuth"]
-    kwargs["spatial_audio"]["initial_elevation"] = kwargs["parameters"]["input"]["elevation"]
-    tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["spatial_audio"])
-
+def test_execute_mono(kwargs_spatial_audio, project_dir):
+    kwargs = copy.deepcopy(kwargs_spatial_audio)
+    tested = conftest.make_tested(kwargs, project_dir)
     tested.monify()
-    assert tested.mode == "mono"
+
+    frame_fft_CHxK = np.ones((tested.CH, tested.nfrequencies), dtype=tested.HRTF_CHx2xK.dtype)
+    output = tested.execute(frame_fft_CHxK)
+
+    expected = np.tile(np.mean(frame_fft_CHxK, axis=0), reps=(2, 1))
+    assert output.shape == (2, tested.nfrequencies)
+    assert np.allclose(output, expected)
