@@ -18,5 +18,6 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
+    "lizard>=1.22.1",
     "pytest>=9.0.1",
 ]

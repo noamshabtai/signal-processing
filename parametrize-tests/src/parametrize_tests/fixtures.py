@@ -29,3 +29,11 @@ def setattr_project_dir(tests_dir, module):
         return pathlib.Path(tests_dir).parent
 
     module.project_dir = p
+
+
+def setattr_config_dir(config_dir, module):
+    @pytest.fixture(scope="session")
+    def c():
+        return pathlib.Path(config_dir)
+
+    module.config_dir = c
