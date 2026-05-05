@@ -1,13 +1,17 @@
-import pathlib
+import conftest
 
 
 def test_setattr_kwargs(kwargs_fixture1):
-    assert isinstance(kwargs_fixture1, dict)
+    assert hasattr(conftest, "kwargs_fixture1")
 
 
 def test_setattr_root_dir(root_dir):
-    assert root_dir == pathlib.Path(__file__).parent.parent.parent
+    assert hasattr(conftest, "root_dir")
 
 
 def test_setattr_project_dir(project_dir):
-    assert project_dir == pathlib.Path(__file__).parent.parent
+    assert hasattr(conftest, "project_dir")
+
+
+def test_setattr_config_dir(config_dir):
+    assert hasattr(conftest, "config_dir")

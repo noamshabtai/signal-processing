@@ -20,9 +20,19 @@ cases:
     sweep:
       input_file:
         - input3.bin
+    metadata:
+      author: noam
+      version: 1
     module2:
       other_param: some_value
       sweep:
         factor:
           - 1.5
           - 2.0
+
+  - name: case3
+    output_dir: custom_output
+    sweep:
+      mode:
+        - fast
+        - slow

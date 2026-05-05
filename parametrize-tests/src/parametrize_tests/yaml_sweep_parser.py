@@ -8,7 +8,8 @@ import yaml
 def _expand_sweep(node):
     if isinstance(node, dict):
         if "sweep" in node:
-            static_dictionary = {key: value for key, value in node.items() if key != "sweep"}
+            static_dictionary = dict(node)
+            del static_dictionary["sweep"]
             dictionary_permutations = _collect_dictionary_permutations(node["sweep"])
             return [{**static_dictionary, **dictionary} for dictionary in dictionary_permutations]
 
@@ -31,16 +32,24 @@ def _has_sweep(node):
     return False
 
 
+def _any_has_sweep(cases):
+    return any(_has_sweep(case) for case in cases)
+
+
+def _expand_cases(cases):
+    built_cases = []
+    for case in cases:
+        built_cases += _expand_sweep(case)
+    return built_cases
+
+
 def parse(yaml_file):
     with open(yaml_file, "r") as file:
         config = yaml.safe_load(file)
 
     cases = copy.deepcopy(config["cases"])
-    while any(_has_sweep(case) for case in cases):
-        built_cases = []
-        for case in cases:
-            built_cases.extend(_expand_sweep(case))
-        cases = built_cases
+    while _any_has_sweep(cases):
+        cases = _expand_cases(cases)
 
     if "base" in config:
         merger = deepmerge.Merger([(dict, ["merge"])], ["override"], ["override"])
