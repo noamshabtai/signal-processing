@@ -8,7 +8,6 @@ dependencies = [
     "analysis",
     "audio-io",
     "coordinates",
-    "data-types",
     "spatial-audio",
 ]
 
@@ -22,7 +21,6 @@ dev = [
 
 [tool.uv.sources]
 analysis = { path = "analysis", editable = true }
-data-types = { path = "data-types", editable = true }
 audio-io = { path = "audio-io", editable = true }
 spatial-audio = { path = "spatial-audio", editable = true }
 coordinates = { path = "coordinates", editable = true }
