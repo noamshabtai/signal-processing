@@ -111,20 +111,7 @@ class Gui:
             slider.set(self.spatial_audio.elevation_CH[channel])
             slider.grid(row=channel + 3, column=1, padx=10, pady=10)
 
-    def gain_gui(self):
-        self.gain_label = tk.Label(
-            master=self.master,
-            text="Gain",
-        )
-        self.gain_label.grid(row=1, column=3, columnspan=2)
-        self.gain_label.config(font=("Times", 20))
-
-        self.gain_reset_button = tk.Button(master=self.master, text="Reset", command=self.gain_reset_button_callback)
-        self.gain_reset_button.grid(row=2, column=3, columnspan=2, padx=10)
-
-        headroom_from_input_peak_db = -20 * np.log10(self.audio_engine.input_peak_normalized)
-        headroom_from_channel_sum_db = -20 * np.log10(self.spatial_audio.CH)
-        max_gain_db_to_prevent_clipping = headroom_from_input_peak_db + headroom_from_channel_sum_db
+    def _setup_gain_sliders(self, max_gain_db_to_prevent_clipping):
         self.gain_sliders = [
             tk.Scale(
                 master=self.master,
@@ -142,6 +129,7 @@ class Gui:
             slider.set(self.initial_gain_db[channel])
             slider.grid(row=channel + 3, column=3, padx=10, pady=10)
 
+    def _setup_mute_checkbuttons(self):
         self.gain_mute_checkbutton_variables = [tk.IntVar() for channel in range(self.spatial_audio.CH)]
         self.gain_mute_checkbuttons = [
             tk.Checkbutton(
@@ -160,6 +148,7 @@ class Gui:
             checkbutton_variable.set("loud")
             checkbutton.grid(row=channel + 3, column=4, padx=10, pady=10)
 
+    def _setup_solo_radio_buttons(self):
         self.gain_solo_radio_button_variable = tk.IntVar()
         self.gain_solo_radio_buttons = [
             tk.Radiobutton(
@@ -182,6 +171,24 @@ class Gui:
         )
         self.gain_all_channels_radio_button.grid(row=1, column=5, padx=10, pady=10)
         self.gain_solo_radio_button_variable.set(-1)
+
+    def gain_gui(self):
+        self.gain_label = tk.Label(
+            master=self.master,
+            text="Gain",
+        )
+        self.gain_label.grid(row=1, column=3, columnspan=2)
+        self.gain_label.config(font=("Times", 20))
+
+        self.gain_reset_button = tk.Button(master=self.master, text="Reset", command=self.gain_reset_button_callback)
+        self.gain_reset_button.grid(row=2, column=3, columnspan=2, padx=10)
+
+        headroom_from_input_peak_db = -20 * np.log10(self.audio_engine.input_peak_normalized)
+        headroom_from_channel_sum_db = -20 * np.log10(self.spatial_audio.CH)
+        max_gain_db_to_prevent_clipping = headroom_from_input_peak_db + headroom_from_channel_sum_db
+        self._setup_gain_sliders(max_gain_db_to_prevent_clipping)
+        self._setup_mute_checkbuttons()
+        self._setup_solo_radio_buttons()
 
     def gain_mute_callback(self, channel):
         if self.gain_mute_checkbutton_variables[channel].get():
