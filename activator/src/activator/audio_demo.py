@@ -75,11 +75,14 @@ class Activator(activator.Activator):
 
         return (output_bytes, pyaudio.paContinue)
 
-    def cleanup(self):
+    def _close_stream(self):
         if self.output_stream and self.output_stream.is_active():
             self.output_stream.stop_stream()
         if self.output_stream:
             self.output_stream.close()
+
+    def cleanup(self):
+        self._close_stream()
         if self.pyaudio:
             self.pyaudio.terminate()
         if self.input_fid:

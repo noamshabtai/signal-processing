@@ -53,7 +53,7 @@ class Analysis:
     def extract_results(self, activator, activator_kwargs):
         pass
 
-    def log_output(self, activation_index):
+    def _log_output(self, activation_index):
         has_started = self.start_time is not None
         can_estimate_eta = activation_index > 0
         has_activations = self.nactivations > 0
@@ -66,13 +66,13 @@ class Analysis:
             f"Elapsed: {elapsed:.2f}s | ETA: {eta:.2f}s"
         )
 
-    def activate_single_case(self, kwargs):
+    def _activate_single_case(self, kwargs):
         activator_kwargs = copy.deepcopy(kwargs["activator"])
         activator_kwargs["output"]["dir"] = self.output_dir / f"output{kwargs['current_case']:0{self.case_ndigits}}"
         with self.activator_class(**activator_kwargs) as act:
             act.execute()
             self.extract_results(activator=act, activator_kwargs=activator_kwargs)
-        self.log_output(kwargs["activation_index"] + 1)
+        self._log_output(kwargs["activation_index"] + 1)
 
     def execute(self):
         self.start_time = time.time()
@@ -83,4 +83,4 @@ class Analysis:
             for i, j, kwargs in zip(range(len(self.cases)), self.cases, self.activator_kwargs_list)
         ]
         for kwargs in kwargs_list:
-            self.activate_single_case(kwargs)
+            self._activate_single_case(kwargs)

@@ -1,8 +1,6 @@
 import argparse
 import copy
-import io
 import pathlib
-import shlex
 import sys
 
 import analysis.analysis
@@ -38,23 +36,6 @@ class Analysis(analysis.analysis.Analysis):
         self.results["nsamples"].append(activator_kwargs["simulation"]["nsamples"])
 
 
-def extract_cliargs(indices, output_dir, yaml_path, monkeypatch):
-    execution_arguments = f" -y {yaml_path} -o {output_dir} -i {''.join(map(str, indices))}"
-    rem_stdin = sys.stdin
-    monkeypatch.setattr(sys, "stdin", io.StringIO(execution_arguments))
-    line = sys.stdin.readline()
-    sys.stdin = rem_stdin
-
-    argv = shlex.split(line)
-    rem_argv = sys.argv
-    monkeypatch.setattr(sys, "argv", ["python -m analysis.analysis", *argv])
-    parser = analysis.analysis.get_parser()
-    cliargs = analysis.analysis.get_cliargs(parser)
-    sys.argv = rem_argv
-
-    return cliargs
-
-
 def test_results_default(monkeypatch, project_dir, tmp_path):
     monkeypatch.setattr(sys, "argv", ["prog"])
     parser = analysis.analysis.get_parser()
@@ -62,7 +43,17 @@ def test_results_default(monkeypatch, project_dir, tmp_path):
     assert cliargs.results == []
 
 
-def test_log_output_first_step(project_dir, tmp_path):
+def test_cliargs(monkeypatch, project_dir, tmp_path):
+    yaml_path = project_dir / "tests/config/activator_config0.yaml"
+    monkeypatch.setattr(sys, "argv", ["prog", "-y", str(yaml_path), "-o", str(tmp_path), "-i", "0", "1"])
+    parser = analysis.analysis.get_parser()
+    cliargs = analysis.analysis.get_cliargs(parser)
+    assert cliargs.yaml_path == str(yaml_path)
+    assert cliargs.output_dir == str(tmp_path)
+    assert cliargs.indices == [0, 1]
+
+
+def test_execute_does_not_mutate_kwargs(project_dir, tmp_path):
     cliargs = argparse.Namespace(
         yaml_path=str(project_dir / "tests/config/activator_config0.yaml"),
         indices=None,
@@ -70,44 +61,22 @@ def test_log_output_first_step(project_dir, tmp_path):
         results=[],
     )
     tested = analysis.analysis.Analysis(activator=MockActivator, cliargs=cliargs)
-    tested.log_output(0)
+    original = copy.deepcopy(tested.activator_kwargs_list)
+    tested.execute()
+    assert tested.activator_kwargs_list == original
 
 
-def test_log_output_zero_activations(project_dir, tmp_path):
-    cliargs = argparse.Namespace(
-        yaml_path=str(project_dir / "tests/config/activator_config0.yaml"),
-        indices=None,
-        output_dir=str(tmp_path),
-        results=[],
-    )
-    tested = analysis.analysis.Analysis(activator=MockActivator, cliargs=cliargs)
-    tested.nactivations = 0
-    tested.log_output(0)
-
-
-def test_activate_single_case_does_not_mutate_kwargs(project_dir, tmp_path):
-    cliargs = argparse.Namespace(
-        yaml_path=str(project_dir / "tests/config/activator_config0.yaml"),
-        indices=None,
-        output_dir=str(tmp_path),
-        results=[],
-    )
-    tested = analysis.analysis.Analysis(activator=MockActivator, cliargs=cliargs)
-    kwargs = copy.deepcopy(tested.activator_kwargs_list[0])
-    kwargs["activation_index"] = 0
-    kwargs["current_case"] = 0
-    original_output_dir = copy.deepcopy(kwargs["activator"]["output"]["dir"])
-    tested.activate_single_case(kwargs)
-    assert kwargs["activator"]["output"]["dir"] == original_output_dir
-
-
-def test_analysis(kwargs_analysis, project_dir, tmp_path, monkeypatch):
+def test_analysis(kwargs_analysis, project_dir, tmp_path, capsys):
     kwargs = copy.deepcopy(kwargs_analysis)
     yaml_path = project_dir / kwargs["parameters"]["yaml_path"]
-
     output_dir = tmp_path / kwargs["parameters"]["output"]["dir"]
     indices = kwargs["parameters"]["indices"]
-    cliargs = extract_cliargs(indices, output_dir, yaml_path, monkeypatch)
+    cliargs = argparse.Namespace(
+        yaml_path=str(yaml_path),
+        output_dir=str(output_dir),
+        indices=indices,
+        results=[],
+    )
 
     tested = Analysis(cliargs=cliargs)
     tested.execute()
@@ -119,3 +88,6 @@ def test_analysis(kwargs_analysis, project_dir, tmp_path, monkeypatch):
     for i in cliargs.indices:
         output_dir = pathlib.Path(cliargs.output_dir) / f"output{i}"
         assert output_dir.is_dir()
+
+    stdout = capsys.readouterr().out
+    assert stdout.count("Activation") == nexecutes

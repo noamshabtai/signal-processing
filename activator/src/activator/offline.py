@@ -8,6 +8,15 @@ import numpy as np
 from . import activator
 
 
+def read_output_chunks(path, cfg):
+    dtype = np.dtype(cfg["dtype"])
+    step_shape = cfg["channel_shape"] + [cfg["step_size"]]
+    read_nbytes = int(np.prod(step_shape)) * dtype.itemsize
+    with open(path, "rb") as fid:
+        while len(chunk := fid.read(read_nbytes)) == read_nbytes:
+            yield np.frombuffer(chunk, dtype=dtype).reshape(step_shape, order="F")
+
+
 class Activator(activator.Activator):
     def __init__(self, System, **kwargs):
         self.max_steps = kwargs.get("max_steps", None)
@@ -77,7 +86,7 @@ class Activator(activator.Activator):
     def post_hook(self):
         pass
 
-    def log_output(self):
+    def _log_output(self):
         self._step += 1
         if self.log_rate and not self._step % self.log_rate:
             self._log_progress()
@@ -94,6 +103,13 @@ class Activator(activator.Activator):
             f"{eta:.2f}s",
         )
 
+    def _write_outputs(self):
+        for module, cfg in self.output_modules.items():
+            self.system.outputs[module].astype(cfg["dtype"]).ravel(order="F").tofile(cfg["fid"])
+
+    def _max_steps_reached(self):
+        return self.max_steps and self._step >= self.max_steps
+
     def execute(self):
         self._start_time = time.time()
         while len(data := self._read_input_chunk()) == self._input_chunk_nbytes:
@@ -102,14 +118,15 @@ class Activator(activator.Activator):
             self.pre_hook()
             self.process_frame(data)
             self.post_hook()
-            self.log_output()
-            for module, cfg in self.output_modules.items():
-                self.system.outputs[module].astype(cfg["dtype"]).ravel(order="F").tofile(cfg["fid"])
-            if self.max_steps and self._step >= self.max_steps:
+            self._log_output()
+            self._write_outputs()
+            if self._max_steps_reached():
                 break
 
         self.completed = True
         self.cleanup()
+        if self.plot_save or self.plot_show:
+            self.display_plot()
 
     def post_figure_hook(self, plt, module, data):
         pass
@@ -148,6 +165,3 @@ class Activator(activator.Activator):
 
         for cfg in self.output_modules.values():
             cfg["fid"].close()
-
-        if self.plot_save or self.plot_show:
-            self.display_plot()
