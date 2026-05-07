@@ -18,13 +18,16 @@ class STFT:
 
         self.analysis_window = np.hamming(self.output_buffer.buffer_size).astype(self.float_dtype)
         self.step_ratio = self.output_buffer.buffer_size / self.output_buffer.step_size
+        self.synthesis_window = self._compute_synthesis_window()
+
+    def _compute_synthesis_window(self):
         if self.step_ratio == 2:
-            self.synthesis_window = np.ones(self.output_buffer.buffer_size).astype(self.float_dtype)
+            return np.ones(self.output_buffer.buffer_size).astype(self.float_dtype)
         elif self.step_ratio == 4:
             ALPHA = 0.54
             BETA = 0.46
             RESTORING_FACTOR = 1 / self.step_ratio / (ALPHA**2 + BETA**2 / 2)
-            self.synthesis_window = (self.analysis_window * RESTORING_FACTOR).astype(self.float_dtype)
+            return (self.analysis_window * RESTORING_FACTOR).astype(self.float_dtype)
         else:
             denominator = np.zeros(self.output_buffer.buffer_size)
             for n in range(self.output_buffer.buffer_size):
@@ -32,7 +35,7 @@ class STFT:
                 qm = np.int16(np.floor((self.output_buffer.buffer_size - 1 - n) / self.step_size))
                 for q in range(-qn, qm + 1):
                     denominator[n] += self.analysis_window[q * self.step_size + n] ** 2
-            self.synthesis_window = np.flip(self.analysis_window / denominator)
+            return np.flip(self.analysis_window / denominator)
 
     def analysis(self, input_data):
         self.frame_fft = np.fft.fft(self.analysis_window * input_data, n=self.nfft, axis=-1)[
