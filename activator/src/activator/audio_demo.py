@@ -30,6 +30,27 @@ class Activator(activator.Activator):
             )
         else:
             self.channel_gain = np.ones(np.prod(self.channel_shape), dtype=np.float32)
+        self.gain_db_CH = np.float32(20 * np.log10(self.channel_gain))
+
+    def set_channel_gain_db(self, channel, gain_db):
+        self.gain_db_CH[channel] = gain_db
+        self.channel_gain[channel] = np.float32(10 ** (gain_db / 20))
+
+    def mute_channel(self, channel):
+        self.channel_gain[channel] = 0
+
+    def unmute_channel(self, channel):
+        self.channel_gain[channel] = np.float32(10 ** (self.gain_db_CH[channel] / 20))
+
+    def solo_channel(self, channel):
+        self.unmute_channel(channel)
+        for other in range(len(self.channel_gain)):
+            if other != channel:
+                self.mute_channel(other)
+
+    def unmute_all_channels(self):
+        for channel in range(len(self.channel_gain)):
+            self.unmute_channel(channel)
 
     def _setup_input(self, kwargs):
         self.input_path = pathlib.Path(kwargs["input"]["path"]).expanduser()
