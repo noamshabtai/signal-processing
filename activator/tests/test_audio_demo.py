@@ -86,6 +86,69 @@ def test_input_peak_normalized(mock_pyaudio, kwargs_audio_demo, tmp_path):
 
 
 @unittest.mock.patch("pyaudio.PyAudio")
+def test_set_channel_gain_db(mock_pyaudio, kwargs_audio_demo, tmp_path):
+    kwargs = copy.deepcopy(kwargs_audio_demo)
+    conftest.arrange_tmp_path_in_kwargs(kwargs, tmp_path)
+    conftest.create_input_file(**kwargs)
+
+    with Activator(**kwargs["activator"]) as tested:
+        gain_db = -20.0
+        tested.set_channel_gain_db(0, gain_db)
+        assert np.isclose(tested.channel_gain[0], np.float32(10 ** (gain_db / 20)))
+
+
+@unittest.mock.patch("pyaudio.PyAudio")
+def test_mute_channel(mock_pyaudio, kwargs_audio_demo, tmp_path):
+    kwargs = copy.deepcopy(kwargs_audio_demo)
+    conftest.arrange_tmp_path_in_kwargs(kwargs, tmp_path)
+    conftest.create_input_file(**kwargs)
+
+    with Activator(**kwargs["activator"]) as tested:
+        tested.mute_channel(0)
+        assert tested.channel_gain[0] == 0
+
+
+@unittest.mock.patch("pyaudio.PyAudio")
+def test_unmute_channel(mock_pyaudio, kwargs_audio_demo, tmp_path):
+    kwargs = copy.deepcopy(kwargs_audio_demo)
+    conftest.arrange_tmp_path_in_kwargs(kwargs, tmp_path)
+    conftest.create_input_file(**kwargs)
+
+    with Activator(**kwargs["activator"]) as tested:
+        original_gain = tested.channel_gain[0].copy()
+        tested.mute_channel(0)
+        tested.unmute_channel(0)
+        assert np.isclose(tested.channel_gain[0], original_gain)
+
+
+@unittest.mock.patch("pyaudio.PyAudio")
+def test_solo_channel(mock_pyaudio, kwargs_audio_demo, tmp_path):
+    kwargs = copy.deepcopy(kwargs_audio_demo)
+    conftest.arrange_tmp_path_in_kwargs(kwargs, tmp_path)
+    conftest.create_input_file(**kwargs)
+
+    with Activator(**kwargs["activator"]) as tested:
+        tested.solo_channel(0)
+        assert tested.channel_gain[0] != 0
+        for channel in range(1, len(tested.channel_gain)):
+            assert tested.channel_gain[channel] == 0
+
+
+@unittest.mock.patch("pyaudio.PyAudio")
+def test_unmute_all_channels(mock_pyaudio, kwargs_audio_demo, tmp_path):
+    kwargs = copy.deepcopy(kwargs_audio_demo)
+    conftest.arrange_tmp_path_in_kwargs(kwargs, tmp_path)
+    conftest.create_input_file(**kwargs)
+
+    with Activator(**kwargs["activator"]) as tested:
+        original_gains = tested.channel_gain.copy()
+        for channel in range(len(tested.channel_gain)):
+            tested.mute_channel(channel)
+        tested.unmute_all_channels()
+        assert np.allclose(tested.channel_gain, original_gains)
+
+
+@unittest.mock.patch("pyaudio.PyAudio")
 def test_cleanup(mock_pyaudio, kwargs_audio_demo, tmp_path):
     kwargs = copy.deepcopy(kwargs_audio_demo)
     conftest.arrange_tmp_path_in_kwargs(kwargs, tmp_path)

@@ -192,29 +192,28 @@ class Gui:
 
     def gain_mute_callback(self, channel):
         if self.gain_mute_checkbutton_variables[channel].get():
-            self.audio_engine.channel_gain[channel] = 0
+            self.audio_engine.mute_channel(channel)
             self.gain_sliders[channel].configure(state="disabled", fg="lightgray")
         else:
-            self.audio_engine.channel_gain[channel] = 10 ** (int(self.gain_sliders[channel].get()) / 20)
+            self.audio_engine.set_channel_gain_db(channel, int(self.gain_sliders[channel].get()))
             self.gain_sliders[channel].configure(state="active", fg="black")
 
     def create_gain_mute_callback(self, channel):
         return lambda: self.gain_mute_callback(channel)
 
     def gain_solo_callback(self, channel):
+        self.audio_engine.solo_channel(channel)
         self.gain_mute_checkbutton_variables[channel].set(False)
-        self.gain_mute_callback(channel)
         for mute_channel in set(range(self.spatial_audio.CH)) - {channel}:
             self.gain_mute_checkbutton_variables[mute_channel].set(True)
-            self.gain_mute_callback(mute_channel)
 
     def create_gain_solo_callback(self, channel):
         return lambda: self.gain_solo_callback(channel)
 
     def gain_all_channels_callback(self):
-        for channel, variable in enumerate(self.gain_mute_checkbutton_variables):
+        self.audio_engine.unmute_all_channels()
+        for variable in self.gain_mute_checkbutton_variables:
             variable.set(False)
-            self.gain_mute_callback(channel)
 
     def mono_radio_button_callback(self):
         for entry in (
@@ -265,7 +264,7 @@ class Gui:
         return lambda azimuth: self.azimuth_slider_callback(azimuth, channel)
 
     def gain_slider_callback(self, gain_db, channel):
-        self.audio_engine.channel_gain[channel] = 10 ** (int(gain_db) / 20)
+        self.audio_engine.set_channel_gain_db(channel, int(gain_db))
 
     def create_gain_slider_callback(self, channel):
         return lambda gain_db: self.gain_slider_callback(gain_db, channel)
