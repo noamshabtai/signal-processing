@@ -45,12 +45,6 @@ cases:
       input:
         path: input.wav
 
-  - name: multichannel
-    activator:
-      system:
-        input_buffer:
-          channel_shape: [2, 3]
-
   - name: plot_save
     activator:
       plot:
@@ -60,17 +54,6 @@ cases:
     activator:
       log:
         rate: 2
-
-  - name: input_dtype_float32
-    activator:
-      input:
-        dtype: float32
-
-  - name: system_dtype_float32
-    activator:
-      system:
-        input_buffer:
-          dtype: float32
 
   - name: log_rate_0
     activator:

@@ -9,5 +9,3 @@ module = sys.modules[__name__]
 for fixture in ["fixture1", "fixture2", "fixture3"]:
     parametrize_tests.fixtures.setattr_kwargs(fixture, config_dir, module)
 parametrize_tests.fixtures.setattr_project_dir(tests_dir, module)
-parametrize_tests.fixtures.setattr_config_dir(config_dir, module)
-parametrize_tests.fixtures.setattr_root_dir(tests_dir, module)

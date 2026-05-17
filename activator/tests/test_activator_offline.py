@@ -3,7 +3,6 @@ import unittest.mock
 
 import conftest
 import numpy as np
-import pytest
 
 import activator.offline
 
@@ -79,10 +78,8 @@ def test_nonoutput_module_files_not_created(kwargs_offline, tmp_path):
             assert not (output_dir / (module + ".png")).exists()
 
 
-def test_plot_saved(kwargs_offline, tmp_path):
+def test_plot(kwargs_offline, tmp_path):
     kwargs = copy.deepcopy(kwargs_offline)
-    if not kwargs["activator"]["plot"]["save"]:
-        pytest.skip("plot.save is False")
     conftest.arrange_tmp_path_in_kwargs(kwargs, tmp_path)
     conftest.create_input_file(**kwargs)
     output_dir = kwargs["activator"]["output"]["dir"]
@@ -92,23 +89,11 @@ def test_plot_saved(kwargs_offline, tmp_path):
         tested.execute()
 
     for module in output_modules:
-        assert (output_dir / (module + ".png")).exists()
-
-
-def test_plot_not_saved(kwargs_offline, tmp_path):
-    kwargs = copy.deepcopy(kwargs_offline)
-    if kwargs["activator"]["plot"]["save"]:
-        pytest.skip("plot.save is True")
-    conftest.arrange_tmp_path_in_kwargs(kwargs, tmp_path)
-    conftest.create_input_file(**kwargs)
-    output_dir = kwargs["activator"]["output"]["dir"]
-    output_modules = {key for key in kwargs["activator"]["output"] if key != "dir"}
-
-    with Activator(**kwargs["activator"]) as tested:
-        tested.execute()
-
-    for module in output_modules:
-        assert not (output_dir / (module + ".png")).exists()
+        png_exists = (output_dir / (module + ".png")).exists()
+        if kwargs["activator"]["plot"]["save"]:
+            assert png_exists
+        else:
+            assert not png_exists
 
 
 def test_cleanup(kwargs_offline, tmp_path):
