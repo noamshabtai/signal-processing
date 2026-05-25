@@ -1,72 +1,92 @@
 # Signal Processing Framework
 
-A production-ready Python monorepo implementing real-time audio processing and spatial audio functionality. Built with Test-Driven Development principles and modular architecture for scalability and maintainability.
+A Python monorepo for real-time and offline audio signal processing. The
+flagship application is a HRTF-based binaural spatial-audio demo driven by a
+live Tk GUI. The codebase is organized as a `uv` workspace of cooperating
+packages with a shared System/Activator pattern, a YAML-parametrized test
+suite, and CI on GitHub Actions.
 
 ## Project Overview
 
-This is a comprehensive signal processing platform demonstrating professional-grade infrastructure for audio applications. It features real-time spatial audio with HRTF-based binaural rendering, modular STFT processing, and a complete testing framework.
+The framework decomposes audio processing into small composable modules. A
+`System` wires modules together (`analysis → processing → synthesis`) and an
+`Activator` drives that system either as a synchronous file-to-file batch job
+or as a real-time PyAudio callback loop.
 
 ## Architecture
 
-### Core Modules
+### Packages
 
-#### Low-Level Components
-- **buffer** - Input/output buffer management for audio streaming
-- **data-types** - Data utilities and type handling
-- **system** - Base System class for module connection and execution flow
+#### Core infrastructure
+- **system** — Base `System` class. Owns the input buffer, the dict of
+  sub-modules, and the `execute()` orchestration that walks them in order.
+- **buffer** — Input/output buffer primitives. The input buffer accumulates
+  incoming chunks until a window is full; the output buffer handles
+  overlap-add.
 
-#### Signal Processing
-- **stft** - Short-Time Fourier Transform implementation
-  - Analysis: Windowing and FFT transformation
-  - Synthesis: IFFT and overlap-add reconstruction
-  - System: Integrated analysis → processing → synthesis pipeline
-  - Perfect reconstruction with configurable overlap ratios (2x, 4x, custom)
+#### Signal processing
+- **stft** — Short-Time Fourier Transform.
+  - `analysis.py` — windowing + FFT.
+  - `synthesis.py` — IFFT + overlap-add. Window scaling handles arbitrary
+    overlap ratios (2x, 4x, custom) for perfect reconstruction.
+  - `system.py` — three-stage pipeline `analysis → processing → synthesis`.
+- **spatial-audio** — HRTF-based binaural rendering.
+  - `spatial_audio.py` — applies HRTFs in the frequency domain to multiple
+    virtual sources defined by azimuth/elevation, with quaternion-based head
+    orientation. CH mono sources → 2-channel binauralized output.
+  - `system.py` — extends the STFT pipeline with the HRTF stage.
 
-- **spatial-audio** - HRTF-based spatial audio processing
-  - SpatialAudio: Binaural rendering with HRTFs
-  - System: Full pipeline with analysis → spatial → synthesis
-  - Quaternion-based 3D head orientation tracking
-  - Multiple virtual sound sources at configurable positions
-  - Input: CH channels (mono sources) → Output: Stereo (binauralized)
-
-#### Application Layer
-- **activator** - Module activation and lifecycle management
-  - Base class: Abstract activator interface with context manager support
-  - Loop-based activator: File-to-file processing (.bin, .wav)
-  - Audio demo activator: Real-time callback-based streaming with PyAudio
-
-- **spatial-audio-demo** - Real-time GUI demonstration
-  - Tkinter-based interface
-  - Live azimuth/elevation control
-  - Per-channel gain management
-
-- **analysis** - Audio analysis utilities and batch processing framework
+#### Application layer
+- **activator** — Lifecycle / drive loop for a `System`.
+  - `activator.py` — abstract base class. Implements the context-manager
+    protocol; `__exit__` calls `cleanup()` only when `self.completed` is still
+    `False`.
+  - `offline.py` — file-to-file batch processor. Reads `.wav` or `.bin`,
+    pushes step-sized chunks through the system, writes outputs and optional
+    plots. Sets `completed = True` and runs `cleanup()` itself before plotting
+    so it can reopen the output files.
+  - `audio_demo.py` — real-time PyAudio-callback driver. Loops a `.wav` input
+    through the system into the output stream. Exposes per-channel
+    `set_channel_gain_db`, `mute_channel`, `solo_channel`, and
+    `unmute_all_channels`, plus an `input_peak_normalized` reading used by
+    callers to compute a clipping-safe gain ceiling.
+- **spatial-audio-demo** — runnable Tk GUI on top of `audio_demo`. Sliders
+  for per-channel azimuth, elevation, and gain; mute/solo/all checkboxes;
+  mono/stereo/binaural output mode toggle.
+- **analysis** — batch-processing framework that drives multiple activator
+  runs from YAML cases.
 
 #### Utilities
-- **audio-io** - Audio I/O and format conversion utilities
-- **coordinates** - Coordinate system transformations
+- **audio-io** — `conversions.py` only. `np_dtype_to_pa_format`,
+  `bytes_to_chunk`, `freq_index`, `lin2db`, `db2lin`. No device detection
+  (PyAudio defaults are used) and no WAV helpers (use Python's built-in
+  `wave`).
+- **coordinates** — coordinate-system transforms used by spatial audio.
+- **parametrize-tests** — YAML-driven pytest parametrization.
+- **try_pyaudio** — scratch experiments for PyAudio integration.
 
-### Dependency Graph
+### Dependency graph
+
 ```
-signal-processing (root)
-├── analysis → activator
-├── audio-io → data-types, pyaudio
-├── activator → audio-io, system, matplotlib
+signal-processing (workspace root)
+├── analysis            → activator, parametrize-tests
+├── activator           → audio-io, system, matplotlib, pyaudio
+├── audio-io            → numpy, pyaudio
+├── spatial-audio       → activator, audio-io, coordinates, stft,
+│                         numpy-quaternion
+├── spatial-audio-demo  → analysis, spatial-audio
+├── stft                → system, buffer
+├── system              → buffer
+├── buffer
 ├── coordinates
-├── data-types
-├── spatial-audio
-│   ├── stft → system, buffer
-│   ├── system → buffer
-│   ├── coordinates
-│   └── numpy-quaternion
-└── spatial-audio-demo → activator, spatial-audio
+└── parametrize-tests
 ```
 
 ## Development Setup
 
 ### Requirements
-- Python >= 3.12
-- Package manager: `uv`
+- Python ≥ 3.12
+- `uv` for package and venv management
 
 ### Installation
 ```bash
@@ -74,102 +94,91 @@ uv sync
 ```
 
 ### Testing
+Run from the repository root — the workspace config picks up every package's
+`tests/` directory:
 ```bash
-# Run all tests
-pytest
-
-# Run tests in parallel
-pytest -n auto
-
-# Test specific module
-pytest stft/tests/
-pytest spatial_audio/tests/
+uv run pytest
+uv run pytest -n auto             # parallel
+uv run pytest stft/tests          # one package
+uv run pytest stft/tests/test_stft.py::test_synthesis  # one case
 ```
 
-### Code Quality
+### Code quality
 ```bash
-# Run pre-commit hooks
-pre-commit run --all-files
+uv run pre-commit run --all-files
+uv run lizard
 ```
 
-## Key Features
+## Running the spatial audio demo
 
-### Real-Time Spatial Audio
-- HRTF-based binaural rendering for immersive 3D audio
-- Quaternion-based head orientation tracking
-- Configurable virtual sound source positions (azimuth/elevation)
-- Live GUI demo with real-time parameter control
-
-### Modular STFT Processing
-- Separate Analysis and Synthesis classes for flexibility
-- Perfect reconstruction with proper window scaling
-- Configurable FFT sizes and overlap ratios
-- Frequency-domain processing pipeline
-
-### Production-Ready Infrastructure
-- 100+ comprehensive tests with pytest
-- YAML-based test parametrization
-- CI/CD with GitHub Actions
-- Pre-commit hooks for code quality
-- Type hints throughout
-- Modular package design with `uv` workspace management
-
-### Activator Pattern
-- Abstract base class for consistent lifecycle management
-- File-based processing for offline analysis
-- Real-time callback-based streaming for live applications
-- Context manager support for automatic cleanup
-
-## Code Style Guidelines
-
-### Import Conventions
-- **NO** `from X import Y` (except local imports: `from . import module`)
-- **NO** `import X as Y` shortcuts (except `numpy as np` and `matplotlib.pyplot as plt`)
-- Use full module paths: `import module.submodule` then `module.submodule.Class()`
-- Rationale: Explicit imports improve code clarity and avoid namespace pollution
-
-### Testing Approach
-- Test-Driven Development throughout
-- Mock external dependencies (PyAudio, file I/O) when appropriate
-- YAML configuration files for parametrized tests
-- Hardcoded test values for simple cases (no YAML overhead)
-
-## Common Workflows
-
-### Running Module Tests
 ```bash
-# From module directory
-cd module_name
-pytest
-
-# From root
-pytest module_name/tests/
+cd spatial-audio-demo
+./run_demo.sh
 ```
 
-### Working with STFT Pipeline
-The STFT System implements a 3-stage process:
-1. `analysis.execute(input_data)` - Apply window and FFT → frequency-domain data
-2. `processing()` - Apply frequency domain filter (in system's connect method)
-3. `synthesis.execute(processed_frame_fft)` - IFFT and overlap-add → time-domain output
+The Tk window exposes per-channel azimuth/elevation sliders, gain sliders with
+a clipping-safe ceiling derived from `input_peak_normalized`, mute/solo
+checkboxes, and a mono/stereo/binaural output-mode selector. Closing the
+window calls `audio_engine.cleanup()` to tear down the PyAudio stream.
 
-The System's `execute(input_chunk)` automatically orchestrates all stages.
+## Key Design Patterns
 
-### Working with Spatial Audio Pipeline
-The Spatial Audio System extends STFT with binaural processing:
-1. `analysis.execute(input_data)` - FFT of CH mono sources
-2. `spatial_audio.execute(frame_fft_CHxK)` - Apply HRTF → stereo frequency-domain (2xK)
-3. `synthesis.execute(processed_frame_fft)` - IFFT and overlap-add → stereo time-domain
+### System / Activator separation
+`System` is pure signal processing — modules, buffers, and the execute
+orchestration. `Activator` owns I/O and lifecycle — opening files or audio
+streams, driving the system, and cleaning up. The same `spatial_audio.System`
+is used by both the offline activator (batch render to file) and the audio
+demo activator (real-time GUI).
 
-Input: CH channels at configured 3D positions → Output: Binauralized stereo
+### `Activator.completed` and cleanup
+The base `__exit__` calls `cleanup()` only when `self.completed` is `False`.
+Subclasses pick the side of that contract that fits their lifecycle:
+- **offline.py** finishes synchronously inside `execute()`, so it closes its
+  files and sets `completed = True` itself (the plot stage then reopens the
+  files). The `with` exit becomes a no-op.
+- **audio_demo.py** is event-driven with no natural finish point. It leaves
+  `completed` as `False` so the cleanup runs when the caller drops the `with`
+  block (or explicitly calls `audio_engine.cleanup()` from a GUI close
+  handler).
 
-## Technical Documentation
+### STFT pipeline
+1. `analysis.execute(input_data)` — window + FFT → `(K,)` complex spectrum.
+2. processing — any frequency-domain operation wired in by the `System`.
+3. `synthesis.execute(processed_frame_fft)` — IFFT + overlap-add → time
+   domain.
+`System.execute(input_chunk)` orchestrates all three.
 
-For detailed architecture notes, design patterns, and development guidelines, see `AGENT.md` in the repository root.
+### Spatial audio pipeline
+1. `analysis.execute(input_data)` — FFT of CH mono sources.
+2. `spatial_audio.execute(frame_fft_CHxK)` — HRTF → 2×K stereo spectrum.
+3. `synthesis.execute(processed_frame_fft)` — IFFT + overlap-add → stereo
+   time domain.
+
+## Code Style
+
+### Imports
+- Use `import module` (or `import package.module`) and call through the full
+  path: `audio_io.conversions.np_dtype_to_pa_format(...)`.
+- No `from X import Y`, except local sibling imports: `from . import activator`.
+- No `import X as Y`, except `numpy as np` and `matplotlib.pyplot as plt`.
+
+### Tools
+- Always invoke via `uv run` (`uv run pytest`, `uv run lizard`, `uv run
+  pre-commit`). Never call the underlying binaries directly or via
+  `python3 -m`.
+
+### Tests
+- Tests live next to each package under `<pkg>/tests/`.
+- YAML cases under `<pkg>/tests/config/` drive parametrized tests via
+  `parametrize-tests`; simple cases can stay hard-coded.
+- External resources (PyAudio, file I/O) are mocked where appropriate; see
+  `activator/tests/test_audio_demo.py` for the pattern.
 
 ## CI/CD
 
-GitHub Actions workflow configured for:
-- Automated testing on all pull requests
-- Pre-commit hook validation
-- Python 3.13 with uv package manager
-- Branch protection requiring passing tests before merge
+GitHub Actions runs on every PR to `main`:
+- `uv sync`
+- `uv run pre-commit run --all-files` (lint/format checks)
+- `uv run pytest` (full suite)
+
+Branch protection on `main` requires the `test` check to pass before merge.
