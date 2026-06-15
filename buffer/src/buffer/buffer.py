@@ -20,7 +20,7 @@ class InputBuffer(Buffer):
         self._step = 0
 
     def push(self, chunk):
-        self.buffer = np.roll(self.buffer, -self.step_size, axis=-1)
+        self.buffer[..., : -self.step_size] = self.buffer[..., self.step_size :].copy()
         self.buffer[..., -self.step_size :] = chunk
         self._step += 1
         if self._step == self.steps_to_ready:
@@ -29,7 +29,7 @@ class InputBuffer(Buffer):
 
 class OutputBuffer(Buffer):
     def pop(self):
-        chunk = self.buffer[..., : self.step_size]
-        self.buffer = np.roll(self.buffer, -self.step_size, axis=-1)
+        chunk = self.buffer[..., : self.step_size].copy()
+        self.buffer[..., : -self.step_size] = self.buffer[..., self.step_size :].copy()
         self.buffer[..., -self.step_size :] = 0
         return chunk
