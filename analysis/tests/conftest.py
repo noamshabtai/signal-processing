@@ -4,8 +4,7 @@ import sys
 import parametrize_tests.kwargs
 import pytest
 
-tests_dir = pathlib.Path(__file__).parent
-config_dir = tests_dir / "config"
+config_dir = pathlib.Path(__file__).parent / "config"
 module = sys.modules[__name__]
 for fixture in [
     "analysis",
