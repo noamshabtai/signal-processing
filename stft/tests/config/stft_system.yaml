@@ -1,5 +1,5 @@
 base:
-  system:
+  tested:
     execute_before_input_buffer_full: true
     input_buffer:
       channel_shape: [1]
@@ -14,7 +14,7 @@ base:
 
 cases:
   - name: stft system
-    parameters:
+    test:
       sweep:
         nsamples:
           - 256

@@ -1,12 +1,11 @@
 import copy
 
-import conftest
 import numpy as np
 
 
-def test_execute_binaural(kwargs_spatial_audio, project_dir):
+def test_execute_binaural(kwargs_spatial_audio, SpatialAudio):
     kwargs = copy.deepcopy(kwargs_spatial_audio)
-    tested = conftest.make_tested(kwargs, project_dir)
+    tested = SpatialAudio(kwargs)
 
     frame_fft_CHxK = np.ones((tested.CH, tested.nfrequencies), dtype=tested.HRTF_CHx2xK.dtype)
     output = tested.execute(frame_fft_CHxK)

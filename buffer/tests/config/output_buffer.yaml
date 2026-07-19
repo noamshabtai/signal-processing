@@ -1,12 +1,13 @@
 base:
-  output_buffer:
+  test:
+  tested:
     dtype: float32
     buffer_size: 100
     step_size: 22
 
 cases:
   - name: channel_shape
-    output_buffer:
+    tested:
       sweep:
         channel_shape:
           - [1]

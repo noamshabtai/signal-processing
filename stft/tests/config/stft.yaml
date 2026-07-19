@@ -1,5 +1,6 @@
 base:
-  stft:
+  test:
+  tested:
     input_buffer:
       channel_shape: [1]
       step_size: 256

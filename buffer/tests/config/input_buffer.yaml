@@ -1,12 +1,13 @@
 base:
-  input_buffer:
+  test:
+  tested:
     dtype: float32
     buffer_size: 1000
     step_size: 100
 
 cases:
   - name: channel_shape
-    input_buffer:
+    tested:
       sweep:
         channel_shape:
           - [1, 4]
@@ -14,6 +15,6 @@ cases:
           - [3, 6]
 
   - name: step_does_not_divide
-    input_buffer:
+    tested:
       channel_shape: [1]
       step_size: 32

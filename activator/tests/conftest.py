@@ -4,10 +4,11 @@ import unittest.mock
 import wave
 
 import numpy as np
-import parametrize_tests.fixtures
+import parametrize_tests.kwargs
+import pytest
 
 
-def define_activator_class_with_mocked_system(Base):
+def _define_activator_class_with_mocked_system(Base):
     class Activator(Base):
         def __init__(self, **kwargs):
             System = unittest.mock.Mock()
@@ -31,22 +32,22 @@ def define_activator_class_with_mocked_system(Base):
     return Activator
 
 
-def arrange_tmp_path_in_kwargs(kwargs, tmp_path):
-    kwargs["activator"]["input"]["path"] = tmp_path / pathlib.Path(kwargs["activator"]["input"]["path"]).name
-    if "output" in kwargs["activator"] and "dir" in kwargs["activator"]["output"]:
-        kwargs["activator"]["output"]["dir"] = tmp_path / kwargs["activator"]["output"]["dir"]
+def _arrange_tmp_path_in_kwargs(kwargs, tmp_path):
+    kwargs["tested"]["input"]["path"] = tmp_path / pathlib.Path(kwargs["tested"]["input"]["path"]).name
+    if "output" in kwargs["tested"] and "dir" in kwargs["tested"]["output"]:
+        kwargs["tested"]["output"]["dir"] = tmp_path / kwargs["tested"]["output"]["dir"]
 
 
-def create_input_file(**kwargs):
-    channel_shape = kwargs["activator"]["system"]["input_buffer"]["channel_shape"]
-    nsamples = kwargs["parameters"]["nsamples"]
-    dtype = np.dtype(kwargs["activator"]["input"]["dtype"])
-    path = kwargs["activator"]["input"]["path"]
+def _create_input_file(**kwargs):
+    channel_shape = kwargs["tested"]["system"]["input_buffer"]["channel_shape"]
+    nsamples = kwargs["test"]["nsamples"]
+    dtype = np.dtype(kwargs["tested"]["input"]["dtype"])
+    path = kwargs["tested"]["input"]["path"]
     data = np.random.normal(loc=0.0, scale=1.0, size=channel_shape + [nsamples]).astype(dtype)
 
     if path.suffix.lower() == ".wav":
         nchannels = np.prod(channel_shape)
-        fs = kwargs["activator"]["input"].get("fs", kwargs["parameters"].get("sampling_rate", 44100))
+        fs = kwargs["tested"]["input"].get("fs", kwargs["test"].get("sampling_rate", 44100))
         with wave.open(str(path), "wb") as fid:
             fid.setnchannels(nchannels)
             fid.setsampwidth(dtype.itemsize)
@@ -57,11 +58,11 @@ def create_input_file(**kwargs):
             fid.write(data.ravel(order="F").tobytes())
 
 
-def read_input_chunks(kwargs):
-    ib = kwargs["activator"]["system"]["input_buffer"]
+def _read_input_chunks(kwargs):
+    ib = kwargs["tested"]["system"]["input_buffer"]
     step_size = ib["step_size"]
     step_shape = ib["channel_shape"] + [step_size]
-    path = kwargs["activator"]["input"]["path"]
+    path = kwargs["tested"]["input"]["path"]
     if path.suffix.lower() == ".wav":
         with wave.open(str(path), "rb") as fid:
             dtype = np.dtype(f"int{fid.getsampwidth() * 8}")
@@ -69,14 +70,34 @@ def read_input_chunks(kwargs):
             while len(chunk := fid.readframes(step_size)) == read_nbytes:
                 yield np.frombuffer(chunk, dtype=dtype).reshape(step_shape, order="F")
     else:
-        dtype = np.dtype(kwargs["activator"]["input"]["dtype"])
+        dtype = np.dtype(kwargs["tested"]["input"]["dtype"])
         read_nbytes = int(np.prod(step_shape)) * dtype.itemsize
         with open(path, "rb") as fid:
             while len(chunk := fid.read(read_nbytes)) == read_nbytes:
                 yield np.frombuffer(chunk, dtype=dtype).reshape(step_shape, order="F")
 
 
-tests_dir = pathlib.Path(__file__).parent / "tests"
+@pytest.fixture
+def define_activator_class_with_mocked_system():
+    return _define_activator_class_with_mocked_system
+
+
+@pytest.fixture
+def arrange_tmp_path_in_kwargs():
+    return _arrange_tmp_path_in_kwargs
+
+
+@pytest.fixture
+def create_input_file():
+    return _create_input_file
+
+
+@pytest.fixture
+def read_input_chunks():
+    return _read_input_chunks
+
+
+tests_dir = pathlib.Path(__file__).parent
 config_dir = tests_dir / "config"
 module = sys.modules[__name__]
 for fixture in [
@@ -84,6 +105,4 @@ for fixture in [
     "audio_demo",
     "offline",
 ]:
-    parametrize_tests.fixtures.setattr_kwargs(fixture, config_dir, module)
-
-parametrize_tests.fixtures.setattr_project_dir(tests_dir, module)
+    parametrize_tests.kwargs.setattr_kwargs(fixture, config_dir, module)

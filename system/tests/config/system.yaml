@@ -1,5 +1,5 @@
 base:
-  system:
+  tested:
     input_buffer:
       buffer_size: 64
       step_size: 8
@@ -9,7 +9,7 @@ base:
 
 cases:
   - name: channel_shape
-    system:
+    tested:
       input_buffer:
         sweep:
           channel_shape:
@@ -18,20 +18,20 @@ cases:
             - [2, 3]
 
   - name: dtype_float32
-    system:
+    tested:
       input_buffer:
         dtype: float32
 
   - name: step_size_1
-    system:
+    tested:
       input_buffer:
         step_size: 1
 
   - name: step_size_equals_buffer
-    system:
+    tested:
       input_buffer:
         step_size: 64
 
   - name: execute_before_ready
-    system:
+    tested:
       execute_before_input_buffer_full: true

@@ -1,12 +1,11 @@
 import copy
 
-import conftest
 import numpy as np
 
 
-def test_execute_stereo(kwargs_spatial_audio, project_dir):
+def test_execute_stereo(kwargs_spatial_audio, SpatialAudio):
     kwargs = copy.deepcopy(kwargs_spatial_audio)
-    tested = conftest.make_tested(kwargs, project_dir)
+    tested = SpatialAudio(kwargs)
     tested.stereofy()
 
     frame_fft_CHxK = np.ones((tested.CH, tested.nfrequencies), dtype=np.complex64)
