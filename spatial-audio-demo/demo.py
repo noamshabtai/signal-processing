@@ -264,7 +264,8 @@ class Gui:
         return lambda azimuth: self.azimuth_slider_callback(azimuth, channel)
 
     def gain_slider_callback(self, gain_db, channel):
-        self.audio_engine.set_channel_gain_db(channel, int(gain_db))
+        if not self.gain_mute_checkbutton_variables[channel].get():
+            self.audio_engine.set_channel_gain_db(channel, int(gain_db))
 
     def create_gain_slider_callback(self, channel):
         return lambda gain_db: self.gain_slider_callback(gain_db, channel)
