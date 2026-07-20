@@ -1,7 +1,7 @@
 base:
-  parameters:
+  test:
     nsamples: 30
-  activator:
+  tested:
     input:
       dtype: int16
       path: input.bin
@@ -29,37 +29,37 @@ base:
 
 cases:
   - name: no_steps
-    parameters:
+    test:
       nsamples: 5
 
   - name: incomplete_final_chunk
-    parameters:
+    test:
       nsamples: 25
 
   - name: one_step
-    parameters:
+    test:
       nsamples: 10
 
   - name: wav
-    activator:
+    tested:
       input:
         path: input.wav
 
   - name: plot_save
-    activator:
+    tested:
       plot:
         save: True
 
   - name: log_rate_2
-    activator:
+    tested:
       log:
         rate: 2
 
   - name: log_rate_0
-    activator:
+    tested:
       log:
         rate: 0
 
   - name: max_steps
-    activator:
+    tested:
       max_steps: 2

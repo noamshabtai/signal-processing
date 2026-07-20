@@ -13,4 +13,5 @@ echo "Generating input audio..."
 uv run python scripts/create_dummy_input.py
 
 echo "Running demo..."
+export DISPLAY=:0
 uv run python demo.py

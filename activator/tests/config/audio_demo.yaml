@@ -1,7 +1,7 @@
 base:
-  parameters:
+  test:
     nsamples: 1000
-  activator:
+  tested:
     input:
       path: input.wav
       dtype: int16
@@ -15,9 +15,9 @@ base:
 
 cases:
   - name: mono_unity_gain
-    parameters:
+    test:
       sampling_rate: 16000
-    activator:
+    tested:
       demo:
         initial_gain_db: 0
       system:
@@ -27,9 +27,9 @@ cases:
         channel_shape: [1]
 
   - name: stereo_attenuated
-    parameters:
+    test:
       sampling_rate: 44100
-    activator:
+    tested:
       demo:
         initial_gain_db: -6.0
       system:

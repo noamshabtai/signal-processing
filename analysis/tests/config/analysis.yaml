@@ -1,7 +1,7 @@
 cases:
   - name: dummy analysis
-    analysis:
-    parameters:
+    tested:
+    test:
       output:
         dir: outputs
       sweep:

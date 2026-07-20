@@ -1,15 +1,14 @@
 import copy
 
-import conftest
 import numpy as np
 
 
-def test_system(kwargs_system):
+def test_system(kwargs_system, System):
     kwargs = copy.deepcopy(kwargs_system)
-    tested = conftest.System(**kwargs["system"])
+    tested = System(**kwargs["tested"])
 
     step_shape = tested.input_buffer.step_shape
-    dtype = kwargs["system"]["input_buffer"]["dtype"]
+    dtype = kwargs["tested"]["input_buffer"]["dtype"]
     chunk = np.random.normal(loc=10, scale=10, size=step_shape).astype(dtype)
 
     while not tested.input_buffer.ready:

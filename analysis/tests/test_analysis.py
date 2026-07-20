@@ -36,7 +36,7 @@ class Analysis(analysis.analysis.Analysis):
         self.results["nsamples"].append(activator_kwargs["simulation"]["nsamples"])
 
 
-def test_results_default(monkeypatch, project_dir, tmp_path):
+def test_results_default(monkeypatch):
     monkeypatch.setattr(sys, "argv", ["prog"])
     parser = analysis.analysis.get_parser()
     cliargs = analysis.analysis.get_cliargs(parser)
@@ -68,9 +68,9 @@ def test_execute_does_not_mutate_kwargs(project_dir, tmp_path):
 
 def test_analysis(kwargs_analysis, project_dir, tmp_path, capsys):
     kwargs = copy.deepcopy(kwargs_analysis)
-    yaml_path = project_dir / kwargs["parameters"]["yaml_path"]
-    output_dir = tmp_path / kwargs["parameters"]["output"]["dir"]
-    indices = kwargs["parameters"]["indices"]
+    yaml_path = project_dir / kwargs["test"]["yaml_path"]
+    output_dir = tmp_path / kwargs["test"]["output"]["dir"]
+    indices = kwargs["test"]["indices"]
     cliargs = argparse.Namespace(
         yaml_path=str(yaml_path),
         output_dir=str(output_dir),

@@ -1,5 +1,5 @@
 base:
-  spatial_audio:
+  tested:
     nfft: 512
     sampling_frequency: 16000
     hrtf:
@@ -14,7 +14,7 @@ base:
 cases:
   - name: low resolution
     sweep:
-      parameters:
+      test:
         - input:
             azimuth: [0.0, 90.0, 180.0]
             elevation: [0.0, 0.0, 0.0]
@@ -48,7 +48,7 @@ cases:
             azimuth: [296.57, 0.0, 82.37]
             elevation: [-37.76, -0.0, -12.95]
 
-    spatial_audio:
+    tested:
       hrtf:
         path: hrtf/hrtf_16khz_low_res.bin
       azimuth:

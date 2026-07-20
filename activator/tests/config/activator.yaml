@@ -1,6 +1,7 @@
 cases:
   - name: activator
-    activator:
+    test:
+    tested:
       system:
         input_buffer:
           step_size: 10

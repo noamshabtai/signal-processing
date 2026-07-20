@@ -1,15 +1,24 @@
 base:
-  stft:
+  test:
+    nsamples: 256
+  tested:
     input_buffer:
       channel_shape: [1]
       step_size: 256
       buffer_size: 1024
       dtype: float32
     analysis:
+      nfft: 1024
+      buffer_size: 1024
+      channel_shape: [1]
+      dtype: float32
       sampling_frequency: 16000
     synthesis:
       output_buffer:
+        channel_shape: [1]
+        step_size: 256
+        buffer_size: 1024
         dtype: float32
 
 cases:
-  - name: stft roundtrip
+  - name: stft system
