@@ -1,0 +1,10 @@
+base:
+  test:
+  tested:
+    nfft: 1024
+    buffer_size: 1024
+    channel_shape: [1]
+    dtype: float32
+
+cases:
+  - name: analysis
