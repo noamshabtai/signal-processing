@@ -14,9 +14,6 @@ class System(system.system.System):
         self.modules["first"] = unittest.mock.Mock()
         self.modules["second"] = unittest.mock.Mock()
 
-    def connect(self, module):
-        self.inputs[module] = {"key": "value"}
-
 
 @pytest.fixture(name="System")
 def system_fixture():
