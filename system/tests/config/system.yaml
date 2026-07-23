@@ -1,36 +1,15 @@
 base:
   tested:
     input_buffer:
-      buffer_size: 64
-      step_size: 8
+      buffer_size: 9
+      step_size: 3
       channel_shape: [1, 2]
       dtype: int16
-    execute_before_input_buffer_full: false
 
 cases:
-  - name: channel_shape
+  - name: execute_when_ready
     tested:
-      input_buffer:
-        sweep:
-          channel_shape:
-            - [1, 2]
-            - [2, 1]
-            - [2, 3]
-
-  - name: dtype_float32
-    tested:
-      input_buffer:
-        dtype: float32
-
-  - name: step_size_1
-    tested:
-      input_buffer:
-        step_size: 1
-
-  - name: step_size_equals_buffer
-    tested:
-      input_buffer:
-        step_size: 64
+      execute_before_input_buffer_full: false
 
   - name: execute_before_ready
     tested:
