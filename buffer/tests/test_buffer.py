@@ -1,12 +1,10 @@
-import copy
-
 import numpy as np
 
 import buffer.buffer
 
 
 def test_input_buffer(kwargs_input_buffer):
-    kwargs = copy.deepcopy(kwargs_input_buffer)
+    kwargs = kwargs_input_buffer
     tested = buffer.buffer.InputBuffer(**kwargs["tested"])
 
     assert not np.any(tested.buffer)
@@ -23,7 +21,7 @@ def test_input_buffer(kwargs_input_buffer):
 
 
 def test_output_buffer(kwargs_output_buffer):
-    kwargs = copy.deepcopy(kwargs_output_buffer)
+    kwargs = kwargs_output_buffer
     tested = buffer.buffer.OutputBuffer(**kwargs["tested"])
     tested.buffer = np.random.rand(*tested.channel_shape, tested.buffer_size)
     previous_buffer_data = tested.buffer.copy()

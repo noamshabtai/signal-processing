@@ -1,10 +1,8 @@
-import copy
-
 import numpy as np
 
 
 def test_execute_mono(kwargs_spatial_audio, SpatialAudio):
-    kwargs = copy.deepcopy(kwargs_spatial_audio)
+    kwargs = kwargs_spatial_audio
     tested = SpatialAudio(kwargs)
     tested.monify()
 

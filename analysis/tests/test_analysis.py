@@ -67,7 +67,7 @@ def test_execute_does_not_mutate_kwargs(project_dir, tmp_path):
 
 
 def test_analysis(kwargs_analysis, project_dir, tmp_path, capsys):
-    kwargs = copy.deepcopy(kwargs_analysis)
+    kwargs = kwargs_analysis
     yaml_path = project_dir / kwargs["test"]["yaml_path"]
     output_dir = tmp_path / kwargs["test"]["output"]["dir"]
     indices = kwargs["test"]["indices"]

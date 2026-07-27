@@ -1,10 +1,8 @@
-import copy
-
 import numpy as np
 
 
 def test_system(kwargs_system, System):
-    kwargs = copy.deepcopy(kwargs_system)
+    kwargs = kwargs_system
     tested = System(**kwargs["tested"])
 
     step_shape = tested.input_buffer.step_shape

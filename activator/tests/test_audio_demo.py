@@ -1,8 +1,8 @@
-import copy
 import unittest.mock
 import wave
 
 import audio_io.conversions
+import io_for_tests.io_for_tests
 import numpy as np
 import pytest
 
@@ -10,16 +10,13 @@ import activator.audio_demo
 
 
 @pytest.fixture
-def Activator(define_activator_class_with_mocked_system):
-    return define_activator_class_with_mocked_system(activator.audio_demo.Activator)
+def Activator(activator_with_mocked_system_factory):
+    return activator_with_mocked_system_factory(activator.audio_demo.Activator)
 
 
 @pytest.fixture
-def kwargs(kwargs_audio_demo, tmp_path, arrange_tmp_path_in_kwargs, create_input_file):
-    kwargs = copy.deepcopy(kwargs_audio_demo)
-    arrange_tmp_path_in_kwargs(kwargs, tmp_path)
-    create_input_file(**kwargs)
-    return kwargs
+def kwargs(kwargs_audio_demo, tmp_path):
+    return io_for_tests.io_for_tests.arrange_kwargs(kwargs_audio_demo, tmp_path)
 
 
 @unittest.mock.patch("pyaudio.PyAudio")
@@ -55,12 +52,12 @@ def test_start_stream(mock_pyaudio, kwargs, Activator):
 
 
 @unittest.mock.patch("pyaudio.PyAudio")
-def test_audio_callback_chunk(mock_pyaudio, kwargs, Activator, read_input_chunks):
+def test_audio_callback_chunk(mock_pyaudio, kwargs, Activator):
     with Activator(**kwargs["tested"]) as tested:
         step_size = kwargs["tested"]["system"]["input_buffer"]["step_size"]
         tested.audio_callback(None, step_size, None, None)
 
-        expected = next(read_input_chunks(kwargs)) * tested.channel_gain[:, np.newaxis]
+        expected = next(io_for_tests.io_for_tests.read_input_chunks(kwargs)) * tested.channel_gain[:, np.newaxis]
         assert np.array_equal(tested.system.execute.call_args.args[0], expected)
 
 
