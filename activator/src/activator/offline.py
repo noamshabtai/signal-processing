@@ -8,15 +8,6 @@ import numpy as np
 from . import activator
 
 
-def read_output_chunks(path, cfg):
-    dtype = np.dtype(cfg["dtype"])
-    step_shape = cfg["channel_shape"] + [cfg["step_size"]]
-    read_nbytes = int(np.prod(step_shape)) * dtype.itemsize
-    with open(path, "rb") as fid:
-        while len(chunk := fid.read(read_nbytes)) == read_nbytes:
-            yield np.frombuffer(chunk, dtype=dtype).reshape(step_shape, order="F")
-
-
 class Activator(activator.Activator):
     def __init__(self, System, **kwargs):
         self.max_steps = kwargs.get("max_steps", None)

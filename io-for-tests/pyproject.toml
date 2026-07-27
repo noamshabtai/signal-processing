@@ -1,0 +1,25 @@
+[project]
+name = "io-for-tests"
+version = "0.1.0"
+description = "Input-file arrangement and reading helpers for tests"
+readme = "README.md"
+authors = [
+    { name = "Noam Shabtai", email = "shabtai.noam@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "numpy",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "parametrize-tests",
+    "pytest>=8.3.4",
+]
+
+[tool.uv.sources]
+parametrize-tests = { path = "../parametrize-tests", editable = true }

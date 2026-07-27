@@ -1,10 +1,8 @@
-import copy
-
 import numpy as np
 
 
 def test_init(kwargs_spatial_audio, SpatialAudio):
-    kwargs = copy.deepcopy(kwargs_spatial_audio)
+    kwargs = kwargs_spatial_audio
     tested = SpatialAudio(kwargs)
 
     assert tested.nfrequencies == tested.nfft // 2 + 1
@@ -20,7 +18,7 @@ def test_init(kwargs_spatial_audio, SpatialAudio):
 
 
 def test_fetch_hrtf(kwargs_spatial_audio, SpatialAudio):
-    kwargs = copy.deepcopy(kwargs_spatial_audio)
+    kwargs = kwargs_spatial_audio
     tested = SpatialAudio(kwargs)
 
     CH = tested.CH
@@ -42,7 +40,7 @@ def test_fetch_hrtf(kwargs_spatial_audio, SpatialAudio):
 
 
 def test_set_doas(kwargs_spatial_audio, SpatialAudio):
-    kwargs = copy.deepcopy(kwargs_spatial_audio)
+    kwargs = kwargs_spatial_audio
     tested = SpatialAudio(kwargs)
 
     tested.set_head_orientation(**kwargs["test"]["orientation"])
@@ -57,7 +55,7 @@ def test_set_doas(kwargs_spatial_audio, SpatialAudio):
 def test_tare_head_orientation(kwargs_spatial_audio, SpatialAudio):
     import quaternion
 
-    kwargs = copy.deepcopy(kwargs_spatial_audio)
+    kwargs = kwargs_spatial_audio
     tested = SpatialAudio(kwargs)
     tested.tare_head_orientation(0, 0, 0)
     assert tested.global_orientation == quaternion.quaternion(1, 0, 0, 0)
@@ -66,14 +64,14 @@ def test_tare_head_orientation(kwargs_spatial_audio, SpatialAudio):
 def test_set_head_orientation(kwargs_spatial_audio, SpatialAudio):
     import quaternion
 
-    kwargs = copy.deepcopy(kwargs_spatial_audio)
+    kwargs = kwargs_spatial_audio
     tested = SpatialAudio(kwargs)
     tested.set_head_orientation(0, 0, 0)
     assert tested.head_orientation == quaternion.quaternion(1, 0, 0, 0)
 
 
 def test_combine_head_orientation(kwargs_spatial_audio, SpatialAudio):
-    kwargs = copy.deepcopy(kwargs_spatial_audio)
+    kwargs = kwargs_spatial_audio
     tested = SpatialAudio(kwargs)
 
     tested.set_head_orientation(0, 0, 0)
@@ -92,7 +90,7 @@ def test_combine_head_orientation(kwargs_spatial_audio, SpatialAudio):
 
 
 def test_binauralize(kwargs_spatial_audio, SpatialAudio):
-    kwargs = copy.deepcopy(kwargs_spatial_audio)
+    kwargs = kwargs_spatial_audio
     tested = SpatialAudio(kwargs)
     tested.monify()
     tested.binauralize()
@@ -100,14 +98,14 @@ def test_binauralize(kwargs_spatial_audio, SpatialAudio):
 
 
 def test_monify(kwargs_spatial_audio, SpatialAudio):
-    kwargs = copy.deepcopy(kwargs_spatial_audio)
+    kwargs = kwargs_spatial_audio
     tested = SpatialAudio(kwargs)
     tested.monify()
     assert tested.mode == "mono"
 
 
 def test_stereofy(kwargs_spatial_audio, SpatialAudio):
-    kwargs = copy.deepcopy(kwargs_spatial_audio)
+    kwargs = kwargs_spatial_audio
     tested = SpatialAudio(kwargs)
     tested.stereofy()
     assert tested.mode == "stereo"
@@ -116,7 +114,7 @@ def test_stereofy(kwargs_spatial_audio, SpatialAudio):
 def test_reset_tracking(kwargs_spatial_audio, SpatialAudio):
     import quaternion
 
-    kwargs = copy.deepcopy(kwargs_spatial_audio)
+    kwargs = kwargs_spatial_audio
     tested = SpatialAudio(kwargs)
     tested.set_head_orientation(45, 30, 15)
     tested.reset_tracking()

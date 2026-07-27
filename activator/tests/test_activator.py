@@ -1,66 +1,52 @@
-import copy
 import unittest.mock
 
-import numpy as np
 import pytest
 
 import activator.activator
 
 
 @pytest.fixture
-def Activator(define_activator_class_with_mocked_system):
-    return define_activator_class_with_mocked_system(activator.activator.Activator)
+def Activator(activator_with_mocked_system_factory):
+    return activator_with_mocked_system_factory(activator.activator.Activator)
 
 
-@pytest.fixture
-def kwargs(kwargs_activator):
-    return copy.deepcopy(kwargs_activator)
-
-
-def test_defaults(Activator):
-    tested = Activator()
-    assert tested.channel_shape == [1]
-    assert tested.step_size == 1
-    assert tested.step_shape == [1, 1]
-
-
-def test_activator(kwargs, Activator):
+def test_init(kwargs_activator, Activator):
+    kwargs = kwargs_activator
     tested = Activator(**kwargs["tested"])
 
-    tested.cleanup = unittest.mock.Mock()
-    with tested:
-        assert tested.system is not None
+    assert tested.step_shape == tested.channel_shape + [tested.step_size]
+    assert not tested.completed
+
+
+def test_exit(kwargs_activator, Activator):
+    kwargs = kwargs_activator
+
+    with Activator(**kwargs["tested"]) as tested:
+        tested.cleanup = unittest.mock.Mock()
+        tested.completed = False
     tested.cleanup.assert_called_once()
 
-    tested.cleanup.reset_mock()
-    with tested:
+    with Activator(**kwargs["tested"]) as tested:
+        tested.cleanup = unittest.mock.Mock()
         tested.completed = True
-
     tested.cleanup.assert_not_called()
 
 
-def test_process_frame_calls_system_execute(kwargs, Activator):
+def test_process_frame(kwargs_activator, Activator):
+    kwargs = kwargs_activator
     tested = Activator(**kwargs["tested"])
 
-    test_data = np.zeros((1, 10), dtype=np.float32)
-    tested.process_frame(test_data)
+    data = object()
+    tested.process_frame(data)
+    tested.system.execute.assert_called_once_with(data)
 
-    tested.system.execute.assert_called_once()
 
-
-def test_fetch_output_returns_last_output(kwargs, Activator):
+def test_fetch_output(kwargs_activator, Activator):
+    kwargs = kwargs_activator
     tested = Activator(**kwargs["tested"])
 
-    test_data = np.zeros((1, 10), dtype=np.float32)
-    tested.process_frame(test_data)
+    tested.system.outputs = {}
+    assert tested.fetch_output() is None
 
-    result = tested.fetch_output()
-    last_module = list(tested.system.modules.keys())[-1]
-    assert np.array_equal(result, tested.system.outputs[last_module])
-
-
-def test_fetch_output_returns_none_when_no_outputs(kwargs, Activator):
-    tested = Activator(**kwargs["tested"])
-
-    result = tested.fetch_output()
-    assert result is None
+    tested.system.outputs = {"first": object(), "second": object()}
+    assert tested.fetch_output() is tested.system.outputs["second"]

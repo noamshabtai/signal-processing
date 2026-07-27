@@ -17,12 +17,14 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
+    "io-for-tests",
     "parametrize-tests",
     "pytest>=8.3.4",
     "pytest-xdist>=3.6.1",
 ]
 
 [tool.uv.sources]
+io-for-tests = { path = "../io-for-tests", editable = true }
 parametrize-tests = { path = "../parametrize-tests", editable = true }
 system = { path = "../system", editable = true }
 audio-io = { path = "../audio-io", editable = true }

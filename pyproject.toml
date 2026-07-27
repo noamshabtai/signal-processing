@@ -13,6 +13,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "io-for-tests",
     "lizard>=1.21.3",
     "pre-commit>=4.1.0",
     "pytest>=8.3.4",
@@ -24,6 +25,7 @@ addopts = "--import-mode=importlib"
 consider_namespace_packages = true
 
 [tool.uv.sources]
+io-for-tests = { path = "io-for-tests", editable = true }
 analysis = { path = "analysis", editable = true }
 audio-io = { path = "audio-io", editable = true }
 spatial-audio = { path = "spatial-audio", editable = true }

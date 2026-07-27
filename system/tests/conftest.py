@@ -8,16 +8,16 @@ import pytest
 import system.system
 
 
-class System(system.system.System):
+class SystemWithMockedModules(system.system.System):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.modules["first"] = unittest.mock.Mock()
         self.modules["second"] = unittest.mock.Mock()
 
 
-@pytest.fixture(name="System")
-def system_fixture():
-    return System
+@pytest.fixture
+def System():
+    return SystemWithMockedModules
 
 
 tests_dir = pathlib.Path(__file__).parent
