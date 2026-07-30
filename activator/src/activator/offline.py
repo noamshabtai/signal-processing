@@ -2,7 +2,6 @@ import itertools
 import pathlib
 import time
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 from . import activator
@@ -123,6 +122,8 @@ class Activator(activator.Activator):
         pass
 
     def _plot_channels(self, data):
+        import matplotlib.pyplot as plt
+
         for channel_index in itertools.product(*[range(dim) for dim in data.shape[:-1]]):
             if np.iscomplexobj(data):
                 plt.plot(data[channel_index].real, label=f"channel {channel_index} real")
@@ -131,6 +132,8 @@ class Activator(activator.Activator):
                 plt.plot(data[channel_index], label=f"channel {channel_index}")
 
     def _display_module_plot(self, module, cfg):
+        import matplotlib.pyplot as plt
+
         if not cfg["path"].stat().st_size:
             return
         with open(cfg["path"], "rb") as fid:
