@@ -20,6 +20,7 @@ dev = [
     "io-for-tests",
     "parametrize-tests",
     "pytest>=8.3.4",
+    "pytest-mock>=3.14.0",
     "pytest-xdist>=3.6.1",
 ]
 

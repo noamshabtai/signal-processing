@@ -37,3 +37,13 @@ cases:
           channel_shape: [2]
       output:
         channel_shape: [2]
+
+  - name: mono_default_gain
+    test:
+      sampling_rate: 16000
+    tested:
+      system:
+        input_buffer:
+          channel_shape: [1]
+      output:
+        channel_shape: [1]
