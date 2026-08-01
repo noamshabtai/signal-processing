@@ -1,14 +1,16 @@
+base:
+  test:
+  tested:
+    yaml_path: tests/config/activator_config.yaml
+    output_dir: outputs
+    results: [nsamples]
+
 cases:
-  - name: dummy analysis
+  - name: dummy_analysis
     tested:
-    test:
-      output:
-        dir: outputs
       sweep:
-        yaml_path:
-          - tests/config/activator_config0.yaml
-          - tests/config/activator_config1.yaml
         indices:
           - [1]
           - [0]
           - [0, 1]
+          - null

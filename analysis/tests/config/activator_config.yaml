@@ -1,0 +1,10 @@
+cases:
+  - name: dummy_activator
+    activator:
+      simulation:
+        sweep:
+          nsamples:
+            - 50
+            - 100
+      output:
+        dir: output

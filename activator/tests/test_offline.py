@@ -1,3 +1,5 @@
+import pathlib
+import sys
 import unittest.mock
 
 import io_for_tests.io_for_tests
@@ -5,6 +7,13 @@ import numpy as np
 import pytest
 
 import activator.offline
+
+
+@pytest.fixture(autouse=True)
+def patch_pyplot(mocker):
+    plt = mocker.MagicMock()
+    plt.savefig.side_effect = lambda path, *args, **kwargs: pathlib.Path(path).touch()
+    mocker.patch.dict(sys.modules, {"matplotlib": mocker.MagicMock(pyplot=plt), "matplotlib.pyplot": plt})
 
 
 @pytest.fixture
