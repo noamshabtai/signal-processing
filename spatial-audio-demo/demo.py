@@ -6,6 +6,9 @@ import yaml
 
 import activator.audio_demo
 
+GAIN_SLIDER_SPAN_DB = 20
+GAIN_ABOVE_CLIPPING_GUARD_DB = 3
+
 
 class Gui:
     def __init__(self, master, audio_engine):
@@ -116,8 +119,8 @@ class Gui:
             tk.Scale(
                 master=self.master,
                 orient=tk.HORIZONTAL,
-                from_=min(-40, self.initial_gain_db[channel]),
-                to=max(max_gain_db_to_prevent_clipping, self.initial_gain_db[channel]),
+                from_=self.initial_gain_db[channel] - GAIN_SLIDER_SPAN_DB,
+                to=max(max_gain_db_to_prevent_clipping + GAIN_ABOVE_CLIPPING_GUARD_DB, self.initial_gain_db[channel]),
                 resolution=1,
                 label=f"Ch. {channel} Gain [dB]",
                 length=200,
@@ -145,7 +148,7 @@ class Gui:
         for channel, checkbutton_variable, checkbutton in zip(
             range(self.spatial_audio.CH), self.gain_mute_checkbutton_variables, self.gain_mute_checkbuttons
         ):
-            checkbutton_variable.set("loud")
+            checkbutton_variable.set(False)
             checkbutton.grid(row=channel + 3, column=4, padx=10, pady=10)
 
     def _setup_solo_radio_buttons(self):
@@ -186,8 +189,8 @@ class Gui:
         headroom_from_input_peak_db = -20 * np.log10(self.audio_engine.input_peak_normalized)
         headroom_from_channel_sum_db = -20 * np.log10(self.spatial_audio.CH)
         max_gain_db_to_prevent_clipping = headroom_from_input_peak_db + headroom_from_channel_sum_db
-        self._setup_gain_sliders(max_gain_db_to_prevent_clipping)
         self._setup_mute_checkbuttons()
+        self._setup_gain_sliders(max_gain_db_to_prevent_clipping)
         self._setup_solo_radio_buttons()
 
     def gain_mute_callback(self, channel):
