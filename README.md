@@ -85,7 +85,8 @@ signal-processing (workspace root)
 ## Development Setup
 
 ### Requirements
-- Python ≥ 3.12
+- Python ≥ 3.14 (installed automatically by `uv`)
+- PortAudio development files for `pyaudio` (`sudo apt-get install portaudio19-dev pkg-config`)
 - `uv` for package and venv management
 
 ### Installation
