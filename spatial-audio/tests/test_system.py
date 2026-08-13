@@ -24,15 +24,25 @@ def test_system(kwargs_system, project_dir):
     while not system.input_buffer.ready:
         system.execute(zeros_chunk)
 
+    step_size = kwargs["tested"]["input_buffer"]["step_size"]
+    buffer_size = kwargs["tested"]["input_buffer"]["buffer_size"]
+    nfft = kwargs["tested"]["spatial_audio"]["nfft"]
+
     impulse_chunk = np.zeros(input_chunk_shape, dtype=kwargs["tested"]["input_buffer"]["dtype"])
     impulse_chunk[0, 0] = 1
     system.execute(impulse_chunk)
+
+    # the analysis takes the first nfft samples of the input buffer, so the impulse is analyzed only once it has
+    # been shifted from the end of the buffer into the last step of that frame
+    for _ in range((buffer_size - nfft) // step_size):
+        system.execute(zeros_chunk)
 
     HRTF_2xK = system.modules["spatial_audio"].HRTF_CHx2xK[0]
     mirrored_HRTF = np.concatenate((HRTF_2xK, np.fliplr(HRTF_2xK[..., 1:-1]).conj()), axis=-1)
     hrtf_impulse_response = np.fft.ifft(mirrored_HRTF, axis=-1).real.astype(
         kwargs["tested"]["synthesis"]["output_buffer"]["dtype"]
     )
-    expected_output = hrtf_impulse_response[..., -kwargs["tested"]["input_buffer"]["step_size"] :]
+    analysis_gain = np.hamming(buffer_size)[nfft - step_size]
+    expected_output = (analysis_gain * hrtf_impulse_response)[..., -step_size:]
 
     assert np.allclose(system.outputs["synthesis"], expected_output, atol=1e-6)

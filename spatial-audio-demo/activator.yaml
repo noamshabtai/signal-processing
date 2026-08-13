@@ -20,6 +20,8 @@ system:
       nfft: 512
       sampling_frequency: 8000
       path: ../spatial-audio/hrtf/hrtf_16khz_low_res.bin
+      equalization: true
+      gain_db: 3.0
     azimuth:
       symmetric: True
       span: 90
