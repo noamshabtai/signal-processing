@@ -3,6 +3,7 @@ import numpy as np
 
 def test_init(kwargs_spatial_audio, SpatialAudio):
     kwargs = kwargs_spatial_audio
+    kwargs["tested"]["hrtf"]["equalization"] = False
     tested = SpatialAudio(kwargs)
 
     assert tested.nfrequencies == tested.nfft // 2 + 1
@@ -15,6 +16,32 @@ def test_init(kwargs_spatial_audio, SpatialAudio):
 
     assert tested.azimuth_CH is not tested.initial_azimuth_CH
     assert tested.mode == "binaural"
+
+
+def test_equalize_hrtf(kwargs_spatial_audio, SpatialAudio):
+    kwargs = kwargs_spatial_audio
+    gain_db = 6.0
+    tested = SpatialAudio(kwargs)
+
+    with open(tested.hrtf_path, "rb") as fid:
+        raw_DOAx2xK = np.frombuffer(fid.read(), dtype=tested.hrtf_dtype).reshape((-1, 2, tested.nfrequencies))
+    equalized_DOAx2xK = tested.equalize_hrtf(raw_DOAx2xK)
+
+    diffuse_field_K = np.sqrt(np.mean(np.abs(equalized_DOAx2xK) ** 2, axis=(0, 1)))
+    assert np.allclose(diffuse_field_K, 1, atol=1e-3)
+
+    equalization_DOAx2xK = equalized_DOAx2xK / raw_DOAx2xK
+    assert np.allclose(equalization_DOAx2xK, equalization_DOAx2xK[0, 0], rtol=1e-3)
+
+    equalization_impulse_response_N = np.fft.irfft(equalization_DOAx2xK[0, 0], n=tested.nfft)
+    energy_N = equalization_impulse_response_N**2
+    assert np.sum(energy_N[: tested.nfft // 2]) > 0.99 * np.sum(energy_N)
+
+    assert np.allclose(tested.HRTF_DOAx2xK * tested.CH, equalized_DOAx2xK, rtol=1e-3)
+
+    kwargs["tested"]["hrtf"]["gain_db"] = gain_db
+    louder = SpatialAudio(kwargs)
+    assert np.allclose(louder.HRTF_DOAx2xK, tested.HRTF_DOAx2xK * 10 ** (gain_db / 20), rtol=1e-3)
 
 
 def test_fetch_hrtf(kwargs_spatial_audio, SpatialAudio):

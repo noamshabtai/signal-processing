@@ -13,10 +13,11 @@ class SpatialAudio:
         self.CH = len(self.initial_azimuth_CH)
         self.hrtf_path = kwargs["hrtf"]["path"]
         self.hrtf_dtype = kwargs["hrtf"]["dtype"]
+        self.hrtf_equalization = kwargs["hrtf"].get("equalization", True)
+        self.hrtf_gain_db = np.float64(kwargs["hrtf"].get("gain_db", 0.0))
         with open(self.hrtf_path, "rb") as fid:
-            self.HRTF_DOAx2xK = (
-                np.frombuffer(fid.read(), dtype=self.hrtf_dtype).reshape((-1, 2, self.nfrequencies)) / self.CH
-            )
+            HRTF_DOAx2xK = np.frombuffer(fid.read(), dtype=self.hrtf_dtype).reshape((-1, 2, self.nfrequencies))
+        self.HRTF_DOAx2xK = (self.equalize_hrtf(HRTF_DOAx2xK) / self.CH).astype(self.hrtf_dtype)
         self.azimuth_CH = self.initial_azimuth_CH.copy()
         self.elevation_CH = self.initial_elevation_CH.copy()
 
@@ -40,6 +41,27 @@ class SpatialAudio:
         self.reset_tracking()
         self.mode = "binaural"
         self.set_doas()
+
+    def equalize_hrtf(self, HRTF_DOAx2xK):
+        # The measured HRTF set rolls off at low frequencies, so the binaural output sounds thinner and quieter
+        # than the mono one. Dividing by the diffuse field magnitude flattens that average response, hence
+        # restores the low frequencies and the mono level, while the same gain per frequency for every DOA and
+        # both ears leaves the interaural cues untouched.
+        magnitude_K = np.full(self.nfrequencies, 10 ** (self.hrtf_gain_db / 20))
+        if self.hrtf_equalization:
+            magnitude_K = magnitude_K / np.sqrt(np.mean(np.abs(HRTF_DOAx2xK) ** 2, axis=(0, 1)))
+
+        # A zero phase equalizer spreads the head related impulse response over the whole frame, which wraps
+        # around as time aliasing in the overlap add synthesis. The minimum phase equalizer of the same
+        # magnitude, built by folding the cepstrum onto the causal half, keeps the impulse response compact.
+        cepstrum_N = np.fft.irfft(np.log(magnitude_K), n=self.nfft)
+        causal_N = np.zeros(self.nfft)
+        causal_N[0] = 1
+        causal_N[1 : self.nfft // 2] = 2
+        causal_N[self.nfft // 2] = 1
+        equalization_K = np.exp(np.fft.rfft(cepstrum_N * causal_N))
+
+        return HRTF_DOAx2xK * equalization_K
 
     def tare_head_orientation(self, yaw, pitch, roll):
         self.global_yaw = yaw
