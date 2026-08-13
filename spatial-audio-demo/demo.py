@@ -1,3 +1,4 @@
+import sys
 import tkinter as tk
 
 import numpy as np
@@ -282,7 +283,7 @@ class Gui:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    yaml_path = "activator.yaml"
+    yaml_path = sys.argv[1] if len(sys.argv) > 1 else "conference.yaml"
     with open(yaml_path, "r") as f:
         activator_kwargs = yaml.safe_load(f)
     audio_engine = activator.audio_demo.Activator(spatial_audio.system.System, **activator_kwargs)
