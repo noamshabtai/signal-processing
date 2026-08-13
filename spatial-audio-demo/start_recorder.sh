@@ -17,16 +17,34 @@ export PIPEWIRE_REMOTE="${PIPEWIRE_REMOTE:-/run/pipewire-0}"
 mkdir -p "$XDG_RUNTIME_DIR"
 chmod 700 "$XDG_RUNTIME_DIR"
 
-if [ ! -S "$XDG_RUNTIME_DIR/pulse/native" ]; then
+# A bridge that has since died leaves its socket file behind, and that file
+# still passes -S. The recorder would then fail to connect, record nothing and
+# write an empty file, so the socket is connected to rather than looked at.
+pulse_is_listening() {
+    python3 -c '
+import socket
+import sys
+
+sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+sock.settimeout(1)
+try:
+    sock.connect(sys.argv[1])
+except OSError:
+    sys.exit(1)
+' "$XDG_RUNTIME_DIR/pulse/native" 2>/dev/null
+}
+
+if ! pulse_is_listening; then
     echo "Starting the PulseAudio bridge onto PipeWire..."
+    rm -f "$XDG_RUNTIME_DIR/pulse/native"
     pipewire-pulse >"$XDG_RUNTIME_DIR/pipewire-pulse.log" 2>&1 &
     disown
     for _ in $(seq 50); do
-        [ -S "$XDG_RUNTIME_DIR/pulse/native" ] && break
+        pulse_is_listening && break
         sleep 0.1
     done
-    if [ ! -S "$XDG_RUNTIME_DIR/pulse/native" ]; then
-        echo "The PulseAudio socket never appeared."
+    if ! pulse_is_listening; then
+        echo "The PulseAudio bridge is not accepting connections."
         echo "See $XDG_RUNTIME_DIR/pipewire-pulse.log"
         exit 1
     fi
@@ -40,7 +58,11 @@ monitor="$(pw-metadata -n default 2>/dev/null |
     cut -d'"' -f4 |
     tail -1)"
 
-if [ -n "$monitor" ] && [ -f "$SSR_SETTINGS" ]; then
+if [ -z "$monitor" ] || [ ! -f "$SSR_SETTINGS" ]; then
+    # Recording with no source is the failure this script exists to prevent, and
+    # the recorder reports it only as an empty file, so say it here instead.
+    echo "No default sink to record from: check the audio settings before recording."
+else
     # MP4 has no tag for raw PCM, so the codec has to be AAC or the muxer fails
     # to write the header. The High Quality Intermediate profile sets PCM.
     sed -i -e 's/^audio_enabled=.*/audio_enabled=true/' \
