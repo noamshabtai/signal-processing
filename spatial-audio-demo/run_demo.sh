@@ -31,12 +31,20 @@ uv python install "$PYTHON_VERSION"
 echo "Setting up virtual environment..."
 uv sync --group dev --python "$PYTHON_VERSION"
 
-if [ -f conference_input.wav ]; then
-    echo "Using existing conference_input.wav"
+# which demo to run: the calm 3-party call, or the 5-player squad that shouts over each other. Each one is a
+# scripts/<demo>.yaml to synthesize and a <demo>.yaml to run the system with.
+DEMO="${1:-conference}"
+if [ ! -f "scripts/$DEMO.yaml" ] || [ ! -f "$DEMO.yaml" ]; then
+    echo "Unknown demo '$DEMO' (expected 'conference' or 'gaming')"
+    exit 1
+fi
+
+if [ -f "${DEMO}_input.wav" ]; then
+    echo "Using existing ${DEMO}_input.wav"
 else
-    echo "Synthesizing conference call input (downloads voice models on first run)..."
-    uv run --group dev python scripts/create_conference_input.py
+    echo "Synthesizing $DEMO input (downloads voice models on first run)..."
+    uv run --group dev python "scripts/create_input.py" "scripts/$DEMO.yaml"
 fi
 
 echo "Running demo..."
-uv run python demo.py
+uv run python demo.py "${DEMO}.yaml"

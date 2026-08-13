@@ -13,6 +13,7 @@
 #   keep:           fraction of the utterance to render before a short fade.
 #                   Models someone being cut off mid-word.
 
+output: ../conference_input.wav
 sampling_frequency: 8000
 fade_out: 0.05
 

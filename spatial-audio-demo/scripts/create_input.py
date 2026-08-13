@@ -1,10 +1,15 @@
-"""Render the conference call script into the multi-channel demo input.
+"""Render a multi-talker script into a multi-channel demo input.
 
 Each participant is synthesized separately and written to its own channel, as
 if every leg of the call had been recorded locally. Channels therefore contain
 no crosstalk: a channel is silent unless its own speaker is talking.
+
+The script to render is given on the command line, and names its own output file:
+`conference.yaml` for the calm three-party call, `gaming.yaml` for the
+five-player squad that shouts over each other.
 """
 
+import argparse
 import pathlib
 import shutil
 import urllib.parse
@@ -18,12 +23,13 @@ import scipy.signal
 import yaml
 
 SCRIPT_DIR = pathlib.Path(__file__).parent
-SCRIPT_PATH = SCRIPT_DIR / "conference_call.yaml"
+DEFAULT_SCRIPT_PATH = SCRIPT_DIR / "conference.yaml"
 VOICES_DIR = SCRIPT_DIR / "voices"
-OUTPUT_PATH = SCRIPT_DIR / "../conference_input.wav"
 DTYPE = np.int16
 PEAK = 0.7
+PITCH_RESOLUTION = 100  # resampling ratios are rational, so a pitch is rounded to a hundredth
 DOWNLOAD_ATTEMPTS = 3
+DOWNLOAD_TIMEOUT = 30  # seconds without data; the voice server does stall mid-transfer
 
 
 def voice_url(voice, extension):
@@ -50,17 +56,29 @@ def download(voice, extension):
     """Fetch a voice file, verifying the size so a cut transfer is retried.
 
     Piper's own downloader neither checks the length nor resumes, and silently
-    leaves a truncated model behind that only fails later at load time.
+    leaves a truncated model behind that only fails later at load time. The
+    timeout matters as much as the retry: without it a stalled transfer never
+    raises, so the whole render just hangs on a half-written model.
     """
     path = VOICES_DIR / f"{voice}{extension}"
     for attempt in range(DOWNLOAD_ATTEMPTS):
-        with urllib.request.urlopen(voice_url(voice, extension)) as response:  # noqa: S310  # scheme checked above
-            expected_size = int(response.headers["Content-Length"])
-            if path.exists() and path.stat().st_size == expected_size:
+        try:
+            with urllib.request.urlopen(  # noqa: S310  # scheme checked above
+                voice_url(voice, extension), timeout=DOWNLOAD_TIMEOUT
+            ) as response:
+                expected_size = int(response.headers["Content-Length"])
+                if path.exists() and path.stat().st_size == expected_size:
+                    return path
+                print(f"Downloading {path.name} ({expected_size / 1e6:.0f} MB, attempt {attempt + 1})", flush=True)
+                with open(path, "wb") as voice_file:
+                    shutil.copyfileobj(response, voice_file)
+        except OSError as error:
+            # a voice already on disk is worth more than the size check it cannot do offline
+            if path.exists():
+                print(f"{path.name}: {error}; using the local copy", flush=True)
                 return path
-            print(f"Downloading {path.name} ({expected_size / 1e6:.0f} MB, attempt {attempt + 1})")
-            with open(path, "wb") as voice_file:
-                shutil.copyfileobj(response, voice_file)
+            print(f"{path.name}: {error}, retrying", flush=True)
+            continue
         if path.stat().st_size == expected_size:
             return path
     raise RuntimeError(f"Could not download {path.name} in one piece after {DOWNLOAD_ATTEMPTS} attempts")
@@ -78,10 +96,45 @@ def load_voices(speakers):
     return voices
 
 
-def synthesize(voice, text, sampling_frequency):
-    """Synthesize text and resample it to the target sampling frequency."""
-    chunks = list(voice.synthesize(text))
+def pitch_shift(audio, pitch):
+    """Shorten the utterance by resampling, which lifts pitch and formants together.
+
+    Formants moving with the pitch is exactly what makes the result sound like a
+    younger speaker rather than a sped-up adult, and the caller has already asked
+    piper for a proportionally slower delivery, so the line still takes as long
+    as the script's timing expects.
+    """
+    return scipy.signal.resample_poly(audio, PITCH_RESOLUTION, round(PITCH_RESOLUTION * pitch))
+
+
+def overdrive(audio, drive):
+    """Soft clip the utterance, the way a cheap headset mic breaks up when shouted into.
+
+    The shaping is applied to the levelled signal, so a shout distorts hard while
+    a muttered line barely leaves the linear part of the curve.
+    """
+    return np.tanh(drive * audio) / np.tanh(drive)
+
+
+def synthesize(voice, text, sampling_frequency, style):
+    """Synthesize text in the given vocal style and resample it to the target sampling frequency.
+
+    A style that switches piper's per-utterance normalization off is what lets a
+    shout stay louder than the line it interrupts: normalized utterances all come
+    back at full scale, so only their timing would differ.
+    """
+    pitch = style.get("pitch", 1.0)
+    synthesis_config = piper.SynthesisConfig(
+        length_scale=style.get("rate", 1.0) * pitch,
+        noise_scale=style.get("noise"),
+        noise_w_scale=style.get("noise_w"),
+        volume=style.get("volume", 1.0),
+        normalize_audio=style.get("normalize", True),
+    )
+    chunks = list(voice.synthesize(text, syn_config=synthesis_config))
     audio = np.concatenate([chunk.audio_float_array for chunk in chunks])
+    audio = pitch_shift(audio, pitch)
+    audio = overdrive(audio, style["drive"]) if "drive" in style else audio
     return scipy.signal.resample_poly(audio, sampling_frequency, chunks[0].sample_rate)
 
 
@@ -97,9 +150,14 @@ def truncate(audio, keep, fade_out, sampling_frequency):
 def render_utterances(script, voices):
     """Render every utterance, keyed by id."""
     sampling_frequency = script["sampling_frequency"]
+    styles = script.get("styles", {})
     audio_of = {}
     for utterance in script["utterances"]:
-        audio = synthesize(voices[utterance["speaker"]], utterance["text"], sampling_frequency)
+        speaker = script["speakers"][utterance["speaker"]]
+        # how young the player is, times how wound up they are on this line
+        style = styles.get(utterance.get("style", "normal"), {})
+        style = style | {"pitch": style.get("pitch", 1.0) * speaker.get("pitch", 1.0)}
+        audio = synthesize(voices[utterance["speaker"]], utterance["text"], sampling_frequency, style)
         if "keep" in utterance:
             audio = truncate(audio, utterance["keep"], script["fade_out"], sampling_frequency)
         audio_of[utterance["id"]] = audio
@@ -148,10 +206,10 @@ def normalize(mixed):
     return PEAK * mixed / np.abs(mixed).max(axis=0)
 
 
-def write(mixed, sampling_frequency):
+def write(mixed, sampling_frequency, output_path):
     """Write the mix as an interleaved multi-channel WAV file."""
     interleaved = (mixed * np.iinfo(DTYPE).max).astype(DTYPE).reshape(-1)
-    with wave.open(str(OUTPUT_PATH), "wb") as wav_file:
+    with wave.open(str(output_path), "wb") as wav_file:
         wav_file.setnchannels(mixed.shape[1])
         wav_file.setsampwidth(DTYPE().itemsize)
         wav_file.setframerate(sampling_frequency)
@@ -159,18 +217,23 @@ def write(mixed, sampling_frequency):
 
 
 def main():
-    """Synthesize the conference call script into a multi-channel WAV file."""
-    with open(SCRIPT_PATH, "r") as script_file:
+    """Synthesize a multi-talker script into a multi-channel WAV file."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("script", nargs="?", default=DEFAULT_SCRIPT_PATH, type=pathlib.Path)
+    arguments = parser.parse_args()
+
+    with open(arguments.script, "r") as script_file:
         script = yaml.safe_load(script_file)
+    output_path = arguments.script.parent / script["output"]
 
     voices = load_voices(script["speakers"])
     audio_of = render_utterances(script, voices)
     onset_of = resolve_onsets(script, audio_of)
     mixed = normalize(mix(script, audio_of, onset_of))
-    write(mixed, script["sampling_frequency"])
+    write(mixed, script["sampling_frequency"], output_path)
 
     duration = len(mixed) / script["sampling_frequency"]
-    print(f"Successfully created {OUTPUT_PATH} ({duration:.1f} s, {mixed.shape[1]} channels)")
+    print(f"Successfully created {output_path} ({duration:.1f} s, {mixed.shape[1]} channels)")
 
 
 if __name__ == "__main__":
