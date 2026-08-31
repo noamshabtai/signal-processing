@@ -10,6 +10,7 @@ def test_execute_stereo(kwargs_spatial_audio, SpatialAudio):
     output = tested.execute(frame_fft_CHxK)
 
     pan_angles = (tested.azimuth_CH + 90) / 180 * np.pi / 2
+    pan_angles[tested.diotic_CH] = np.pi / 4
     expected_left = np.sum(np.cos(pan_angles))
     expected_right = np.sum(np.sin(pan_angles))
 

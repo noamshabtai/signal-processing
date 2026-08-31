@@ -46,5 +46,9 @@ else
     uv run --group dev python "scripts/create_input.py" "scripts/$DEMO.yaml"
 fi
 
+# The container inherits DISPLAY=:1 from the host, but only the host's :0 socket
+# is bind-mounted here, so the Tk window has nowhere to open without this.
+export DISPLAY=:0
+
 echo "Running demo..."
 uv run python demo.py "${DEMO}.yaml"

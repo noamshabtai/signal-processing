@@ -55,3 +55,24 @@ cases:
         resolution: 10
       elevation:
         resolution: 10
+
+  - name: low resolution with a diotic channel
+    test:
+      input:
+        azimuth: [0.0, 90.0, 180.0]
+        elevation: [0.0, 0.0, 0.0]
+      orientation:
+        yaw: 90.0
+        pitch: 0.0
+        roll: 0.0
+      expected:
+        azimuth: [270.0, 0.0, 90.0]
+        elevation: [-0.0, -0.0, -0.0]
+    tested:
+      hrtf:
+        path: hrtf/hrtf_16khz_low_res.bin
+      azimuth:
+        resolution: 10
+      elevation:
+        resolution: 10
+      diotic: [false, true, false]

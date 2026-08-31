@@ -7,6 +7,10 @@ no crosstalk: a channel is silent unless its own speaker is talking.
 The script to render is given on the command line, and names its own output file:
 `conference.yaml` for the calm three-party call, `gaming.yaml` for the
 five-player squad that shouts over each other.
+
+A script may also carry a `background` section, in which case the game the
+players are talking over is synthesized onto a channel of its own — see
+`game_background`.
 """
 
 import argparse
@@ -16,6 +20,7 @@ import urllib.parse
 import urllib.request
 import wave
 
+import game_background
 import numpy as np
 import piper
 import piper.download_voices
@@ -27,9 +32,9 @@ DEFAULT_SCRIPT_PATH = SCRIPT_DIR / "conference.yaml"
 VOICES_DIR = SCRIPT_DIR / "voices"
 DTYPE = np.int16
 PEAK = 0.7
-PITCH_RESOLUTION = 100  # resampling ratios are rational, so a pitch is rounded to a hundredth
+PITCH_RESOLUTION = 100
 DOWNLOAD_ATTEMPTS = 3
-DOWNLOAD_TIMEOUT = 30  # seconds without data; the voice server does stall mid-transfer
+DOWNLOAD_TIMEOUT = 30
 
 
 def voice_url(voice, extension):
@@ -63,7 +68,7 @@ def download(voice, extension):
     path = VOICES_DIR / f"{voice}{extension}"
     for attempt in range(DOWNLOAD_ATTEMPTS):
         try:
-            with urllib.request.urlopen(  # noqa: S310  # scheme checked above
+            with urllib.request.urlopen(  # noqa: S310
                 voice_url(voice, extension), timeout=DOWNLOAD_TIMEOUT
             ) as response:
                 expected_size = int(response.headers["Content-Length"])
@@ -73,7 +78,6 @@ def download(voice, extension):
                 with open(path, "wb") as voice_file:
                     shutil.copyfileobj(response, voice_file)
         except OSError as error:
-            # a voice already on disk is worth more than the size check it cannot do offline
             if path.exists():
                 print(f"{path.name}: {error}; using the local copy", flush=True)
                 return path
@@ -154,7 +158,6 @@ def render_utterances(script, voices):
     audio_of = {}
     for utterance in script["utterances"]:
         speaker = script["speakers"][utterance["speaker"]]
-        # how young the player is, times how wound up they are on this line
         style = styles.get(utterance.get("style", "normal"), {})
         style = style | {"pitch": style.get("pitch", 1.0) * speaker.get("pitch", 1.0)}
         audio = synthesize(voices[utterance["speaker"]], utterance["text"], sampling_frequency, style)
@@ -230,6 +233,8 @@ def main():
     audio_of = render_utterances(script, voices)
     onset_of = resolve_onsets(script, audio_of)
     mixed = normalize(mix(script, audio_of, onset_of))
+    if "background" in script:
+        mixed = game_background.add(mixed, script, onset_of)
     write(mixed, script["sampling_frequency"], output_path)
 
     duration = len(mixed) / script["sampling_frequency"]

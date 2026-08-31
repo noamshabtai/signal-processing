@@ -76,7 +76,9 @@ def test_set_doas(kwargs_spatial_audio, SpatialAudio):
     assert tested.HRTF_CHx2xK.shape == (tested.CH, 2, tested.nfrequencies)
     elevation_CH, azimuth_CH = tested.combine_head_orientation()
     expected = tested.fetch_hrtf(elevation_CH, azimuth_CH)
-    assert np.allclose(tested.HRTF_CHx2xK, expected)
+    placed_CH = ~tested.diotic_CH
+    assert np.allclose(tested.HRTF_CHx2xK[placed_CH], expected[placed_CH])
+    assert np.allclose(tested.HRTF_CHx2xK[tested.diotic_CH], tested.diotic_response)
 
 
 def test_tare_head_orientation(kwargs_spatial_audio, SpatialAudio):

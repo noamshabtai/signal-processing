@@ -305,3 +305,52 @@ utterances:
     speaker: zed
     text: "G G."
     gap: -0.5
+
+# The game the squad is playing, synthesized onto a channel of its own by
+# `game_background`. Its events hang off the utterance ids above, so the round
+# and the commentary on it stay in step no matter how the script is retimed.
+#
+#   sound:  which generator in game_background.SOUNDS to render.
+#   level:  peak of this event, relative to the loudest thing in the bed.
+#   brightness/tail: how far away it is — the highs go first, the room stays.
+#
+# Nothing here is placed at a direction: the game is what the engine already
+# mixed for the headset, so it arrives in both ears alike and the spatial
+# renderer is told to leave it alone.
+background:
+  channel: 5
+  level: 0.5
+  seed: 0
+  ambience:
+    level: 0.22
+    breath: 0.2
+    rumble_period: 9.0
+  events:
+    - {sound: footsteps, after: rotate, offset: 0.4, steps: 9, rate: 2.0, level: 0.3}
+    - {sound: gunshot, after: copy, offset: 1.1, brightness: 800, tail: 1.2, level: 0.25}
+
+    # the firefight the callouts are reacting to, opening a beat before "Contact!"
+    - {sound: burst, after: contact, offset: -0.4, shots: 6, rate: 10.0, level: 0.85}
+    - {sound: ricochet, after: contact, offset: 0.3, level: 0.5}
+    - {sound: burst, after: i_see_them, offset: 0.2, shots: 4, rate: 11.0, level: 0.7}
+    - {sound: gunshot, after: scoped, offset: 0.8, brightness: 3600, tail: 0.35, level: 0.9}
+    - {sound: burst, after: behind_you, offset: 0.1, shots: 7, rate: 12.0, level: 0.8}
+    - {sound: ricochet, after: behind_you, offset: 0.5, level: 0.55}
+    - {sound: burst, after: flanking, offset: -0.2, shots: 8, rate: 12.0, level: 0.85}
+    - {sound: burst, after: bloody_hell, offset: 0.1, shots: 5, rate: 11.0, level: 0.75}
+
+    # the argument, with the fight now happening to somebody else
+    - {sound: burst, after: wall_hacks, offset: 0.6, shots: 5, rate: 8.0, brightness: 1000, tail: 1.0, level: 0.3}
+    - {sound: burst, after: you_did, offset: 1.0, shots: 4, rate: 7.0, brightness: 900, tail: 1.2, level: 0.28}
+
+    # back on the objective
+    - {sound: footsteps, after: grab_tags, offset: 0.3, steps: 7, rate: 2.4, level: 0.35}
+    - {sound: footsteps, after: on_it, offset: 0.1, steps: 8, rate: 2.6, level: 0.4}
+    - {sound: explosion, after: smoke, offset: -0.2, decay: 0.35, debris: 0.15, level: 0.65}
+    - {sound: burst, after: too_late, offset: 0.3, shots: 6, rate: 11.0, level: 0.8}
+    - {sound: burst, after: tank_charges, offset: 0.0, shots: 9, rate: 13.0, level: 0.95}
+    - {sound: ricochet, after: tank_charges, offset: 0.9, level: 0.6}
+    - {sound: reload, after: reloading, offset: 0.2, level: 0.5}
+    - {sound: burst, after: rook_calls, offset: 0.4, shots: 4, rate: 9.0, brightness: 1600, tail: 0.6, level: 0.5}
+    - {sound: footsteps, after: on_him, offset: 0.1, steps: 6, rate: 3.0, level: 0.4}
+    - {sound: gunshot, after: got_him, offset: -0.5, brightness: 3800, tail: 0.4, level: 1.0}

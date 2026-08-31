@@ -1,15 +1,12 @@
 import pyaudio
 
-# Configuration
-FORMAT = pyaudio.paInt16  # 16-bit audio
-CHANNELS = 2  # Stereo
-RATE = 44100  # Sample rate
-CHUNK = 1024  # Buffer size for low latency
+FORMAT = pyaudio.paInt16
+CHANNELS = 2
+RATE = 44100
+CHUNK = 1024
 
-# Initialize PyAudio
 p = pyaudio.PyAudio()
 
-# Automatically Find Input and Output Device Indices
 input_device_index = None
 output_device_index = None
 
@@ -28,13 +25,11 @@ for i in range(p.get_device_count()):
         output_device_index = i
         print(f"Selected Output Device {i}: {info['name']}")
 
-# Validate Device Indexes
 if input_device_index is None:
     raise ValueError("No valid input device found!")
 if output_device_index is None:
     raise ValueError("No valid output device found!")
 
-# Open Input Stream (Microphone)
 input_stream = p.open(
     format=FORMAT,
     channels=CHANNELS,
@@ -44,7 +39,6 @@ input_stream = p.open(
     frames_per_buffer=CHUNK,
 )
 
-# Open Output Stream (Speakers)
 output_stream = p.open(
     format=FORMAT,
     channels=CHANNELS,
@@ -58,7 +52,6 @@ print("Streaming microphone to speakers... Press Ctrl+C to stop.")
 
 try:
     while True:
-        # Read from microphone
         data = input_stream.read(CHUNK, exception_on_overflow=False)
 
         if data:
@@ -70,7 +63,6 @@ try:
 except KeyboardInterrupt:
     print("Stopping audio stream...")
 
-# Cleanup
 input_stream.stop_stream()
 input_stream.close()
 output_stream.stop_stream()

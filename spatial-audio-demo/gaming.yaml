@@ -1,8 +1,10 @@
 demo:
-  initial_gain_db: [-14.0, -14.0, -14.0, -14.0, -14.0] # -20log10(5), the headroom the five channels need when summed
+  # -20log10(6), the headroom the six channels need when summed. The game bed comes in at the same gain as the
+  # squad: its own mix already keeps the gunfire under the callouts, which is the balance a player would set.
+  initial_gain_db: [-5.0, -5.0, -5.0, -5.0, -5.0, 0.0]
 system:
   input_buffer:
-    channel_shape: [5]
+    channel_shape: [6]
     step_size: 128
     buffer_size: 512
     dtype: int16
@@ -13,8 +15,11 @@ system:
   spatial_audio:
     nfft: 512
     sampling_frequency: 8000
-    initial_azimuth: [0.0, -35.0, 35.0, -70.0, 70.0] # nova, rook, tank, pixel, zed — spread wide, they talk at once
-    initial_elevation: [10.0, 10.0, 10.0, 10.0, 10.0]
+    # nova, rook, tank, pixel, zed — spread wide, they talk at once. The sixth channel is the game's own
+    # output: already mixed for headphones, so it is marked diotic and its angles are never read.
+    initial_azimuth: [0.0, -35.0, 35.0, -70.0, 70.0, 0.0]
+    initial_elevation: [10.0, 10.0, 10.0, 10.0, 10.0, 0.0]
+    diotic: [false, false, false, false, false, true]
     hrtf:
       dtype: complex64
       nfft: 512
