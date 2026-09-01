@@ -12,6 +12,11 @@ set -e
 
 SSR_SETTINGS="$HOME/.ssr/settings.conf"
 
+# The container inherits DISPLAY=:1 from the host, but only the host's :0 socket
+# is bind-mounted here, so the recorder GUI has nowhere to open. This overrides
+# rather than defaults, because the inherited value is set and wrong.
+export DISPLAY=:0
+
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp/runtime-$(id -un)}"
 export PIPEWIRE_REMOTE="${PIPEWIRE_REMOTE:-/run/pipewire-0}"
 mkdir -p "$XDG_RUNTIME_DIR"

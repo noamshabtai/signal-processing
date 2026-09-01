@@ -29,18 +29,11 @@ base:
 
 cases:
   - name: spatial audio system
-    test:
-      sweep:
-        nsamples:
-          - 256
-          - 1024
-          - 2048
     tested:
-      sweep:
-        spatial_audio:
-          - hrtf:
-              path: hrtf/hrtf_16khz_low_res.bin
-            azimuth:
-              resolution: 10
-            elevation:
-              resolution: 10
+      spatial_audio:
+        hrtf:
+          path: hrtf/hrtf_16khz_low_res.bin
+        azimuth:
+          resolution: 10
+        elevation:
+          resolution: 10

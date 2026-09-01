@@ -1,21 +1,3 @@
-# Script for the 5-player squad voice chat used as the busy demo input.
-#
-# Same timing model as conference.yaml (gap / after+offset / keep), but far
-# denser: gaps are mostly negative, several players shout at once, and the
-# reactions land on top of the calls rather than after them. It is the stress
-# case for the spatial rendering — with five directions and this much overlap,
-# the mono mix turns into a wall of noise while the binaural one stays legible.
-#
-#   style: which entry of `styles` to synthesize with.
-#          volume/normalize: shouts skip piper's per-utterance normalization, so
-#                            they really do come out louder than the line they
-#                            trample on.
-#          pitch:            resampling ratio, lifting pitch and formants
-#                            together — these are kids, not adults sped up.
-#          drive:            soft clipping, for the cheap headset mic that
-#                            breaks up as soon as anyone gets excited.
-#          noise/noise_w:    piper's variability, raised for a rougher, less
-#                            composed delivery.
 
 output: ../gaming_input.wav
 sampling_frequency: 8000
@@ -46,15 +28,6 @@ styles:
     noise_w: 0.85
     normalize: false
 
-# Four boys and one girl, on five different voices so the directions stay
-# tellable apart even when three of them are talking at once.
-#
-# Each speaker's pitch lifts that voice off its adult base (measured at 164 Hz
-# for ryan, 114 for danny, 107 for joe, 90 for alan, 221 for cori) into a
-# teenage squad. The shifts are kept under about 1.4: past that the formants
-# move so far that the voice stops sounding like a young player and starts
-# sounding like a cartoon. The squad is deliberately mixed in age, which is what
-# the spread of the resulting pitches is for.
 speakers:
   nova:
     channel: 0
@@ -305,3 +278,38 @@ utterances:
     speaker: zed
     text: "G G."
     gap: -0.5
+
+background:
+  channel: 5
+  level: 0.5
+  seed: 0
+  ambience:
+    level: 0.22
+    breath: 0.2
+    rumble_period: 9.0
+  events:
+    - {sound: footsteps, after: rotate, offset: 0.4, steps: 9, rate: 2.0, level: 0.3}
+    - {sound: gunshot, after: copy, offset: 1.1, brightness: 800, tail: 1.2, level: 0.25}
+
+    - {sound: burst, after: contact, offset: -0.4, shots: 6, rate: 10.0, level: 0.85}
+    - {sound: ricochet, after: contact, offset: 0.3, level: 0.5}
+    - {sound: burst, after: i_see_them, offset: 0.2, shots: 4, rate: 11.0, level: 0.7}
+    - {sound: gunshot, after: scoped, offset: 0.8, brightness: 3600, tail: 0.35, level: 0.9}
+    - {sound: burst, after: behind_you, offset: 0.1, shots: 7, rate: 12.0, level: 0.8}
+    - {sound: ricochet, after: behind_you, offset: 0.5, level: 0.55}
+    - {sound: burst, after: flanking, offset: -0.2, shots: 8, rate: 12.0, level: 0.85}
+    - {sound: burst, after: bloody_hell, offset: 0.1, shots: 5, rate: 11.0, level: 0.75}
+
+    - {sound: burst, after: wall_hacks, offset: 0.6, shots: 5, rate: 8.0, brightness: 1000, tail: 1.0, level: 0.3}
+    - {sound: burst, after: you_did, offset: 1.0, shots: 4, rate: 7.0, brightness: 900, tail: 1.2, level: 0.28}
+
+    - {sound: footsteps, after: grab_tags, offset: 0.3, steps: 7, rate: 2.4, level: 0.35}
+    - {sound: footsteps, after: on_it, offset: 0.1, steps: 8, rate: 2.6, level: 0.4}
+    - {sound: explosion, after: smoke, offset: -0.2, decay: 0.35, debris: 0.15, level: 0.65}
+    - {sound: burst, after: too_late, offset: 0.3, shots: 6, rate: 11.0, level: 0.8}
+    - {sound: burst, after: tank_charges, offset: 0.0, shots: 9, rate: 13.0, level: 0.95}
+    - {sound: ricochet, after: tank_charges, offset: 0.9, level: 0.6}
+    - {sound: reload, after: reloading, offset: 0.2, level: 0.5}
+    - {sound: burst, after: rook_calls, offset: 0.4, shots: 4, rate: 9.0, brightness: 1600, tail: 0.6, level: 0.5}
+    - {sound: footsteps, after: on_him, offset: 0.1, steps: 6, rate: 3.0, level: 0.4}
+    - {sound: gunshot, after: got_him, offset: -0.5, brightness: 3800, tail: 0.4, level: 1.0}

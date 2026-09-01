@@ -1,21 +1,21 @@
 import numpy as np
-import spatial_audio.system
+import spatial_audio.system.spatial_audio
 
 
-def test_execute_before_input_buffer_full(kwargs_system, project_dir):
-    kwargs = kwargs_system
+def test_execute_before_input_buffer_full(kwargs_spatial_audio, project_dir):
+    kwargs = kwargs_spatial_audio
     kwargs["tested"]["spatial_audio"]["hrtf"]["path"] = project_dir / kwargs["tested"]["spatial_audio"]["hrtf"]["path"]
     kwargs["tested"].pop("execute_before_input_buffer_full", None)
 
-    system = spatial_audio.system.System(**kwargs["tested"])
+    system = spatial_audio.system.spatial_audio.System(**kwargs["tested"])
     assert system.execute_before_input_buffer_full
 
 
-def test_system(kwargs_system, project_dir):
-    kwargs = kwargs_system
+def test_system(kwargs_spatial_audio, project_dir):
+    kwargs = kwargs_spatial_audio
     kwargs["tested"]["spatial_audio"]["hrtf"]["path"] = project_dir / kwargs["tested"]["spatial_audio"]["hrtf"]["path"]
 
-    system = spatial_audio.system.System(**kwargs["tested"])
+    system = spatial_audio.system.spatial_audio.System(**kwargs["tested"])
     input_chunk_shape = kwargs["tested"]["input_buffer"]["channel_shape"] + [
         kwargs["tested"]["input_buffer"]["step_size"]
     ]
@@ -32,8 +32,6 @@ def test_system(kwargs_system, project_dir):
     impulse_chunk[0, 0] = 1
     system.execute(impulse_chunk)
 
-    # the analysis takes the first nfft samples of the input buffer, so the impulse is analyzed only once it has
-    # been shifted from the end of the buffer into the last step of that frame
     for _ in range((buffer_size - nfft) // step_size):
         system.execute(zeros_chunk)
 

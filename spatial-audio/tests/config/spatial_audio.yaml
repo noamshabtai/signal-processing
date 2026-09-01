@@ -12,42 +12,61 @@ base:
       span: 30
 
 cases:
-  - name: low resolution
-    sweep:
-      test:
-        - input:
-            azimuth: [0.0, 90.0, 180.0]
-            elevation: [0.0, 0.0, 0.0]
-          orientation:
-            yaw: 90.0
-            pitch: 0.0
-            roll: 0.0
-          expected:
-            azimuth: [270.0, 0.0, 90.0]
-            elevation: [-0.0, -0.0, -0.0]
+  - name: binaural
+    test:
+      input:
+        azimuth: [0.0, 90.0, 180.0]
+        elevation: [0.0, 0.0, 0.0]
+      orientation:
+        yaw: 90.0
+        pitch: 0.0
+        roll: 0.0
+      expected:
+        azimuth: [270.0, 0.0, 90.0]
+        elevation: [-0.0, -0.0, -0.0]
+      mode: binaural
+    tested:
+      hrtf:
+        path: hrtf/hrtf_16khz_low_res.bin
+      azimuth:
+        resolution: 10
+      elevation:
+        resolution: 10
 
-        - input:
-            azimuth: [0.0, 45.0, 90.0]
-            elevation: [30.0, 45.0, 60.0]
-          orientation:
-            yaw: 0.0
-            pitch: 30.0
-            roll: 0.0
-          expected:
-            azimuth: [0.0, 32.44, 49.11]
-            elevation: [0.0, 21.25, 48.59]
+  - name: stereo
+    test:
+      input:
+        azimuth: [0.0, 45.0, 90.0]
+        elevation: [30.0, 45.0, 60.0]
+      orientation:
+        yaw: 0.0
+        pitch: 30.0
+        roll: 0.0
+      expected:
+        azimuth: [0.0, 32.44, 49.11]
+        elevation: [0.0, 21.25, 48.59]
+      mode: stereo
+    tested:
+      hrtf:
+        path: hrtf/hrtf_16khz_low_res.bin
+      azimuth:
+        resolution: 10
+      elevation:
+        resolution: 10
 
-        - input:
-            azimuth: [270.0, 0.0, 90.0]
-            elevation: [-45.0, -30.0, -15.0]
-          orientation:
-            yaw: 0.0
-            pitch: -30.0
-            roll: 0.0
-          expected:
-            azimuth: [296.57, 0.0, 82.37]
-            elevation: [-37.76, -0.0, -12.95]
-
+  - name: mono
+    test:
+      input:
+        azimuth: [270.0, 0.0, 90.0]
+        elevation: [-45.0, -30.0, -15.0]
+      orientation:
+        yaw: 0.0
+        pitch: -30.0
+        roll: 0.0
+      expected:
+        azimuth: [296.57, 0.0, 82.37]
+        elevation: [-37.76, -0.0, -12.95]
+      mode: mono
     tested:
       hrtf:
         path: hrtf/hrtf_16khz_low_res.bin

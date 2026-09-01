@@ -7,11 +7,7 @@ import spatial_audio.spatial_audio
 
 config_dir = pathlib.Path(__file__).parent / "config"
 module = sys.modules[__name__]
-for fixture in [
-    "spatial_audio",
-    "system",
-]:
-    parametrize_tests.kwargs.setattr_kwargs(fixture, config_dir, module)
+parametrize_tests.kwargs.setattr_kwargs("spatial_audio", config_dir, module)
 
 
 @pytest.fixture(scope="session")

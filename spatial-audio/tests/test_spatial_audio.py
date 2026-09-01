@@ -149,3 +149,44 @@ def test_reset_tracking(kwargs_spatial_audio, SpatialAudio):
     identity = quaternion.quaternion(1, 0, 0, 0)
     assert tested.global_orientation == identity
     assert tested.head_orientation == identity
+
+
+def check_binaural(tested, output):
+    expected = np.sum(tested.HRTF_CHx2xK, axis=0)
+    assert np.allclose(output, expected, atol=1e-6)
+
+
+def check_stereo(tested, output):
+    pan_angles = (tested.azimuth_CH + 90) / 180 * np.pi / 2
+    assert np.allclose(output[0, 0], np.sum(np.cos(pan_angles)), atol=1e-4)
+    assert np.allclose(output[1, 0], np.sum(np.sin(pan_angles)), atol=1e-4)
+
+
+def check_mono(frame_fft_CHxK, output):
+    expected = np.tile(np.mean(frame_fft_CHxK, axis=0), reps=(2, 1))
+    assert np.allclose(output, expected)
+
+
+def test_execute(kwargs_spatial_audio, SpatialAudio):
+    kwargs = kwargs_spatial_audio
+    tested = SpatialAudio(kwargs)
+
+    match kwargs["test"]["mode"]:
+        case "binaural":
+            tested.binauralize()
+        case "stereo":
+            tested.stereofy()
+        case "mono":
+            tested.monify()
+
+    frame_fft_CHxK = np.ones((tested.CH, tested.nfrequencies), dtype=tested.HRTF_CHx2xK.dtype)
+    output = tested.execute(frame_fft_CHxK)
+    assert output.shape == (2, tested.nfrequencies)
+
+    match tested.mode:
+        case "binaural":
+            check_binaural(tested, output)
+        case "stereo":
+            check_stereo(tested, output)
+        case "mono":
+            check_mono(frame_fft_CHxK, output)
