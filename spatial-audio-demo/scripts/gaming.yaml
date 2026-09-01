@@ -1,21 +1,3 @@
-# Script for the 5-player squad voice chat used as the busy demo input.
-#
-# Same timing model as conference.yaml (gap / after+offset / keep), but far
-# denser: gaps are mostly negative, several players shout at once, and the
-# reactions land on top of the calls rather than after them. It is the stress
-# case for the spatial rendering — with five directions and this much overlap,
-# the mono mix turns into a wall of noise while the binaural one stays legible.
-#
-#   style: which entry of `styles` to synthesize with.
-#          volume/normalize: shouts skip piper's per-utterance normalization, so
-#                            they really do come out louder than the line they
-#                            trample on.
-#          pitch:            resampling ratio, lifting pitch and formants
-#                            together — these are kids, not adults sped up.
-#          drive:            soft clipping, for the cheap headset mic that
-#                            breaks up as soon as anyone gets excited.
-#          noise/noise_w:    piper's variability, raised for a rougher, less
-#                            composed delivery.
 
 output: ../gaming_input.wav
 sampling_frequency: 8000
@@ -46,15 +28,6 @@ styles:
     noise_w: 0.85
     normalize: false
 
-# Four boys and one girl, on five different voices so the directions stay
-# tellable apart even when three of them are talking at once.
-#
-# Each speaker's pitch lifts that voice off its adult base (measured at 164 Hz
-# for ryan, 114 for danny, 107 for joe, 90 for alan, 221 for cori) into a
-# teenage squad. The shifts are kept under about 1.4: past that the formants
-# move so far that the voice stops sounding like a young player and starts
-# sounding like a cartoon. The squad is deliberately mixed in age, which is what
-# the spread of the resulting pitches is for.
 speakers:
   nova:
     channel: 0
@@ -306,17 +279,6 @@ utterances:
     text: "G G."
     gap: -0.5
 
-# The game the squad is playing, synthesized onto a channel of its own by
-# `game_background`. Its events hang off the utterance ids above, so the round
-# and the commentary on it stay in step no matter how the script is retimed.
-#
-#   sound:  which generator in game_background.SOUNDS to render.
-#   level:  peak of this event, relative to the loudest thing in the bed.
-#   brightness/tail: how far away it is — the highs go first, the room stays.
-#
-# Nothing here is placed at a direction: the game is what the engine already
-# mixed for the headset, so it arrives in both ears alike and the spatial
-# renderer is told to leave it alone.
 background:
   channel: 5
   level: 0.5
@@ -329,7 +291,6 @@ background:
     - {sound: footsteps, after: rotate, offset: 0.4, steps: 9, rate: 2.0, level: 0.3}
     - {sound: gunshot, after: copy, offset: 1.1, brightness: 800, tail: 1.2, level: 0.25}
 
-    # the firefight the callouts are reacting to, opening a beat before "Contact!"
     - {sound: burst, after: contact, offset: -0.4, shots: 6, rate: 10.0, level: 0.85}
     - {sound: ricochet, after: contact, offset: 0.3, level: 0.5}
     - {sound: burst, after: i_see_them, offset: 0.2, shots: 4, rate: 11.0, level: 0.7}
@@ -339,11 +300,9 @@ background:
     - {sound: burst, after: flanking, offset: -0.2, shots: 8, rate: 12.0, level: 0.85}
     - {sound: burst, after: bloody_hell, offset: 0.1, shots: 5, rate: 11.0, level: 0.75}
 
-    # the argument, with the fight now happening to somebody else
     - {sound: burst, after: wall_hacks, offset: 0.6, shots: 5, rate: 8.0, brightness: 1000, tail: 1.0, level: 0.3}
     - {sound: burst, after: you_did, offset: 1.0, shots: 4, rate: 7.0, brightness: 900, tail: 1.2, level: 0.28}
 
-    # back on the objective
     - {sound: footsteps, after: grab_tags, offset: 0.3, steps: 7, rate: 2.4, level: 0.35}
     - {sound: footsteps, after: on_it, offset: 0.1, steps: 8, rate: 2.6, level: 0.4}
     - {sound: explosion, after: smoke, offset: -0.2, decay: 0.35, debris: 0.15, level: 0.65}

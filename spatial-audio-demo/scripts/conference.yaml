@@ -1,24 +1,8 @@
-# Script for the 3-party conference call used as demo input.
-#
-# Timing model
-#   Onsets are relative, resolved at build time from the *rendered* duration of
-#   each utterance, so edits to the text never desynchronise the overlaps.
-#
-#   gap:            seconds after the previous utterance ends. Negative = the
-#                   speakers overlap.
-#   after / offset: start `offset` seconds after utterance `after` *begins*.
-#                   Used for back-channels that land mid-sentence. These do not
-#                   advance the chain, so the next `gap` still refers to the
-#                   last chained utterance.
-#   keep:           fraction of the utterance to render before a short fade.
-#                   Models someone being cut off mid-word.
 
 output: ../conference_input.wav
 sampling_frequency: 8000
 fade_out: 0.05
 
-# Voices auto-download on first run. Chosen for maximum mutual contrast
-# (female US / male GB / male US) so the three directions stay tellable apart.
 speakers:
   dana:
     channel: 0

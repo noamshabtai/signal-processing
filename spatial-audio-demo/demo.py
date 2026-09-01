@@ -36,7 +36,6 @@ ALL_CHANNELS = -1
 class SliderColumn:
     def __init__(self, master, **spec):
         self.initial = spec["initial"]
-        self.interactive = spec["interactive"]
         column = spec["column"]
         columnspan = spec.get("columnspan", 1)
 
@@ -68,12 +67,12 @@ class SliderColumn:
         widget.configure(state="active" if enabled else "disabled", fg=ACTIVE_COLOR if enabled else DISABLED_COLOR)
 
     def reset(self):
-        for channel in self.interactive:
-            self.sliders[channel].set(self.initial[channel])
+        for channel, slider in enumerate(self.sliders):
+            slider.set(self.initial[channel])
 
     def set_enabled(self, enabled_CH):
         for channel, slider in enumerate(self.sliders):
-            self._set_state(slider, enabled_CH[channel] and channel in self.interactive)
+            self._set_state(slider, enabled_CH[channel])
 
     def set_reset_enabled(self, enabled):
         self._set_state(self.reset_button, enabled)
@@ -86,7 +85,6 @@ class Gui:
         self.spatial_audio = audio_engine.system.modules["spatial_audio"]
         self.channels = range(self.spatial_audio.CH)
         self.initial_gain_db = np.int16(np.log10(audio_engine.channel_gain) * 20)
-        self.spatial_channels = [channel for channel in self.channels if not self.diotic(channel)]
         self.output_mode = "binaural"
 
         self.build_output_mode()
@@ -96,14 +94,8 @@ class Gui:
         self.gain_column = self.build_gain()
         self.build_solo()
 
-    def diotic(self, channel):
-        return bool(self.spatial_audio.diotic_CH[channel])
-
     def muted(self, channel):
         return bool(self.mute_variables[channel].get())
-
-    def spatial_label(self, channel, parameter):
-        return f"Ch. {channel} Mono" if self.diotic(channel) else f"Ch. {channel} {parameter}"
 
     def clipping_gain_db(self):
         headroom_from_input_peak_db = -20 * np.log10(self.audio_engine.input_peak_normalized)
@@ -125,8 +117,7 @@ class Gui:
             on_change=self.azimuth_changed,
             initial=self.spatial_audio.initial_azimuth_CH,
             limits=[(-span, span) for channel in self.channels],
-            labels=[self.spatial_label(channel, "Azimuth [Deg]") for channel in self.channels],
-            interactive=self.spatial_channels,
+            labels=[f"Ch. {channel} Azimuth [Deg]" for channel in self.channels],
         )
 
     def build_elevation(self):
@@ -141,8 +132,7 @@ class Gui:
             on_change=self.elevation_changed,
             initial=self.spatial_audio.initial_elevation_CH,
             limits=[(span, -span) for channel in self.channels],
-            labels=[self.spatial_label(channel, "Elevation [Deg]") for channel in self.channels],
-            interactive=self.spatial_channels,
+            labels=[f"Ch. {channel} Elevation [Deg]" for channel in self.channels],
         )
 
     def build_gain(self):
@@ -159,7 +149,6 @@ class Gui:
             initial=self.initial_gain_db,
             limits=[(gain_db - GAIN_SLIDER_SPAN_DB, max(max_gain_db, gain_db)) for gain_db in self.initial_gain_db],
             labels=[f"Ch. {channel} Gain [dB]" for channel in self.channels],
-            interactive=list(self.channels),
         )
 
     def build_output_mode(self):

@@ -21,10 +21,6 @@ class SpatialAudio:
         self.azimuth_CH = self.initial_azimuth_CH.copy()
         self.elevation_CH = self.initial_elevation_CH.copy()
 
-        self.diotic_CH = np.zeros(self.CH, dtype=bool)
-        self.diotic_CH[:] = kwargs.get("diotic", False)
-        self.diotic_response = 10 ** (self.hrtf_gain_db / 20) / self.CH
-
         self.azimuth_symmetric = kwargs["azimuth"]["symmetric"]
         self.azimuth_span = np.int32(kwargs["azimuth"]["span"])
         self.azimuth_resolution = np.int32(kwargs["azimuth"]["resolution"])
@@ -112,7 +108,6 @@ class SpatialAudio:
     def set_doas(self):
         elevation_CH, azimuth_CH = self.combine_head_orientation()
         self.HRTF_CHx2xK = self.fetch_hrtf(elevation_CH, azimuth_CH)
-        self.HRTF_CHx2xK[self.diotic_CH] = self.diotic_response
 
     def binauralize(self):
         self.mode = "binaural"
@@ -144,7 +139,6 @@ class SpatialAudio:
                 )
             case "stereo":
                 pan_angles = (self.azimuth_CH + 90) / 180 * np.pi / 2
-                pan_angles[self.diotic_CH] = np.pi / 4
                 left_output = np.sum(np.cos(pan_angles)[:, np.newaxis] * frame_fft_CHxK, axis=0)
                 right_output = np.sum(np.sin(pan_angles)[:, np.newaxis] * frame_fft_CHxK, axis=0)
                 return np.array([left_output, right_output])
