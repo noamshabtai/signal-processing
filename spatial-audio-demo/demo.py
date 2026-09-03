@@ -2,6 +2,7 @@ import functools
 import sys
 import tkinter as tk
 
+import head_tracking
 import numpy as np
 import spatial_audio.system.spatial_audio
 import yaml
@@ -24,6 +25,7 @@ ELEVATION_COLUMN = 1
 GAIN_COLUMN = 3
 MUTE_COLUMN = 4
 SOLO_COLUMN = 5
+TRACKING_COLUMN = 6
 
 TITLE_FONT = ("Times", 20)
 SECTION_FONT = ("Times", 14)
@@ -31,6 +33,9 @@ ACTIVE_COLOR = "black"
 DISABLED_COLOR = "lightgray"
 PADDING = 10
 ALL_CHANNELS = -1
+TRACKING_INTERVAL_MS = 33
+NO_POSE = "no face"
+NO_CAMERA = "none"
 
 
 class SliderColumn:
@@ -79,15 +84,17 @@ class SliderColumn:
 
 
 class Gui:
-    def __init__(self, master, audio_engine):
+    def __init__(self, master, audio_engine, **kwargs):
         self.master = master
         self.audio_engine = audio_engine
         self.spatial_audio = audio_engine.system.modules["spatial_audio"]
         self.channels = range(self.spatial_audio.CH)
         self.initial_gain_db = np.int16(np.log10(audio_engine.channel_gain) * 20)
         self.output_mode = "binaural"
+        self.head_tracking = head_tracking.HeadTracking(**kwargs.get("head_tracking", {}))
 
         self.build_output_mode()
+        self.build_head_tracking()
         self.build_mute()
         self.azimuth_column = self.build_azimuth()
         self.elevation_column = self.build_elevation()
@@ -167,6 +174,35 @@ class Gui:
             )
             button.grid(row=OUTPUT_MODE_ROW, column=column, sticky=tk.W, padx=PADDING)
         self.output_mode_variable.set(self.output_mode)
+
+    def build_head_tracking(self):
+        self.tracking_variable = tk.IntVar(value=False)
+        checkbutton = tk.Checkbutton(
+            master=self.master,
+            text="Head Tracking",
+            variable=self.tracking_variable,
+            onvalue=True,
+            offvalue=False,
+            command=self.tracking_changed,
+        )
+        checkbutton.grid(row=OUTPUT_MODE_ROW, column=TRACKING_COLUMN, sticky=tk.W, padx=PADDING)
+
+        available = head_tracking.cameras()
+        if not available:
+            checkbutton.configure(state="disabled", fg=DISABLED_COLOR)
+        else:
+            self.head_tracking.camera = available[0]
+
+        choices = [str(camera) for camera in available] or [NO_CAMERA]
+        self.camera_variable = tk.StringVar(value=choices[0])
+        camera_menu = tk.OptionMenu(self.master, self.camera_variable, *choices, command=self.camera_changed)
+        camera_menu.grid(row=TITLE_ROW, column=TRACKING_COLUMN, padx=PADDING)
+
+        tare_button = tk.Button(master=self.master, text="Tare", command=self.tare)
+        tare_button.grid(row=RESET_ROW, column=TRACKING_COLUMN, padx=PADDING)
+
+        self.pose_label = tk.Label(master=self.master, text=NO_POSE, justify=tk.LEFT, width=14)
+        self.pose_label.grid(row=FIRST_CHANNEL_ROW, column=TRACKING_COLUMN, padx=PADDING, pady=PADDING)
 
     def build_mute(self):
         self.mute_variables = [tk.IntVar(value=False) for channel in self.channels]
@@ -254,9 +290,47 @@ class Gui:
             variable.set(False)
         self.refresh_states()
 
+    def tracking_changed(self):
+        if self.tracking_variable.get():
+            self.head_tracking.start()
+        else:
+            self.head_tracking.stop()
+            self.spatial_audio.reset_tracking()
+            self.spatial_audio.set_doas()
+
+    def camera_changed(self, camera):
+        if camera == NO_CAMERA:
+            return
+        self.head_tracking.camera = int(camera)
+        if self.tracking_variable.get():
+            self.head_tracking.stop()
+            self.head_tracking.start()
+
+    def tare(self):
+        orientation = self.head_tracking.read()
+        if orientation is not None:
+            self.spatial_audio.tare_head_orientation(*orientation)
+
+    def poll_head_tracking(self):
+        orientation = self.head_tracking.read()
+        if orientation is None:
+            self.pose_label.configure(text=NO_POSE)
+        else:
+            self.spatial_audio.set_head_orientation(*orientation)
+            self.spatial_audio.set_doas()
+            yaw, pitch, roll = orientation
+            self.pose_label.configure(text=f"Yaw   {yaw:+6.1f}\nPitch {pitch:+6.1f}\nRoll  {roll:+6.1f}")
+        self.master.after(TRACKING_INTERVAL_MS, self.poll_head_tracking)
+
+    def close(self):
+        self.head_tracking.stop()
+        self.audio_engine.cleanup()
+        self.master.destroy()
+
     def execute(self):
         self.output_mode_changed(self.output_mode)
-        self.master.protocol("WM_DELETE_WINDOW", lambda: (self.audio_engine.cleanup(), self.master.destroy()))
+        self.master.protocol("WM_DELETE_WINDOW", self.close)
+        self.poll_head_tracking()
         self.master.mainloop()
 
 
@@ -266,5 +340,5 @@ if __name__ == "__main__":
     with open(yaml_path, "r") as f:
         activator_kwargs = yaml.safe_load(f)
     audio_engine = activator.audio_demo.Activator(spatial_audio.system.spatial_audio.System, **activator_kwargs)
-    app = Gui(root, audio_engine)
+    app = Gui(root, audio_engine, **activator_kwargs.get("demo", {}))
     app.execute()
