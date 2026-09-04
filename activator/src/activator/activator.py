@@ -1,8 +1,12 @@
+import numpy as np
+
+
 class Activator:
     def __init__(self, System, **kwargs):
         self.system = System(**kwargs.get("system", {}))
         ib = kwargs.get("system", {}).get("input_buffer", {})
         self.channel_shape = ib.get("channel_shape", [1])
+        self.channel_count = int(np.prod(self.channel_shape))
         self.step_size = ib.get("step_size", 1)
         self.step_shape = self.channel_shape + [self.step_size]
         self.completed = False

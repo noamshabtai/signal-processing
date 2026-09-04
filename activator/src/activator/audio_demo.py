@@ -25,11 +25,9 @@ class Activator(activator.Activator):
         if "demo" in kwargs and "initial_gain_db" in kwargs["demo"]:
             initial_gain_db = np.array(kwargs["demo"]["initial_gain_db"])
             gain = np.float32(10 ** (initial_gain_db / 20))
-            self.channel_gain = np.broadcast_to(np.atleast_1d(gain), (int(np.prod(self.channel_shape)),)).astype(
-                np.float32
-            )
+            self.channel_gain = np.broadcast_to(np.atleast_1d(gain), (self.channel_count,)).astype(np.float32)
         else:
-            self.channel_gain = np.ones(np.prod(self.channel_shape), dtype=np.float32)
+            self.channel_gain = np.ones(self.channel_count, dtype=np.float32)
         self.gain_db_CH = np.float32(20 * np.log10(self.channel_gain))
 
     def set_channel_gain_db(self, channel, gain_db):
@@ -56,7 +54,7 @@ class Activator(activator.Activator):
         self.input_path = pathlib.Path(kwargs["input"]["path"]).expanduser()
         self.input_fid = wave.open(str(self.input_path), "rb")
         self.fs = self.input_fid.getframerate()
-        self._input_chunk_nbytes = self.step_size * np.prod(self.channel_shape) * self.input_dtype.itemsize
+        self._input_chunk_nbytes = self.step_size * self.channel_count * self.input_dtype.itemsize
         all_data = np.frombuffer(self.input_fid.readframes(self.input_fid.getnframes()), dtype=self.input_dtype)
         self.input_peak_normalized = np.max(np.abs(all_data)) / np.iinfo(self.input_dtype).max
         self.input_fid.rewind()
@@ -64,7 +62,7 @@ class Activator(activator.Activator):
     def _setup_output(self, kwargs):
         self.pyaudio = pyaudio.PyAudio()
         self.output_dtype = np.dtype(kwargs["output"]["dtype"])
-        self.output_channels = np.prod(kwargs["output"]["channel_shape"])
+        self.output_channels = int(np.prod(kwargs["output"]["channel_shape"]))
         self.output_stream = self.pyaudio.open(
             format=audio_io.conversions.np_dtype_to_pa_format(self.output_dtype),
             channels=self.output_channels,

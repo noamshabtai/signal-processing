@@ -63,3 +63,9 @@ cases:
   - name: max_steps
     tested:
       max_steps: 2
+
+  - name: empty_channel_shape
+    tested:
+      system:
+        input_buffer:
+          channel_shape: []
