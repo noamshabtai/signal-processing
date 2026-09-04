@@ -63,7 +63,7 @@ class SpatialAudio:
         Qx = quaternion.from_rotation_vector(self.xaxis * np.deg2rad(roll))
         Qy = quaternion.from_rotation_vector(self.yaxis * np.deg2rad(pitch))
         Qz = quaternion.from_rotation_vector(self.zaxis * np.deg2rad(yaw))
-        self.global_orientation = Qx * Qy * Qz
+        self.global_orientation = Qz * Qy * Qx
 
     def set_head_orientation(self, yaw, pitch, roll):
         self.yaw = yaw
@@ -72,7 +72,7 @@ class SpatialAudio:
         Qx = quaternion.from_rotation_vector(self.xaxis * np.deg2rad(roll))
         Qy = quaternion.from_rotation_vector(self.yaxis * np.deg2rad(pitch))
         Qz = quaternion.from_rotation_vector(self.zaxis * np.deg2rad(yaw))
-        self.head_orientation = self.global_orientation.conjugate() * Qx * Qy * Qz
+        self.head_orientation = self.global_orientation.conjugate() * Qz * Qy * Qx
 
     def combine_head_orientation(self):
         x_CH, y_CH, z_CH = coordinates.coordinates.spherical_to_ned(

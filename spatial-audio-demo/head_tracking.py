@@ -11,6 +11,13 @@ MODEL_URL = (
     "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
 )
 STOP_TIMEOUT = 2.0
+METRIC_3D_TO_NED = np.array(
+    [
+        [0, 0, 1],
+        [-1, 0, 0],
+        [0, -1, 0],
+    ]
+)
 
 
 def cameras():
@@ -26,7 +33,7 @@ def fetch_model(path):
 
 
 def yaw_pitch_roll(transformation):
-    rotation = np.asarray(transformation)[:3, :3]
+    rotation = METRIC_3D_TO_NED @ np.asarray(transformation)[:3, :3] @ METRIC_3D_TO_NED.T
     yaw = np.rad2deg(np.arctan2(rotation[1, 0], rotation[0, 0]))
     pitch = np.rad2deg(np.arctan2(-rotation[2, 0], np.hypot(rotation[2, 1], rotation[2, 2])))
     roll = np.rad2deg(np.arctan2(rotation[2, 1], rotation[2, 2]))

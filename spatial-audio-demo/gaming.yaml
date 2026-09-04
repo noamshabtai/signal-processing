@@ -13,7 +13,7 @@ system:
   spatial_audio:
     nfft: 512
     sampling_frequency: 8000
-    initial_azimuth: [0.0, -35.0, 35.0, -70.0, 70.0, 0.0]
+    initial_azimuth: [0.0, -20.0, 20.0, -40.0, 40.0, 0.0]
     initial_elevation: [10.0, 10.0, 10.0, 10.0, 10.0, 0.0]
     hrtf:
       dtype: complex64
