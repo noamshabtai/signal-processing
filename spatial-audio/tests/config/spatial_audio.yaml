@@ -74,3 +74,24 @@ cases:
         resolution: 10
       elevation:
         resolution: 10
+
+  - name: combined_orientation
+    test:
+      input:
+        azimuth: [0.0, 45.0, 90.0]
+        elevation: [0.0, 20.0, -20.0]
+      orientation:
+        yaw: 30.0
+        pitch: 20.0
+        roll: 15.0
+      expected:
+        azimuth: [333.47, 13.46, 70.39]
+        elevation: [-24.55, 4.22, -14.78]
+      mode: binaural
+    tested:
+      hrtf:
+        path: hrtf/hrtf_16khz_low_res.bin
+      azimuth:
+        resolution: 10
+      elevation:
+        resolution: 10

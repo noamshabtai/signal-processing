@@ -15,7 +15,6 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
-    "ipdb>=0.13.13",
     "parametrize-tests",
     "pytest>=8.3.5",
     "pytest-mock>=3.14.0",
