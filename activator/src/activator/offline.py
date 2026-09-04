@@ -20,7 +20,7 @@ class Activator(activator.Activator):
         super().__init__(System, **kwargs)
 
         self.input_dtype = np.dtype(kwargs.get("input", {}).get("dtype", np.int16))
-        self._input_chunk_nbytes = np.prod(self.channel_shape) * self.input_dtype.itemsize * self.step_size
+        self._input_chunk_nbytes = self.channel_count * self.input_dtype.itemsize * self.step_size
 
         self._setup_input(kwargs)
         self._setup_output(kwargs)
@@ -43,9 +43,7 @@ class Activator(activator.Activator):
 
             self.input_fid = wave.open(str(self.input_path), "rb")
             self.fs = self.input_fid.getframerate()
-            self._input_total_nbytes = (
-                self.input_fid.getnframes() * np.prod(self.channel_shape) * self.input_dtype.itemsize
-            )
+            self._input_total_nbytes = self.input_fid.getnframes() * self.channel_count * self.input_dtype.itemsize
         else:
             self.input_fid = open(self.input_path, "rb")
             if "fs" in kwargs["input"]:
