@@ -30,22 +30,19 @@ or as a real-time PyAudio callback loop.
   - `synthesis.py` — IFFT + overlap-add. Window scaling handles arbitrary
     overlap ratios (2x, 4x, custom) for perfect reconstruction.
   - `system.py` — three-stage pipeline `analysis → processing → synthesis`.
-- **hrtf-build** — synthetic HRTF sets.
+- **spatial-audio** — HRTF-based binaural rendering. Synthesizes its own HRTFs;
+  there is no measured HRTF file anywhere in the repo.
   - `grid.py` — `Grid` owns the DOA layout (azimuth/elevation ranges from
     `span`/`resolution`, elevation-major flattening) and `nearest_index()`,
     which maps angles back to a DOA index plus a left/right-mirror flag.
   - `rigid_sphere.py` — analytic plane-wave scattering off a rigid sphere with
     two ear points on its surface. Gives ITD, frequency-dependent ILD and head
     shadowing; no front/back cue.
-  - `builder.py` — grid + model → `(DOA, 2, K)` array, or a raw `.bin` in the
-    layout `spatial-audio` reads.
-- **spatial-audio** — HRTF-based binaural rendering.
   - `spatial_audio.py` — applies HRTFs in the frequency domain to multiple
     virtual sources defined by azimuth/elevation, with quaternion-based head
     orientation. CH mono sources → 2-channel binauralized output. The DOA
-    layout comes from `hrtf_build.grid.Grid`, and `hrtf: {source: ...}` picks
-    between reading a measured `.bin` (`file`, the default) and synthesizing a
-    rigid-sphere set in memory (`synthetic`).
+    layout comes from `Grid` and the HRTFs from `RigidSphere`, synthesized at
+    construction for the module's own `sampling_frequency`.
   - `system.py` — extends the STFT pipeline with the HRTF stage.
 
 #### Application layer
@@ -84,10 +81,9 @@ signal-processing (workspace root)
 ├── analysis            → activator, parametrize-tests
 ├── activator           → audio-io, system, matplotlib, pyaudio
 ├── audio-io            → numpy, pyaudio
-├── spatial-audio       → activator, audio-io, coordinates, hrtf-build,
-│                         stft, numpy-quaternion
+├── spatial-audio       → activator, audio-io, coordinates, stft,
+│                         numpy-quaternion
 ├── spatial-audio-demo  → analysis, spatial-audio
-├── hrtf-build          → coordinates
 ├── stft                → system, buffer
 ├── system              → buffer
 ├── buffer
@@ -162,13 +158,20 @@ Subclasses pick the side of that contract that fits their lifecycle:
    domain.
 `System.execute(input_chunk)` orchestrates all three.
 
-### HRTF source and equalization
-`hrtf.source` selects where the `(DOA, 2, K)` set comes from — a measured
-`.bin` on disk or `hrtf_build.rigid_sphere.RigidSphere` evaluated on the same
-`Grid` the renderer indexes with. `SpatialAudio` uses `Grid` and `RigidSphere`
-directly; `hrtf_build.builder.Builder` is the offline path that writes a `.bin`.
+### Synthetic HRTFs and equalization
+`SpatialAudio` synthesizes its `(DOA, 2, K)` set at construction — `RigidSphere`
+evaluated on the same `Grid` the renderer indexes with, at the module's own
+`sampling_frequency`. There is no measured HRTF file, so the sampling rate is
+free to follow the audio instead of being pinned by a file's rate.
 
-`hrtf.equalization` therefore defaults to `True` only for `file`. Diffuse-field
+The rate the HRTF is built for must match the rate the audio plays at.
+`activator.audio_demo` takes its stream rate from the input `.wav`, so
+`spatial_audio.sampling_frequency` and the `sampling_frequency` in
+`scripts/<demo>.yaml` have to agree — nothing checks this today, and
+`run_demo.sh` reuses an existing `<demo>_input.wav`, so a stale file at the old
+rate silently renders against the wrong frequency axis.
+
+`hrtf.equalization` therefore defaults to `False`. Diffuse-field
 equalization exists to remove the coloration of the *measurement chain*, and a
 synthetic sphere has none — its smooth ~2.5 dB high-frequency lift is real head
 physics, and flattening it would also undo the band-limiting taper that keeps

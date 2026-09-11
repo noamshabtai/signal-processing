@@ -318,7 +318,7 @@ class Gui:
         else:
             self.spatial_audio.set_head_orientation(*orientation)
             self.spatial_audio.set_doas()
-            yaw, pitch, roll = orientation
+            yaw, pitch, roll = self.spatial_audio.head_yaw_pitch_roll()
             self.pose_label.configure(text=f"Yaw   {yaw:+6.1f}\nPitch {pitch:+6.1f}\nRoll  {roll:+6.1f}")
         self.master.after(TRACKING_INTERVAL_MS, self.poll_head_tracking)
 

@@ -19,31 +19,13 @@ base:
       initial_elevation: [0.0, 0.0, 0.0]
       hrtf:
         dtype: complex64
-        nfft: 512
-        sampling_frequency: 16000
       azimuth:
         symmetric: True
         span: 90
+        resolution: 10
       elevation:
         span: 30
+        resolution: 10
 
 cases:
   - name: spatial audio system
-    tested:
-      spatial_audio:
-        hrtf:
-          path: hrtf/hrtf_16khz_low_res.bin
-        azimuth:
-          resolution: 10
-        elevation:
-          resolution: 10
-
-  - name: synthetic hrtf
-    tested:
-      spatial_audio:
-        hrtf:
-          source: synthetic
-        azimuth:
-          resolution: 10
-        elevation:
-          resolution: 10

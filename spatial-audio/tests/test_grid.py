@@ -1,10 +1,10 @@
-import hrtf_build.grid
 import numpy as np
+import spatial_audio.grid
 
 
 def test_init(kwargs_grid):
     kwargs = kwargs_grid
-    tested = hrtf_build.grid.Grid(**kwargs["tested"])
+    tested = spatial_audio.grid.Grid(**kwargs["tested"])
 
     assert tested.azimuth_symmetric == kwargs["tested"]["azimuth"]["symmetric"]
     assert tested.azimuth_span == kwargs["tested"]["azimuth"]["span"]
@@ -15,7 +15,7 @@ def test_init(kwargs_grid):
 
 def test_build_azimuth_range(kwargs_grid):
     kwargs = kwargs_grid
-    tested = hrtf_build.grid.Grid(**kwargs["tested"])
+    tested = spatial_audio.grid.Grid(**kwargs["tested"])
 
     front_range = np.arange(0, tested.azimuth_span, tested.azimuth_resolution)
     assert np.all(tested.azimuth_range[: np.size(front_range)] == front_range)
@@ -33,7 +33,7 @@ def test_build_azimuth_range(kwargs_grid):
 
 def test_build_elevation_range(kwargs_grid):
     kwargs = kwargs_grid
-    tested = hrtf_build.grid.Grid(**kwargs["tested"])
+    tested = spatial_audio.grid.Grid(**kwargs["tested"])
 
     expected_range = np.arange(-tested.elevation_span, tested.elevation_span, tested.elevation_resolution)
     assert np.all(tested.elevation_range == expected_range)
@@ -44,7 +44,7 @@ def test_build_elevation_range(kwargs_grid):
 
 def test_build_doas(kwargs_grid):
     kwargs = kwargs_grid
-    tested = hrtf_build.grid.Grid(**kwargs["tested"])
+    tested = spatial_audio.grid.Grid(**kwargs["tested"])
 
     assert tested.NDOA == tested.Nazimuth * tested.Nelevation
     assert np.size(tested.elevation_DOA) == tested.NDOA
@@ -93,7 +93,7 @@ def check_inputs_preserved(tested):
 
 def test_nearest_index(kwargs_grid):
     kwargs = kwargs_grid
-    tested = hrtf_build.grid.Grid(**kwargs["tested"])
+    tested = spatial_audio.grid.Grid(**kwargs["tested"])
 
     check_round_trip(tested)
     check_snapping(tested)

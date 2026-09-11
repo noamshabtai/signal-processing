@@ -10,22 +10,22 @@ def test_init(kwargs_spatial_audio, SpatialAudio):
     assert tested.HRTF_DOAx2xK.shape[1] == 2
     assert tested.HRTF_DOAx2xK.shape[2] == tested.nfrequencies
 
-    assert np.allclose(tested.HRTF_DOAx2xK * tested.CH, tested.read_hrtf())
+    assert np.allclose(tested.HRTF_DOAx2xK * tested.CH, tested.synthesize_hrtf())
 
     assert tested.azimuth_CH is not tested.initial_azimuth_CH
     assert tested.mode == "binaural"
 
 
-def test_read_hrtf(kwargs_spatial_audio, SpatialAudio):
+def test_synthesize_hrtf(kwargs_spatial_audio, SpatialAudio):
     kwargs = kwargs_spatial_audio
     tested = SpatialAudio(kwargs)
 
-    HRTF_DOAx2xK = tested.read_hrtf()
+    HRTF_DOAx2xK = tested.synthesize_hrtf()
 
     assert np.shape(HRTF_DOAx2xK) == (tested.grid.NDOA, 2, tested.nfrequencies)
     assert np.all(np.isfinite(HRTF_DOAx2xK))
-    if tested.hrtf_source == "synthetic":
-        assert tested.hrtf_path is None
+    assert tested.rigid_sphere_kwargs["sampling_frequency"] == tested.sampling_frequency
+    assert tested.rigid_sphere_kwargs["nfft"] == tested.nfft
 
 
 def check_flattening(tested, raw_DOAx2xK, equalization_K):
@@ -47,7 +47,7 @@ def test_equalization(kwargs_spatial_audio, SpatialAudio):
     kwargs["tested"]["hrtf"]["equalization"] = True
     tested = SpatialAudio(kwargs)
 
-    raw_DOAx2xK = tested.read_hrtf()
+    raw_DOAx2xK = tested.synthesize_hrtf()
     equalization_K = tested.equalization(raw_DOAx2xK)
 
     assert np.size(equalization_K) == tested.nfrequencies
@@ -61,7 +61,7 @@ def test_equalize_hrtf(kwargs_spatial_audio, SpatialAudio):
     gain_db = 6.0
     tested = SpatialAudio(kwargs)
 
-    raw_DOAx2xK = tested.read_hrtf()
+    raw_DOAx2xK = tested.synthesize_hrtf()
     equalized_DOAx2xK = tested.equalize_hrtf(raw_DOAx2xK)
 
     assert np.allclose(equalized_DOAx2xK, raw_DOAx2xK * tested.equalization(raw_DOAx2xK))
@@ -123,6 +123,27 @@ def test_set_head_orientation(kwargs_spatial_audio, SpatialAudio):
     tested = SpatialAudio(kwargs)
     tested.set_head_orientation(0, 0, 0)
     assert tested.head_orientation == quaternion.quaternion(1, 0, 0, 0)
+
+
+def check_untared_round_trip(tested, orientation):
+    tested.tare_head_orientation(0, 0, 0)
+    tested.set_head_orientation(**orientation)
+    expected = [orientation["yaw"], orientation["pitch"], orientation["roll"]]
+    assert np.allclose(tested.head_yaw_pitch_roll(), expected, atol=1e-6)
+
+
+def check_tare_zeroes(tested, orientation):
+    tested.tare_head_orientation(**orientation)
+    tested.set_head_orientation(**orientation)
+    assert np.allclose(tested.head_yaw_pitch_roll(), 0, atol=1e-6)
+
+
+def test_head_yaw_pitch_roll(kwargs_spatial_audio, SpatialAudio):
+    kwargs = kwargs_spatial_audio
+    tested = SpatialAudio(kwargs)
+
+    check_untared_round_trip(tested, kwargs["test"]["orientation"])
+    check_tare_zeroes(tested, kwargs["test"]["orientation"])
 
 
 def test_combine_head_orientation(kwargs_spatial_audio, SpatialAudio):

@@ -4,12 +4,13 @@ base:
     sampling_frequency: 16000
     hrtf:
       dtype: complex64
-      sampling_frequency: 16000
     azimuth:
       symmetric: True
       span: 90
+      resolution: 10
     elevation:
       span: 30
+      resolution: 10
 
 cases:
   - name: binaural
@@ -25,13 +26,6 @@ cases:
         azimuth: [270.0, 0.0, 90.0]
         elevation: [-0.0, -0.0, -0.0]
       mode: binaural
-    tested:
-      hrtf:
-        path: hrtf/hrtf_16khz_low_res.bin
-      azimuth:
-        resolution: 10
-      elevation:
-        resolution: 10
 
   - name: stereo
     test:
@@ -46,13 +40,6 @@ cases:
         azimuth: [0.0, 32.44, 49.11]
         elevation: [0.0, 21.25, 48.59]
       mode: stereo
-    tested:
-      hrtf:
-        path: hrtf/hrtf_16khz_low_res.bin
-      azimuth:
-        resolution: 10
-      elevation:
-        resolution: 10
 
   - name: mono
     test:
@@ -67,13 +54,6 @@ cases:
         azimuth: [296.57, 0.0, 82.37]
         elevation: [-37.76, -0.0, -12.95]
       mode: mono
-    tested:
-      hrtf:
-        path: hrtf/hrtf_16khz_low_res.bin
-      azimuth:
-        resolution: 10
-      elevation:
-        resolution: 10
 
   - name: combined_orientation
     test:
@@ -88,15 +68,8 @@ cases:
         azimuth: [333.47, 13.46, 70.39]
         elevation: [-24.55, 4.22, -14.78]
       mode: binaural
-    tested:
-      hrtf:
-        path: hrtf/hrtf_16khz_low_res.bin
-      azimuth:
-        resolution: 10
-      elevation:
-        resolution: 10
 
-  - name: synthetic
+  - name: roll
     test:
       input:
         azimuth: [0.0, 90.0, 180.0]
@@ -109,10 +82,3 @@ cases:
         azimuth: [0.0, 90.0, 180.0]
         elevation: [0.0, 15.0, 0.0]
       mode: binaural
-    tested:
-      hrtf:
-        source: synthetic
-      azimuth:
-        resolution: 10
-      elevation:
-        resolution: 10

@@ -268,27 +268,6 @@ wheels = [
 ]
 
 [[package]]
-name = "hrtf-build"
-version = "0.1.0"
-source = { editable = "../hrtf-build" }
-dependencies = [
-    { name = "coordinates" },
-    { name = "numpy" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "coordinates", editable = "../coordinates" },
-    { name = "numpy", specifier = ">=2.3.5" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "parametrize-tests", editable = "../parametrize-tests" },
-    { name = "pytest", specifier = ">=9.0.1" },
-]
-
-[[package]]
 name = "kiwisolver"
 version = "1.4.9"
 source = { registry = "https://pypi.org/simple" }
@@ -699,7 +678,6 @@ dependencies = [
     { name = "activator" },
     { name = "audio-io" },
     { name = "coordinates" },
-    { name = "hrtf-build" },
     { name = "numpy" },
     { name = "numpy-quaternion" },
     { name = "stft" },
@@ -710,7 +688,6 @@ requires-dist = [
     { name = "activator", editable = "../activator" },
     { name = "audio-io", editable = "../audio-io" },
     { name = "coordinates", editable = "../coordinates" },
-    { name = "hrtf-build", editable = "../hrtf-build" },
     { name = "numpy", specifier = ">=2.3.5" },
     { name = "numpy-quaternion", specifier = ">=2024.0.12" },
     { name = "stft", editable = "../stft" },

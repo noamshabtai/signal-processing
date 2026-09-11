@@ -1,11 +1,11 @@
-import hrtf_build.grid
-import hrtf_build.rigid_sphere
 import numpy as np
+import spatial_audio.grid
+import spatial_audio.rigid_sphere
 
 
 def test_init(kwargs_rigid_sphere):
     kwargs = kwargs_rigid_sphere
-    tested = hrtf_build.rigid_sphere.RigidSphere(**kwargs["tested"])
+    tested = spatial_audio.rigid_sphere.RigidSphere(**kwargs["tested"])
 
     assert tested.nfrequencies == tested.nfft // 2 + 1
     assert np.size(tested.frequency_K) == tested.nfrequencies
@@ -18,7 +18,7 @@ def test_init(kwargs_rigid_sphere):
 
 def test_bulk_delay(kwargs_rigid_sphere):
     kwargs = kwargs_rigid_sphere
-    tested = hrtf_build.rigid_sphere.RigidSphere(**kwargs["tested"])
+    tested = spatial_audio.rigid_sphere.RigidSphere(**kwargs["tested"])
 
     assert tested.delay > tested.head_radius / tested.speed_of_sound
     assert tested.delay > 2 / (tested.taper_fraction * tested.sampling_frequency)
@@ -27,7 +27,7 @@ def test_bulk_delay(kwargs_rigid_sphere):
 
 def test_hankel(kwargs_rigid_sphere):
     kwargs = kwargs_rigid_sphere
-    tested = hrtf_build.rigid_sphere.RigidSphere(**kwargs["tested"])
+    tested = spatial_audio.rigid_sphere.RigidSphere(**kwargs["tested"])
 
     ka_K = tested.ka_K[1:]
     hankel_MxK = tested.hankel(ka_K)
@@ -48,7 +48,7 @@ def test_hankel(kwargs_rigid_sphere):
 
 def test_hankel_derivative(kwargs_rigid_sphere):
     kwargs = kwargs_rigid_sphere
-    tested = hrtf_build.rigid_sphere.RigidSphere(**kwargs["tested"])
+    tested = spatial_audio.rigid_sphere.RigidSphere(**kwargs["tested"])
 
     ka_K = tested.ka_K[1:]
     step_K = 1e-7 * ka_K
@@ -63,7 +63,7 @@ def test_hankel_derivative(kwargs_rigid_sphere):
 
 def test_legendre(kwargs_rigid_sphere):
     kwargs = kwargs_rigid_sphere
-    tested = hrtf_build.rigid_sphere.RigidSphere(**kwargs["tested"])
+    tested = spatial_audio.rigid_sphere.RigidSphere(**kwargs["tested"])
 
     cosine_A = np.array([-1.0, -0.5, 0.0, 0.3, 1.0])
     legendre_MxA = tested.legendre(cosine_A)
@@ -81,7 +81,7 @@ def test_legendre(kwargs_rigid_sphere):
 
 def test_coefficients(kwargs_rigid_sphere):
     kwargs = kwargs_rigid_sphere
-    tested = hrtf_build.rigid_sphere.RigidSphere(**kwargs["tested"])
+    tested = spatial_audio.rigid_sphere.RigidSphere(**kwargs["tested"])
 
     order_M = np.arange(tested.norders)[:, np.newaxis]
     diverged_MxK = order_M > tested.ka_K[1:] + tested.extra_orders
@@ -109,7 +109,7 @@ def check_shadowing(pressure_AxK):
 
 def test_surface_pressure(kwargs_rigid_sphere):
     kwargs = kwargs_rigid_sphere
-    tested = hrtf_build.rigid_sphere.RigidSphere(**kwargs["tested"])
+    tested = spatial_audio.rigid_sphere.RigidSphere(**kwargs["tested"])
 
     cosine_A = np.array([-1.0, 0.0, 1.0])
     pressure_AxK = tested.surface_pressure(cosine_A)
@@ -122,7 +122,7 @@ def test_surface_pressure(kwargs_rigid_sphere):
 
 def test_taper(kwargs_rigid_sphere):
     kwargs = kwargs_rigid_sphere
-    tested = hrtf_build.rigid_sphere.RigidSphere(**kwargs["tested"])
+    tested = spatial_audio.rigid_sphere.RigidSphere(**kwargs["tested"])
 
     onset = (1 - tested.taper_fraction) * tested.frequency_K[-1]
 
@@ -145,7 +145,7 @@ def check_path_length(impulse_response_AxN):
 
 def test_transfer_function(kwargs_rigid_sphere):
     kwargs = kwargs_rigid_sphere
-    tested = hrtf_build.rigid_sphere.RigidSphere(**kwargs["tested"])
+    tested = spatial_audio.rigid_sphere.RigidSphere(**kwargs["tested"])
 
     cosine_A = np.array([-1.0, 0.0, 1.0])
     transfer_AxK = tested.transfer_function(cosine_A)
@@ -165,7 +165,7 @@ def test_transfer_function(kwargs_rigid_sphere):
 
 def test_cos_incidence(kwargs_rigid_sphere):
     kwargs = kwargs_rigid_sphere
-    tested = hrtf_build.rigid_sphere.RigidSphere(**kwargs["tested"])
+    tested = spatial_audio.rigid_sphere.RigidSphere(**kwargs["tested"])
 
     azimuth_A = np.array([0.0, tested.ear_azimuth, -tested.ear_azimuth, 180.0])
     elevation_A = np.array([0.0, tested.ear_elevation, tested.ear_elevation, 0.0])
@@ -205,8 +205,8 @@ def check_diffuse_field(tested, HRTF_DOAx2xK):
 
 def test_hrtf(kwargs_rigid_sphere):
     kwargs = kwargs_rigid_sphere
-    tested = hrtf_build.rigid_sphere.RigidSphere(**kwargs["tested"])
-    grid = hrtf_build.grid.Grid(**kwargs["grid"])
+    tested = spatial_audio.rigid_sphere.RigidSphere(**kwargs["tested"])
+    grid = spatial_audio.grid.Grid(**kwargs["grid"])
 
     HRTF_DOAx2xK = tested.hrtf(grid)
     cosine_DOAx2 = tested.cos_incidence(grid.elevation_DOA, grid.azimuth_DOA)

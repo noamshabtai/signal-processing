@@ -2,24 +2,16 @@ import numpy as np
 import spatial_audio.system.spatial_audio
 
 
-def test_execute_before_input_buffer_full(kwargs_spatial_audio, project_dir):
+def test_execute_before_input_buffer_full(kwargs_spatial_audio):
     kwargs = kwargs_spatial_audio
-    if "path" in kwargs["tested"]["spatial_audio"]["hrtf"]:
-        kwargs["tested"]["spatial_audio"]["hrtf"]["path"] = (
-            project_dir / kwargs["tested"]["spatial_audio"]["hrtf"]["path"]
-        )
     kwargs["tested"].pop("execute_before_input_buffer_full", None)
 
     system = spatial_audio.system.spatial_audio.System(**kwargs["tested"])
     assert system.execute_before_input_buffer_full
 
 
-def test_system(kwargs_spatial_audio, project_dir):
+def test_system(kwargs_spatial_audio):
     kwargs = kwargs_spatial_audio
-    if "path" in kwargs["tested"]["spatial_audio"]["hrtf"]:
-        kwargs["tested"]["spatial_audio"]["hrtf"]["path"] = (
-            project_dir / kwargs["tested"]["spatial_audio"]["hrtf"]["path"]
-        )
 
     system = spatial_audio.system.spatial_audio.System(**kwargs["tested"])
     input_chunk_shape = kwargs["tested"]["input_buffer"]["channel_shape"] + [

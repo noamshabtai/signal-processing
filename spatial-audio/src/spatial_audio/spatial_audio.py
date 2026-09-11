@@ -1,9 +1,9 @@
-import hrtf_build.grid
-import hrtf_build.rigid_sphere
 import numpy as np
 import quaternion
 
 import coordinates.coordinates
+import spatial_audio.grid
+import spatial_audio.rigid_sphere
 
 
 class SpatialAudio:
@@ -13,35 +13,31 @@ class SpatialAudio:
         self.initial_azimuth_CH = np.float64(kwargs["initial_azimuth"])
         self.initial_elevation_CH = np.float64(kwargs["initial_elevation"])
         self.CH = len(self.initial_azimuth_CH)
+        self.sampling_frequency = kwargs["sampling_frequency"]
         self.azimuth_CH = self.initial_azimuth_CH.copy()
         self.elevation_CH = self.initial_elevation_CH.copy()
 
-        self.grid = hrtf_build.grid.Grid(azimuth=kwargs["azimuth"], elevation=kwargs["elevation"])
+        self.grid = spatial_audio.grid.Grid(azimuth=kwargs["azimuth"], elevation=kwargs["elevation"])
 
-        self.hrtf_source = kwargs["hrtf"].get("source", "file")
-        self.hrtf_path = kwargs["hrtf"].get("path")
         self.hrtf_dtype = kwargs["hrtf"]["dtype"]
-        self.hrtf_equalization = kwargs["hrtf"].get("equalization", self.hrtf_source == "file")
+        self.hrtf_equalization = kwargs["hrtf"].get("equalization", False)
         self.hrtf_gain_db = np.float64(kwargs["hrtf"].get("gain_db", 0.0))
         self.hrtf_floor_db = np.float64(kwargs["hrtf"].get("floor_db", -40.0))
         self.rigid_sphere_kwargs = {
             "nfft": self.nfft,
-            "sampling_frequency": kwargs["hrtf"]["sampling_frequency"],
-        } | kwargs["hrtf"].get("rigid_sphere", {})
-        self.HRTF_DOAx2xK = (self.equalize_hrtf(self.read_hrtf()) / self.CH).astype(self.hrtf_dtype)
+            "sampling_frequency": self.sampling_frequency,
+        } | kwargs[
+            "hrtf"
+        ].get("rigid_sphere", {})
+        self.HRTF_DOAx2xK = (self.equalize_hrtf(self.synthesize_hrtf()) / self.CH).astype(self.hrtf_dtype)
 
         self.reset_tracking()
         self.mode = "binaural"
         self.set_doas()
 
-    def read_hrtf(self):
-        match self.hrtf_source:
-            case "synthetic":
-                model = hrtf_build.rigid_sphere.RigidSphere(**self.rigid_sphere_kwargs)
-                return model.hrtf(self.grid)
-            case _:
-                with open(self.hrtf_path, "rb") as fid:
-                    return np.frombuffer(fid.read(), dtype=self.hrtf_dtype).reshape((-1, 2, self.nfrequencies))
+    def synthesize_hrtf(self):
+        model = spatial_audio.rigid_sphere.RigidSphere(**self.rigid_sphere_kwargs)
+        return model.hrtf(self.grid)
 
     def equalization(self, HRTF_DOAx2xK):
         magnitude_K = np.full(self.nfrequencies, 10 ** (self.hrtf_gain_db / 20))
@@ -78,6 +74,13 @@ class SpatialAudio:
         Qy = quaternion.from_rotation_vector(self.yaxis * np.deg2rad(pitch))
         Qz = quaternion.from_rotation_vector(self.zaxis * np.deg2rad(yaw))
         self.head_orientation = self.global_orientation.conjugate() * Qz * Qy * Qx
+
+    def head_yaw_pitch_roll(self):
+        rotation = quaternion.as_rotation_matrix(self.head_orientation)
+        yaw = np.arctan2(rotation[1, 0], rotation[0, 0])
+        pitch = np.arctan2(-rotation[2, 0], np.hypot(rotation[2, 1], rotation[2, 2]))
+        roll = np.arctan2(rotation[2, 1], rotation[2, 2])
+        return np.rad2deg([yaw, pitch, roll])
 
     def combine_head_orientation(self):
         x_CH, y_CH, z_CH = coordinates.coordinates.spherical_to_ned(
