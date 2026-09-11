@@ -1,3 +1,4 @@
+import spatial_audio.early_reflections
 import spatial_audio.reverb
 import spatial_audio.spatial_audio
 import stft.analysis
@@ -7,6 +8,25 @@ import system.system
 
 class System(system.system.System):
     def __init__(self, *args, **kwargs):
+        kwargs["early_reflections"] = kwargs.get("early_reflections", {}) | {
+            "sampling_frequency": kwargs["spatial_audio"]["sampling_frequency"],
+            "step_size": kwargs["input_buffer"]["step_size"],
+        }
+        self.early_reflections = spatial_audio.early_reflections.EarlyReflections(**kwargs["early_reflections"])
+
+        self.nsources = kwargs["input_buffer"]["channel_shape"][0]
+        kwargs = kwargs | {
+            "input_buffer": kwargs["input_buffer"]
+            | {"channel_shape": [self.nsources + self.early_reflections.nreflections]},
+            "spatial_audio": kwargs["spatial_audio"]
+            | {
+                "initial_azimuth": list(kwargs["spatial_audio"]["initial_azimuth"])
+                + list(self.early_reflections.azimuth_R),
+                "initial_elevation": list(kwargs["spatial_audio"]["initial_elevation"])
+                + list(self.early_reflections.elevation_R),
+            },
+        }
+
         super().__init__(**kwargs)
         self.execute_before_input_buffer_full = True
 
@@ -29,6 +49,9 @@ class System(system.system.System):
             "step_size": kwargs["input_buffer"]["step_size"],
         }
         self.modules["reverb"] = spatial_audio.reverb.Reverb(**kwargs["reverb"])
+
+    def execute(self, chunk):
+        super().execute(self.early_reflections.execute(chunk))
 
     def connect(self, module):
         match module:

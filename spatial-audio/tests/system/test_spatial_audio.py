@@ -45,3 +45,34 @@ def test_system(kwargs_spatial_audio):
 
     assert list(system.outputs)[-1] == "reverb"
     assert np.allclose(system.outputs["reverb"], system.outputs["synthesis"])
+
+
+def test_execute(kwargs_spatial_audio):
+    kwargs = kwargs_spatial_audio
+    kwargs["tested"]["early_reflections"] = {
+        "delays_ms": [11.0, 17.0, 23.0],
+        "gains_db": [-6.0, -9.0, -12.0],
+        "azimuth": [-90.0, 90.0, 180.0],
+        "elevation": [0.0, 0.0, 0.0],
+    }
+    sources = kwargs["tested"]["input_buffer"]["channel_shape"][0]
+    reflections = len(kwargs["tested"]["early_reflections"]["delays_ms"])
+
+    system = spatial_audio.system.spatial_audio.System(**kwargs["tested"])
+
+    assert kwargs["tested"]["input_buffer"]["channel_shape"] == [sources]
+    assert len(kwargs["tested"]["spatial_audio"]["initial_azimuth"]) == sources
+    assert system.nsources == sources
+    assert system.early_reflections.nreflections == reflections
+    assert system.input_buffer.channel_shape == [sources + reflections]
+    assert system.modules["spatial_audio"].CH == sources + reflections
+
+    step_size = kwargs["tested"]["input_buffer"]["step_size"]
+    chunk = np.zeros([sources, step_size], dtype=kwargs["tested"]["input_buffer"]["dtype"])
+    chunk[0, 0] = 1
+    for _ in range(4):
+        system.execute(chunk)
+        chunk[0, 0] = 0
+
+    assert np.shape(system.outputs["reverb"]) == (2, step_size)
+    assert np.all(np.isfinite(system.outputs["reverb"]))

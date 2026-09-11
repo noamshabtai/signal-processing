@@ -27,7 +27,10 @@ MUTE_COLUMN = 4
 SOLO_COLUMN = 5
 TRACKING_COLUMN = 6
 REVERB_COLUMN = 4
+RT60_COLUMN = 5
 REVERB_MAX_PERCENT = 50
+RT60_MAX_S = 2.0
+RT60_RESOLUTION_S = 0.05
 
 TITLE_FONT = ("Times", 20)
 SECTION_FONT = ("Times", 14)
@@ -91,7 +94,7 @@ class Gui:
         self.audio_engine = audio_engine
         self.spatial_audio = audio_engine.system.modules["spatial_audio"]
         self.reverb = audio_engine.system.modules["reverb"]
-        self.channels = range(self.spatial_audio.CH)
+        self.channels = range(audio_engine.system.nsources)
         self.initial_gain_db = np.int16(np.log10(audio_engine.channel_gain) * 20)
         self.output_mode = "binaural"
         self.azimuth_span = kwargs["azimuth_span"]
@@ -129,7 +132,7 @@ class Gui:
             length=200,
             resolution=self.slider_resolution,
             on_change=self.azimuth_changed,
-            initial=self.spatial_audio.initial_azimuth_CH,
+            initial=self.spatial_audio.initial_azimuth_CH[: len(self.channels)],
             limits=[(-span, span) for channel in self.channels],
             labels=[f"Ch. {channel} Azimuth [Deg]" for channel in self.channels],
         )
@@ -144,7 +147,7 @@ class Gui:
             length=100,
             resolution=self.slider_resolution,
             on_change=self.elevation_changed,
-            initial=self.spatial_audio.initial_elevation_CH,
+            initial=self.spatial_audio.initial_elevation_CH[: len(self.channels)],
             limits=[(span, -span) for channel in self.channels],
             labels=[f"Ch. {channel} Elevation [Deg]" for channel in self.channels],
         )
@@ -183,21 +186,38 @@ class Gui:
         self.output_mode_variable.set(self.output_mode)
 
     def build_reverb(self):
-        slider = tk.Scale(
+        wet_slider = tk.Scale(
             master=self.master,
             orient=tk.HORIZONTAL,
-            length=150,
+            length=120,
             resolution=1,
             from_=0,
             to=REVERB_MAX_PERCENT,
             label="Reverb [%]",
             command=self.reverb_changed,
         )
-        slider.set(self.reverb.wet * 100)
-        slider.grid(row=OUTPUT_MODE_ROW, column=REVERB_COLUMN, columnspan=2, padx=PADDING)
+        wet_slider.set(self.reverb.wet * 100)
+        wet_slider.grid(row=OUTPUT_MODE_ROW, column=REVERB_COLUMN, padx=PADDING)
+
+        rt60_slider = tk.Scale(
+            master=self.master,
+            orient=tk.HORIZONTAL,
+            length=120,
+            resolution=RT60_RESOLUTION_S,
+            from_=0,
+            to=RT60_MAX_S,
+            label="RT60 [s]",
+            command=self.rt60_changed,
+        )
+        rt60_slider.set(self.reverb.rt60)
+        rt60_slider.grid(row=OUTPUT_MODE_ROW, column=RT60_COLUMN, padx=PADDING)
 
     def reverb_changed(self, wet_percent):
         self.reverb.wet = float(wet_percent) / 100
+
+    def rt60_changed(self, rt60):
+        self.reverb.rt60 = np.float64(rt60)
+        self.reverb.gain_N = self.reverb.gains()
 
     def build_head_tracking(self):
         self.tracking_variable = tk.IntVar(value=False)

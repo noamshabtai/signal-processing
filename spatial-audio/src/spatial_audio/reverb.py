@@ -28,9 +28,7 @@ class Reverb:
 
     def gains(self):
         decay_samples = self.rt60 * self.sampling_frequency
-        if decay_samples == 0:
-            return np.zeros(self.nlines)
-        return 10 ** (-3 * self.delay_N / decay_samples)
+        return np.zeros(self.nlines) if not decay_samples else 10 ** (-3 * self.delay_N / decay_samples)
 
     def injection_matrix(self):
         line_N = np.arange(self.nlines)

@@ -6,6 +6,7 @@ import parametrize_tests.kwargs
 config_dir = pathlib.Path(__file__).parent / "config"
 module = sys.modules[__name__]
 for fixture in [
+    "early_reflections",
     "reverb",
     "rigid_sphere",
     "spatial_audio",
