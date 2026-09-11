@@ -1,10 +1,12 @@
 import numpy as np
+import quaternion
+import spatial_audio.spatial_audio
 
 
-def test_init(kwargs_spatial_audio, SpatialAudio):
+def test_init(kwargs_spatial_audio):
     kwargs = kwargs_spatial_audio
     kwargs["tested"]["hrtf"]["equalization"] = False
-    tested = SpatialAudio(kwargs)
+    tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
 
     assert tested.nfrequencies == tested.nfft // 2 + 1
     assert tested.HRTF_DOAx2xK.shape[1] == 2
@@ -12,20 +14,21 @@ def test_init(kwargs_spatial_audio, SpatialAudio):
 
     assert np.allclose(tested.HRTF_DOAx2xK * tested.CH, tested.synthesize_hrtf())
 
+    assert tested.rigid_sphere_kwargs["sampling_frequency"] == tested.sampling_frequency
+    assert tested.rigid_sphere_kwargs["nfft"] == tested.nfft
+
     assert tested.azimuth_CH is not tested.initial_azimuth_CH
     assert tested.mode == "binaural"
 
 
-def test_synthesize_hrtf(kwargs_spatial_audio, SpatialAudio):
+def test_synthesize_hrtf(kwargs_spatial_audio):
     kwargs = kwargs_spatial_audio
-    tested = SpatialAudio(kwargs)
+    tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
 
     HRTF_DOAx2xK = tested.synthesize_hrtf()
 
     assert np.shape(HRTF_DOAx2xK) == (tested.grid.NDOA, 2, tested.nfrequencies)
     assert np.all(np.isfinite(HRTF_DOAx2xK))
-    assert tested.rigid_sphere_kwargs["sampling_frequency"] == tested.sampling_frequency
-    assert tested.rigid_sphere_kwargs["nfft"] == tested.nfft
 
 
 def check_flattening(tested, raw_DOAx2xK, equalization_K):
@@ -42,10 +45,10 @@ def check_minimum_phase(tested, equalization_K):
     assert np.sum(energy_N[: tested.nfft // 2]) > 0.99 * np.sum(energy_N)
 
 
-def test_equalization(kwargs_spatial_audio, SpatialAudio):
+def test_equalization(kwargs_spatial_audio):
     kwargs = kwargs_spatial_audio
     kwargs["tested"]["hrtf"]["equalization"] = True
-    tested = SpatialAudio(kwargs)
+    tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
 
     raw_DOAx2xK = tested.synthesize_hrtf()
     equalization_K = tested.equalization(raw_DOAx2xK)
@@ -56,10 +59,10 @@ def test_equalization(kwargs_spatial_audio, SpatialAudio):
     check_minimum_phase(tested, equalization_K)
 
 
-def test_equalize_hrtf(kwargs_spatial_audio, SpatialAudio):
+def test_equalize_hrtf(kwargs_spatial_audio):
     kwargs = kwargs_spatial_audio
     gain_db = 6.0
-    tested = SpatialAudio(kwargs)
+    tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
 
     raw_DOAx2xK = tested.synthesize_hrtf()
     equalized_DOAx2xK = tested.equalize_hrtf(raw_DOAx2xK)
@@ -68,35 +71,35 @@ def test_equalize_hrtf(kwargs_spatial_audio, SpatialAudio):
     assert np.allclose(tested.HRTF_DOAx2xK * tested.CH, equalized_DOAx2xK, rtol=1e-3)
 
     kwargs["tested"]["hrtf"]["gain_db"] = gain_db
-    louder = SpatialAudio(kwargs)
+    louder = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
     assert np.allclose(louder.HRTF_DOAx2xK, tested.HRTF_DOAx2xK * 10 ** (gain_db / 20), rtol=1e-3)
 
 
-def test_fetch_hrtf(kwargs_spatial_audio, SpatialAudio):
+def test_fetch_hrtf(kwargs_spatial_audio):
     kwargs = kwargs_spatial_audio
-    tested = SpatialAudio(kwargs)
+    tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
 
     CH = tested.CH
     elevation = np.zeros(CH)
     azimuth = np.full(CH, 30.0)
 
-    result_nominal = tested.fetch_hrtf(elevation.copy(), azimuth.copy())
-    result_negative = tested.fetch_hrtf(elevation.copy(), azimuth.copy() - 360)
-    result_over = tested.fetch_hrtf(elevation.copy(), azimuth.copy() + 360)
+    result_nominal = tested.fetch_hrtf(elevation, azimuth)
+    result_negative = tested.fetch_hrtf(elevation, azimuth - 360)
+    result_over = tested.fetch_hrtf(elevation, azimuth + 360)
 
     assert np.allclose(result_nominal, result_negative)
     assert np.allclose(result_nominal, result_over)
 
     if tested.grid.azimuth_symmetric:
-        result_right = tested.fetch_hrtf(elevation.copy(), np.full(CH, 90.0))
-        result_mirrored = tested.fetch_hrtf(elevation.copy(), np.full(CH, 270.0))
+        result_right = tested.fetch_hrtf(elevation, np.full(CH, 90.0))
+        result_mirrored = tested.fetch_hrtf(elevation, np.full(CH, 270.0))
         assert np.allclose(result_mirrored[0, 0], result_right[0, 1])
         assert np.allclose(result_mirrored[0, 1], result_right[0, 0])
 
 
-def test_set_doas(kwargs_spatial_audio, SpatialAudio):
+def test_set_doas(kwargs_spatial_audio):
     kwargs = kwargs_spatial_audio
-    tested = SpatialAudio(kwargs)
+    tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
 
     tested.set_head_orientation(**kwargs["test"]["orientation"])
     tested.set_doas()
@@ -107,20 +110,16 @@ def test_set_doas(kwargs_spatial_audio, SpatialAudio):
     assert np.allclose(tested.HRTF_CHx2xK, expected)
 
 
-def test_tare_head_orientation(kwargs_spatial_audio, SpatialAudio):
-    import quaternion
-
+def test_tare_head_orientation(kwargs_spatial_audio):
     kwargs = kwargs_spatial_audio
-    tested = SpatialAudio(kwargs)
+    tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
     tested.tare_head_orientation(0, 0, 0)
     assert tested.global_orientation == quaternion.quaternion(1, 0, 0, 0)
 
 
-def test_set_head_orientation(kwargs_spatial_audio, SpatialAudio):
-    import quaternion
-
+def test_set_head_orientation(kwargs_spatial_audio):
     kwargs = kwargs_spatial_audio
-    tested = SpatialAudio(kwargs)
+    tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
     tested.set_head_orientation(0, 0, 0)
     assert tested.head_orientation == quaternion.quaternion(1, 0, 0, 0)
 
@@ -138,17 +137,17 @@ def check_tare_zeroes(tested, orientation):
     assert np.allclose(tested.head_yaw_pitch_roll(), 0, atol=1e-6)
 
 
-def test_head_yaw_pitch_roll(kwargs_spatial_audio, SpatialAudio):
+def test_head_yaw_pitch_roll(kwargs_spatial_audio):
     kwargs = kwargs_spatial_audio
-    tested = SpatialAudio(kwargs)
+    tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
 
     check_untared_round_trip(tested, kwargs["test"]["orientation"])
     check_tare_zeroes(tested, kwargs["test"]["orientation"])
 
 
-def test_combine_head_orientation(kwargs_spatial_audio, SpatialAudio):
+def test_combine_head_orientation(kwargs_spatial_audio):
     kwargs = kwargs_spatial_audio
-    tested = SpatialAudio(kwargs)
+    tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
 
     tested.set_head_orientation(0, 0, 0)
     el, az = tested.combine_head_orientation()
@@ -165,33 +164,31 @@ def test_combine_head_orientation(kwargs_spatial_audio, SpatialAudio):
     assert np.all(np.abs(delta) < 1)
 
 
-def test_binauralize(kwargs_spatial_audio, SpatialAudio):
+def test_binauralize(kwargs_spatial_audio):
     kwargs = kwargs_spatial_audio
-    tested = SpatialAudio(kwargs)
+    tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
     tested.monify()
     tested.binauralize()
     assert tested.mode == "binaural"
 
 
-def test_monify(kwargs_spatial_audio, SpatialAudio):
+def test_monify(kwargs_spatial_audio):
     kwargs = kwargs_spatial_audio
-    tested = SpatialAudio(kwargs)
+    tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
     tested.monify()
     assert tested.mode == "mono"
 
 
-def test_stereofy(kwargs_spatial_audio, SpatialAudio):
+def test_stereofy(kwargs_spatial_audio):
     kwargs = kwargs_spatial_audio
-    tested = SpatialAudio(kwargs)
+    tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
     tested.stereofy()
     assert tested.mode == "stereo"
 
 
-def test_reset_tracking(kwargs_spatial_audio, SpatialAudio):
-    import quaternion
-
+def test_reset_tracking(kwargs_spatial_audio):
     kwargs = kwargs_spatial_audio
-    tested = SpatialAudio(kwargs)
+    tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
     tested.set_head_orientation(45, 30, 15)
     tested.reset_tracking()
 
@@ -216,9 +213,9 @@ def check_mono(frame_fft_CHxK, output):
     assert np.allclose(output, expected)
 
 
-def test_execute(kwargs_spatial_audio, SpatialAudio):
+def test_execute(kwargs_spatial_audio):
     kwargs = kwargs_spatial_audio
-    tested = SpatialAudio(kwargs)
+    tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
 
     match kwargs["test"]["mode"]:
         case "binaural":

@@ -14,10 +14,10 @@ base:
 
 cases:
   - name: binaural
+    tested:
+      initial_azimuth: [0.0, 90.0, 180.0]
+      initial_elevation: [0.0, 0.0, 0.0]
     test:
-      input:
-        azimuth: [0.0, 90.0, 180.0]
-        elevation: [0.0, 0.0, 0.0]
       orientation:
         yaw: 90.0
         pitch: 0.0
@@ -28,10 +28,10 @@ cases:
       mode: binaural
 
   - name: stereo
+    tested:
+      initial_azimuth: [0.0, 45.0, 90.0]
+      initial_elevation: [30.0, 45.0, 60.0]
     test:
-      input:
-        azimuth: [0.0, 45.0, 90.0]
-        elevation: [30.0, 45.0, 60.0]
       orientation:
         yaw: 0.0
         pitch: 30.0
@@ -42,10 +42,10 @@ cases:
       mode: stereo
 
   - name: mono
+    tested:
+      initial_azimuth: [270.0, 0.0, 90.0]
+      initial_elevation: [-45.0, -30.0, -15.0]
     test:
-      input:
-        azimuth: [270.0, 0.0, 90.0]
-        elevation: [-45.0, -30.0, -15.0]
       orientation:
         yaw: 0.0
         pitch: -30.0
@@ -56,10 +56,10 @@ cases:
       mode: mono
 
   - name: combined_orientation
+    tested:
+      initial_azimuth: [0.0, 45.0, 90.0]
+      initial_elevation: [0.0, 20.0, -20.0]
     test:
-      input:
-        azimuth: [0.0, 45.0, 90.0]
-        elevation: [0.0, 20.0, -20.0]
       orientation:
         yaw: 30.0
         pitch: 20.0
@@ -70,10 +70,10 @@ cases:
       mode: binaural
 
   - name: roll
+    tested:
+      initial_azimuth: [0.0, 90.0, 180.0]
+      initial_elevation: [0.0, 0.0, 0.0]
     test:
-      input:
-        azimuth: [0.0, 90.0, 180.0]
-        elevation: [0.0, 0.0, 0.0]
       orientation:
         yaw: 0.0
         pitch: 0.0
