@@ -50,10 +50,15 @@ def test_gains(kwargs_reverb):
 
     gain_N = tested.gains()
 
-    assert np.all(gain_N > 0)
+    assert np.size(gain_N) == tested.nlines
+    assert np.all(gain_N >= 0)
     assert np.all(gain_N < 1)
-    passes_N = tested.rt60 * tested.sampling_frequency / tested.delay_N
-    assert np.allclose(20 * np.log10(gain_N) * passes_N, -60)
+
+    if tested.rt60 == 0:
+        assert not np.any(gain_N)
+    else:
+        passes_N = tested.rt60 * tested.sampling_frequency / tested.delay_N
+        assert np.allclose(20 * np.log10(gain_N) * passes_N, -60)
 
 
 def check_shape_and_dtype(tested, input_2xL, output_2xL):
@@ -71,7 +76,11 @@ def check_decay(tested, tail_2xN):
     energy_2xN = tail_2xN**2
     quarter = np.shape(energy_2xN)[-1] // 4
     assert np.sum(energy_2xN[:, -quarter:]) < np.sum(energy_2xN[:, :quarter])
-    assert np.allclose(measured_rt60(tested, tail_2xN[0]), tested.rt60, rtol=0.25)
+
+    if tested.rt60 == 0:
+        assert not np.any(energy_2xN[:, np.max(tested.delay_N) + tested.step_size :])
+    else:
+        assert np.allclose(measured_rt60(tested, tail_2xN[0]), tested.rt60, rtol=0.25)
 
 
 def check_stereo_decorrelation(tail_2xN):
@@ -102,7 +111,8 @@ def test_execute(kwargs_reverb):
     check_dry_path(tested, input_2xL, output_2xL)
 
     tail_only = spatial_audio.reverb.Reverb(**(kwargs["tested"] | {"wet": 1.0}))
-    tail_2xN = impulse_response(tail_only, int(3 * tail_only.rt60 * tail_only.sampling_frequency))
+    capture = max(3 * tail_only.rt60 * tail_only.sampling_frequency, 3 * np.max(tail_only.delay_N))
+    tail_2xN = impulse_response(tail_only, int(capture))
     check_decay(tail_only, tail_2xN)
     check_stereo_decorrelation(tail_2xN)
     check_block_size_independence(spatial_audio.reverb.Reverb(**kwargs["tested"]), kwargs)

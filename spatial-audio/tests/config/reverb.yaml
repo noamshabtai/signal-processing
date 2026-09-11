@@ -13,5 +13,10 @@ cases:
 
   - name: short_tail
     tested:
-      rt60: 0.3
+      rt60: 0.15
       wet: 0.1
+
+  - name: no_tail
+    tested:
+      rt60: 0.0
+      wet: 0.5

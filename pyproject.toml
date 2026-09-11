@@ -23,6 +23,7 @@ dev = [
 [tool.pytest.ini_options]
 addopts = "--import-mode=importlib"
 consider_namespace_packages = true
+filterwarnings = ["error::RuntimeWarning"]
 
 [tool.uv.sources]
 io-for-tests = { path = "io-for-tests", editable = true }

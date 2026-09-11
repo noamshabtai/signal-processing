@@ -7,7 +7,7 @@ class Reverb:
     def __init__(self, **kwargs):
         self.sampling_frequency = kwargs["sampling_frequency"]
         self.step_size = kwargs["step_size"]
-        self.rt60 = np.float64(kwargs.get("rt60", 0.6))
+        self.rt60 = np.float64(kwargs.get("rt60", 0.3))
         self.wet = np.float64(kwargs.get("wet", 0.0))
 
         delays_ms = np.float64(kwargs.get("delays_ms", DEFAULT_DELAYS_MS))
@@ -27,7 +27,10 @@ class Reverb:
         return np.eye(self.nlines) - 2 / self.nlines * np.ones((self.nlines, self.nlines))
 
     def gains(self):
-        return 10 ** (-3 * self.delay_N / (self.rt60 * self.sampling_frequency))
+        decay_samples = self.rt60 * self.sampling_frequency
+        if decay_samples == 0:
+            return np.zeros(self.nlines)
+        return 10 ** (-3 * self.delay_N / decay_samples)
 
     def injection_matrix(self):
         line_N = np.arange(self.nlines)
