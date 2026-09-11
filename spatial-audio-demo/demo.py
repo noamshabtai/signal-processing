@@ -26,6 +26,8 @@ GAIN_COLUMN = 3
 MUTE_COLUMN = 4
 SOLO_COLUMN = 5
 TRACKING_COLUMN = 6
+REVERB_COLUMN = 4
+REVERB_MAX_PERCENT = 50
 
 TITLE_FONT = ("Times", 20)
 SECTION_FONT = ("Times", 14)
@@ -88,12 +90,17 @@ class Gui:
         self.master = master
         self.audio_engine = audio_engine
         self.spatial_audio = audio_engine.system.modules["spatial_audio"]
+        self.reverb = audio_engine.system.modules["reverb"]
         self.channels = range(self.spatial_audio.CH)
         self.initial_gain_db = np.int16(np.log10(audio_engine.channel_gain) * 20)
         self.output_mode = "binaural"
+        self.azimuth_span = kwargs["azimuth_span"]
+        self.elevation_span = kwargs["elevation_span"]
+        self.slider_resolution = kwargs["slider_resolution"]
         self.head_tracking = head_tracking.HeadTracking(**kwargs.get("head_tracking", {}))
 
         self.build_output_mode()
+        self.build_reverb()
         self.build_head_tracking()
         self.build_mute()
         self.azimuth_column = self.build_azimuth()
@@ -113,14 +120,14 @@ class Gui:
         return self.clipping_gain_db() + GAIN_ABOVE_CLIPPING_GUARD_DB
 
     def build_azimuth(self):
-        span = self.spatial_audio.grid.azimuth_span
+        span = self.azimuth_span
         return SliderColumn(
             self.master,
             title="Azimuth",
             column=AZIMUTH_COLUMN,
             orient=tk.HORIZONTAL,
             length=200,
-            resolution=self.spatial_audio.grid.azimuth_resolution,
+            resolution=self.slider_resolution,
             on_change=self.azimuth_changed,
             initial=self.spatial_audio.initial_azimuth_CH,
             limits=[(-span, span) for channel in self.channels],
@@ -128,14 +135,14 @@ class Gui:
         )
 
     def build_elevation(self):
-        span = self.spatial_audio.grid.elevation_span
+        span = self.elevation_span
         return SliderColumn(
             self.master,
             title="Elevation",
             column=ELEVATION_COLUMN,
             orient=tk.VERTICAL,
             length=100,
-            resolution=self.spatial_audio.grid.elevation_resolution,
+            resolution=self.slider_resolution,
             on_change=self.elevation_changed,
             initial=self.spatial_audio.initial_elevation_CH,
             limits=[(span, -span) for channel in self.channels],
@@ -174,6 +181,23 @@ class Gui:
             )
             button.grid(row=OUTPUT_MODE_ROW, column=column, sticky=tk.W, padx=PADDING)
         self.output_mode_variable.set(self.output_mode)
+
+    def build_reverb(self):
+        slider = tk.Scale(
+            master=self.master,
+            orient=tk.HORIZONTAL,
+            length=150,
+            resolution=1,
+            from_=0,
+            to=REVERB_MAX_PERCENT,
+            label="Reverb [%]",
+            command=self.reverb_changed,
+        )
+        slider.set(self.reverb.wet * 100)
+        slider.grid(row=OUTPUT_MODE_ROW, column=REVERB_COLUMN, columnspan=2, padx=PADDING)
+
+    def reverb_changed(self, wet_percent):
+        self.reverb.wet = float(wet_percent) / 100
 
     def build_head_tracking(self):
         self.tracking_variable = tk.IntVar(value=False)

@@ -1,0 +1,17 @@
+base:
+  tested:
+    sampling_frequency: 16000
+    step_size: 128
+
+cases:
+  - name: default
+
+  - name: long_tail
+    tested:
+      rt60: 1.5
+      wet: 0.5
+
+  - name: short_tail
+    tested:
+      rt60: 0.3
+      wet: 0.1

@@ -1,5 +1,4 @@
 import numpy as np
-import spatial_audio.grid
 import spatial_audio.rigid_sphere
 
 
@@ -180,23 +179,34 @@ def test_cos_incidence(kwargs_rigid_sphere):
     assert np.allclose(cosine_Ax2[1, 0], cosine_Ax2[2, 1])
 
 
-def check_median_plane_symmetry(grid, HRTF_DOAx2xK):
-    median_DOA = (grid.azimuth_DOA == 0) | (grid.azimuth_DOA == 180)
-    assert np.any(median_DOA)
-    assert np.allclose(HRTF_DOAx2xK[median_DOA, 0], HRTF_DOAx2xK[median_DOA, 1])
+def sphere_directions():
+    azimuth_AxB, elevation_AxB = np.meshgrid(np.arange(0, 360, 10.0), np.arange(-90, 90, 10.0))
+    return np.ravel(elevation_AxB), np.ravel(azimuth_AxB)
 
 
-def check_interaural_delay(tested, grid, HRTF_DOAx2xK):
-    lateral_DOA = (grid.azimuth_DOA > 0) & (grid.azimuth_DOA < 180)
-    impulse_response_DOAx2xN = np.fft.irfft(HRTF_DOAx2xK[lateral_DOA], n=tested.nfft, axis=-1)
-    peak_DOAx2 = np.argmax(np.abs(impulse_response_DOAx2xN), axis=-1)
-    assert np.all(peak_DOAx2[:, 1] <= peak_DOAx2[:, 0])
-    assert np.any(peak_DOAx2[:, 1] < peak_DOAx2[:, 0])
+def check_median_plane_symmetry(azimuth_A, HRTF_Ax2xK):
+    median_A = (azimuth_A == 0) | (azimuth_A == 180)
+    assert np.any(median_A)
+    assert np.allclose(HRTF_Ax2xK[median_A, 0], HRTF_Ax2xK[median_A, 1])
 
 
-def check_diffuse_field(tested, HRTF_DOAx2xK):
+def check_interaural_delay(tested, azimuth_A, HRTF_Ax2xK):
+    lateral_A = (azimuth_A > 0) & (azimuth_A < 180)
+    impulse_response_Ax2xN = np.fft.irfft(HRTF_Ax2xK[lateral_A], n=tested.nfft, axis=-1)
+    peak_Ax2 = np.argmax(np.abs(impulse_response_Ax2xN), axis=-1)
+    assert np.all(peak_Ax2[:, 1] <= peak_Ax2[:, 0])
+    assert np.any(peak_Ax2[:, 1] < peak_Ax2[:, 0])
+
+
+def check_left_right_symmetry(tested, elevation_A, azimuth_A, HRTF_Ax2xK):
+    mirrored_Ax2xK = tested.hrtf(elevation_A, -azimuth_A)
+    assert np.allclose(mirrored_Ax2xK[:, 0], HRTF_Ax2xK[:, 1])
+    assert np.allclose(mirrored_Ax2xK[:, 1], HRTF_Ax2xK[:, 0])
+
+
+def check_diffuse_field(tested, HRTF_Ax2xK):
     passband_K = tested.taper_K == 1
-    diffuse_field_K = np.sqrt(np.mean(np.abs(HRTF_DOAx2xK[:, :, passband_K]) ** 2, axis=(0, 1)))
+    diffuse_field_K = np.sqrt(np.mean(np.abs(HRTF_Ax2xK[:, :, passband_K]) ** 2, axis=(0, 1)))
     tilt_K = 20 * np.log10(diffuse_field_K)
     assert np.all(np.abs(tilt_K) < 3.0)
     assert tilt_K[0] == 0
@@ -206,14 +216,15 @@ def check_diffuse_field(tested, HRTF_DOAx2xK):
 def test_hrtf(kwargs_rigid_sphere):
     kwargs = kwargs_rigid_sphere
     tested = spatial_audio.rigid_sphere.RigidSphere(**kwargs["tested"])
-    grid = spatial_audio.grid.Grid(**kwargs["grid"])
+    elevation_A, azimuth_A = sphere_directions()
 
-    HRTF_DOAx2xK = tested.hrtf(grid)
-    cosine_DOAx2 = tested.cos_incidence(grid.elevation_DOA, grid.azimuth_DOA)
+    HRTF_Ax2xK = tested.hrtf(elevation_A, azimuth_A)
+    cosine_Ax2 = tested.cos_incidence(elevation_A, azimuth_A)
 
-    assert np.shape(HRTF_DOAx2xK) == (grid.NDOA, 2, tested.nfrequencies)
-    assert np.all(np.isfinite(HRTF_DOAx2xK))
-    assert np.allclose(HRTF_DOAx2xK[0, 1], tested.transfer_function(cosine_DOAx2[0, 1:2])[0])
-    check_median_plane_symmetry(grid, HRTF_DOAx2xK)
-    check_interaural_delay(tested, grid, HRTF_DOAx2xK)
-    check_diffuse_field(tested, HRTF_DOAx2xK)
+    assert np.shape(HRTF_Ax2xK) == (np.size(azimuth_A), 2, tested.nfrequencies)
+    assert np.all(np.isfinite(HRTF_Ax2xK))
+    assert np.allclose(HRTF_Ax2xK[0, 1], tested.transfer_function(cosine_Ax2[0, 1:2])[0])
+    check_median_plane_symmetry(azimuth_A, HRTF_Ax2xK)
+    check_interaural_delay(tested, azimuth_A, HRTF_Ax2xK)
+    check_left_right_symmetry(tested, elevation_A, azimuth_A, HRTF_Ax2xK)
+    check_diffuse_field(tested, HRTF_Ax2xK)

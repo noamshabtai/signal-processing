@@ -1,5 +1,8 @@
 demo:
   initial_gain_db: [-10.0, -10.0, -10.0]
+  azimuth_span: 180
+  elevation_span: 90
+  slider_resolution: 1
 system:
   input_buffer:
     channel_shape: [3]
@@ -18,13 +21,9 @@ system:
     hrtf:
       dtype: complex64
       gain_db: 3.0
-    azimuth:
-      symmetric: True
-      span: 180
-      resolution: 1
-    elevation:
-      span: 90
-      resolution: 1
+  reverb:
+    rt60: 0.7
+    wet: 0.2
 input:
   source: file
   path: conference_input.wav

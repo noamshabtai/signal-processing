@@ -2,14 +2,6 @@ base:
   tested:
     nfft: 512
     sampling_frequency: 16000
-  grid:
-    azimuth:
-      symmetric: true
-      span: 90
-      resolution: 10
-    elevation:
-      span: 30
-      resolution: 10
 
 cases:
   - name: default_head

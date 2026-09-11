@@ -42,3 +42,6 @@ def test_system(kwargs_spatial_audio):
     expected_output = (analysis_gain * hrtf_impulse_response)[..., -step_size:]
 
     assert np.allclose(system.outputs["synthesis"], expected_output, atol=1e-6)
+
+    assert list(system.outputs)[-1] == "reverb"
+    assert np.allclose(system.outputs["reverb"], system.outputs["synthesis"])

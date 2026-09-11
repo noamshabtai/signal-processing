@@ -4,13 +4,6 @@ base:
     sampling_frequency: 16000
     hrtf:
       dtype: complex64
-    azimuth:
-      symmetric: True
-      span: 90
-      resolution: 10
-    elevation:
-      span: 30
-      resolution: 10
 
 cases:
   - name: binaural

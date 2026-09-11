@@ -2,7 +2,6 @@ import numpy as np
 import quaternion
 
 import coordinates.coordinates
-import spatial_audio.grid
 import spatial_audio.rigid_sphere
 
 
@@ -17,45 +16,23 @@ class SpatialAudio:
         self.azimuth_CH = self.initial_azimuth_CH.copy()
         self.elevation_CH = self.initial_elevation_CH.copy()
 
-        self.grid = spatial_audio.grid.Grid(azimuth=kwargs["azimuth"], elevation=kwargs["elevation"])
-
         self.hrtf_dtype = kwargs["hrtf"]["dtype"]
         self.hrtf_equalization = kwargs["hrtf"].get("equalization", False)
         self.hrtf_gain_db = np.float64(kwargs["hrtf"].get("gain_db", 0.0))
         self.hrtf_floor_db = np.float64(kwargs["hrtf"].get("floor_db", -40.0))
+        self.diffuse_field_resolution = np.float64(kwargs["hrtf"].get("diffuse_field_resolution", 10.0))
         self.rigid_sphere_kwargs = {
             "nfft": self.nfft,
             "sampling_frequency": self.sampling_frequency,
         } | kwargs[
             "hrtf"
         ].get("rigid_sphere", {})
-        self.HRTF_DOAx2xK = (self.equalize_hrtf(self.synthesize_hrtf()) / self.CH).astype(self.hrtf_dtype)
+        self.model = spatial_audio.rigid_sphere.RigidSphere(**self.rigid_sphere_kwargs)
+        self.equalization_K = self.equalization()
 
         self.reset_tracking()
         self.mode = "binaural"
         self.set_doas()
-
-    def synthesize_hrtf(self):
-        model = spatial_audio.rigid_sphere.RigidSphere(**self.rigid_sphere_kwargs)
-        return model.hrtf(self.grid)
-
-    def equalization(self, HRTF_DOAx2xK):
-        magnitude_K = np.full(self.nfrequencies, 10 ** (self.hrtf_gain_db / 20))
-        if self.hrtf_equalization:
-            diffuse_field_K = np.sqrt(np.mean(np.abs(HRTF_DOAx2xK) ** 2, axis=(0, 1)))
-            floor = np.max(diffuse_field_K) * 10 ** (self.hrtf_floor_db / 20)
-            magnitude_K = magnitude_K / np.maximum(diffuse_field_K, floor)
-
-        cepstrum_N = np.fft.irfft(np.log(magnitude_K), n=self.nfft)
-        causal_N = np.zeros(self.nfft)
-        causal_N[0] = 1
-        causal_N[1 : self.nfft // 2] = 2
-        causal_N[self.nfft // 2] = 1
-
-        return np.exp(np.fft.rfft(cepstrum_N * causal_N))
-
-    def equalize_hrtf(self, HRTF_DOAx2xK):
-        return HRTF_DOAx2xK * self.equalization(HRTF_DOAx2xK)
 
     def tare_head_orientation(self, yaw, pitch, roll):
         self.global_yaw = yaw
@@ -95,11 +72,32 @@ class SpatialAudio:
         r_CH, azimuth_CH, elevation_CH = coordinates.coordinates.ned_to_spherical(*rotated_location_CHx3.T)
         return np.rad2deg(elevation_CH), np.rad2deg(azimuth_CH)
 
+    def diffuse_field(self):
+        azimuth_AxB, elevation_AxB = np.meshgrid(
+            np.arange(0, 360, self.diffuse_field_resolution),
+            np.arange(-90, 90, self.diffuse_field_resolution),
+        )
+        HRTF_Ax2xK = self.model.hrtf(np.ravel(elevation_AxB), np.ravel(azimuth_AxB))
+        return np.sqrt(np.mean(np.abs(HRTF_Ax2xK) ** 2, axis=(0, 1)))
+
+    def equalization(self):
+        magnitude_K = np.full(self.nfrequencies, 10 ** (self.hrtf_gain_db / 20))
+        if self.hrtf_equalization:
+            diffuse_field_K = self.diffuse_field()
+            floor = np.max(diffuse_field_K) * 10 ** (self.hrtf_floor_db / 20)
+            magnitude_K = magnitude_K / np.maximum(diffuse_field_K, floor)
+
+        cepstrum_N = np.fft.irfft(np.log(magnitude_K), n=self.nfft)
+        causal_N = np.zeros(self.nfft)
+        causal_N[0] = 1
+        causal_N[1 : self.nfft // 2] = 2
+        causal_N[self.nfft // 2] = 1
+
+        return np.exp(np.fft.rfft(cepstrum_N * causal_N))
+
     def fetch_hrtf(self, elevation_CH, azimuth_CH):
-        index_CH, mirrored_CH = self.grid.nearest_index(elevation_CH, azimuth_CH)
-        HRTF_CHx2xK = self.HRTF_DOAx2xK[index_CH]
-        HRTF_CHx2xK[mirrored_CH] = HRTF_CHx2xK[mirrored_CH][:, [1, 0], :]
-        return HRTF_CHx2xK
+        HRTF_CHx2xK = self.model.hrtf(elevation_CH, azimuth_CH) * self.equalization_K / self.CH
+        return HRTF_CHx2xK.astype(self.hrtf_dtype)
 
     def set_doas(self):
         elevation_CH, azimuth_CH = self.combine_head_orientation()

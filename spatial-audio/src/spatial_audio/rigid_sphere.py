@@ -90,7 +90,7 @@ class RigidSphere:
         )
         return -(source_3xA.T @ ear_3x2)
 
-    def hrtf(self, grid):
-        cosine_DOAx2 = self.cos_incidence(grid.elevation_DOA, grid.azimuth_DOA)
-        transfer_DOA2xK = self.transfer_function(np.ravel(cosine_DOAx2))
-        return np.reshape(transfer_DOA2xK, (grid.NDOA, 2, self.nfrequencies))
+    def hrtf(self, elevation_A, azimuth_A):
+        cosine_Ax2 = self.cos_incidence(elevation_A, azimuth_A)
+        transfer_2AxK = self.transfer_function(np.ravel(cosine_Ax2))
+        return np.reshape(transfer_2AxK, (np.size(azimuth_A), 2, self.nfrequencies))

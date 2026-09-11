@@ -1,3 +1,4 @@
+import spatial_audio.reverb
 import spatial_audio.spatial_audio
 import stft.analysis
 import stft.synthesis
@@ -23,6 +24,12 @@ class System(system.system.System):
         self.modules["spatial_audio"] = spatial_audio.spatial_audio.SpatialAudio(**kwargs["spatial_audio"])
         self.modules["synthesis"] = stft.synthesis.Synthesis(**kwargs["synthesis"])
 
+        kwargs["reverb"] = kwargs.get("reverb", {}) | {
+            "sampling_frequency": kwargs["spatial_audio"]["sampling_frequency"],
+            "step_size": kwargs["input_buffer"]["step_size"],
+        }
+        self.modules["reverb"] = spatial_audio.reverb.Reverb(**kwargs["reverb"])
+
     def connect(self, module):
         match module:
             case "analysis":
@@ -31,3 +38,5 @@ class System(system.system.System):
                 self.inputs[module] = {"frame_fft_CHxK": self.outputs["analysis"]}
             case "synthesis":
                 self.inputs[module] = {"processed_frame_fft": self.outputs["spatial_audio"]}
+            case "reverb":
+                self.inputs[module] = {"input_data": self.outputs["synthesis"]}

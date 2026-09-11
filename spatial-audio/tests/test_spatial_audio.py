@@ -5,14 +5,10 @@ import spatial_audio.spatial_audio
 
 def test_init(kwargs_spatial_audio):
     kwargs = kwargs_spatial_audio
-    kwargs["tested"]["hrtf"]["equalization"] = False
     tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
 
     assert tested.nfrequencies == tested.nfft // 2 + 1
-    assert tested.HRTF_DOAx2xK.shape[1] == 2
-    assert tested.HRTF_DOAx2xK.shape[2] == tested.nfrequencies
-
-    assert np.allclose(tested.HRTF_DOAx2xK * tested.CH, tested.synthesize_hrtf())
+    assert tested.HRTF_CHx2xK.shape == (tested.CH, 2, tested.nfrequencies)
 
     assert tested.rigid_sphere_kwargs["sampling_frequency"] == tested.sampling_frequency
     assert tested.rigid_sphere_kwargs["nfft"] == tested.nfft
@@ -21,22 +17,33 @@ def test_init(kwargs_spatial_audio):
     assert tested.mode == "binaural"
 
 
-def test_synthesize_hrtf(kwargs_spatial_audio):
+def test_diffuse_field(kwargs_spatial_audio):
     kwargs = kwargs_spatial_audio
     tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
 
-    HRTF_DOAx2xK = tested.synthesize_hrtf()
+    diffuse_field_K = tested.diffuse_field()
+    passband_K = tested.model.taper_K == 1
+    tilt_K = 20 * np.log10(diffuse_field_K[passband_K])
 
-    assert np.shape(HRTF_DOAx2xK) == (tested.grid.NDOA, 2, tested.nfrequencies)
-    assert np.all(np.isfinite(HRTF_DOAx2xK))
+    assert np.size(diffuse_field_K) == tested.nfrequencies
+    assert np.all(np.isfinite(diffuse_field_K))
+    assert diffuse_field_K[0] == 1
+    assert diffuse_field_K[-1] == 0
+    assert np.all(np.abs(tilt_K) < 3.0)
+    assert np.all(np.diff(tilt_K) > -0.1)
 
 
-def check_flattening(tested, raw_DOAx2xK, equalization_K):
-    raw_diffuse_field_K = np.sqrt(np.mean(np.abs(raw_DOAx2xK) ** 2, axis=(0, 1)))
-    above_floor_K = raw_diffuse_field_K > np.max(raw_diffuse_field_K) * 10 ** (tested.hrtf_floor_db / 20)
-    equalized_diffuse_field_K = raw_diffuse_field_K * np.abs(equalization_K)
+def check_gain_only(tested, equalization_K):
+    assert np.allclose(equalization_K, 10 ** (tested.hrtf_gain_db / 20))
+
+
+def check_flattening(tested, equalization_K):
+    diffuse_field_K = tested.diffuse_field()
+    floor = np.max(diffuse_field_K) * 10 ** (tested.hrtf_floor_db / 20)
+    above_floor_K = diffuse_field_K > floor
+    flattened_K = (diffuse_field_K * np.abs(equalization_K))[above_floor_K]
     assert np.all(above_floor_K[: tested.nfrequencies // 2])
-    assert np.allclose(equalized_diffuse_field_K[above_floor_K], 1, atol=1e-3)
+    assert np.allclose(flattened_K, 10 ** (tested.hrtf_gain_db / 20), atol=1e-3)
 
 
 def check_minimum_phase(tested, equalization_K):
@@ -47,32 +54,18 @@ def check_minimum_phase(tested, equalization_K):
 
 def test_equalization(kwargs_spatial_audio):
     kwargs = kwargs_spatial_audio
+    tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
+
+    assert np.size(tested.equalization()) == tested.nfrequencies
+    check_gain_only(tested, tested.equalization())
+
     kwargs["tested"]["hrtf"]["equalization"] = True
-    tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
+    equalized = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
+    equalization_K = equalized.equalization()
 
-    raw_DOAx2xK = tested.synthesize_hrtf()
-    equalization_K = tested.equalization(raw_DOAx2xK)
-
-    assert np.size(equalization_K) == tested.nfrequencies
     assert np.all(np.isfinite(equalization_K))
-    check_flattening(tested, raw_DOAx2xK, equalization_K)
-    check_minimum_phase(tested, equalization_K)
-
-
-def test_equalize_hrtf(kwargs_spatial_audio):
-    kwargs = kwargs_spatial_audio
-    gain_db = 6.0
-    tested = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
-
-    raw_DOAx2xK = tested.synthesize_hrtf()
-    equalized_DOAx2xK = tested.equalize_hrtf(raw_DOAx2xK)
-
-    assert np.allclose(equalized_DOAx2xK, raw_DOAx2xK * tested.equalization(raw_DOAx2xK))
-    assert np.allclose(tested.HRTF_DOAx2xK * tested.CH, equalized_DOAx2xK, rtol=1e-3)
-
-    kwargs["tested"]["hrtf"]["gain_db"] = gain_db
-    louder = spatial_audio.spatial_audio.SpatialAudio(**kwargs["tested"])
-    assert np.allclose(louder.HRTF_DOAx2xK, tested.HRTF_DOAx2xK * 10 ** (gain_db / 20), rtol=1e-3)
+    check_flattening(equalized, equalization_K)
+    check_minimum_phase(equalized, equalization_K)
 
 
 def test_fetch_hrtf(kwargs_spatial_audio):
@@ -90,11 +83,17 @@ def test_fetch_hrtf(kwargs_spatial_audio):
     assert np.allclose(result_nominal, result_negative)
     assert np.allclose(result_nominal, result_over)
 
-    if tested.grid.azimuth_symmetric:
-        result_right = tested.fetch_hrtf(elevation, np.full(CH, 90.0))
-        result_mirrored = tested.fetch_hrtf(elevation, np.full(CH, 270.0))
-        assert np.allclose(result_mirrored[0, 0], result_right[0, 1])
-        assert np.allclose(result_mirrored[0, 1], result_right[0, 0])
+    result_right = tested.fetch_hrtf(elevation, np.full(CH, 90.0))
+    result_left = tested.fetch_hrtf(elevation, np.full(CH, 270.0))
+    assert np.allclose(result_left[0, 0], result_right[0, 1])
+    assert np.allclose(result_left[0, 1], result_right[0, 0])
+
+    exact = tested.model.hrtf(elevation, azimuth) * tested.equalization_K / tested.CH
+    assert np.allclose(result_nominal, exact.astype(tested.hrtf_dtype))
+
+    louder_kwargs = kwargs["tested"] | {"hrtf": kwargs["tested"]["hrtf"] | {"gain_db": 6.0}}
+    louder = spatial_audio.spatial_audio.SpatialAudio(**louder_kwargs)
+    assert np.allclose(louder.fetch_hrtf(elevation, azimuth), result_nominal * 10 ** (6.0 / 20), rtol=1e-3)
 
 
 def test_set_doas(kwargs_spatial_audio):
