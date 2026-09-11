@@ -95,3 +95,24 @@ cases:
         resolution: 10
       elevation:
         resolution: 10
+
+  - name: synthetic
+    test:
+      input:
+        azimuth: [0.0, 90.0, 180.0]
+        elevation: [0.0, 0.0, 0.0]
+      orientation:
+        yaw: 0.0
+        pitch: 0.0
+        roll: 15.0
+      expected:
+        azimuth: [0.0, 90.0, 180.0]
+        elevation: [0.0, 15.0, 0.0]
+      mode: binaural
+    tested:
+      hrtf:
+        source: synthetic
+      azimuth:
+        resolution: 10
+      elevation:
+        resolution: 10

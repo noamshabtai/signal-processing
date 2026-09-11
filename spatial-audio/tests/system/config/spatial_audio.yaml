@@ -37,3 +37,13 @@ cases:
           resolution: 10
         elevation:
           resolution: 10
+
+  - name: synthetic hrtf
+    tested:
+      spatial_audio:
+        hrtf:
+          source: synthetic
+        azimuth:
+          resolution: 10
+        elevation:
+          resolution: 10

@@ -1,3 +1,5 @@
+import hrtf_build.grid
+import hrtf_build.rigid_sphere
 import numpy as np
 import quaternion
 
@@ -11,50 +13,53 @@ class SpatialAudio:
         self.initial_azimuth_CH = np.float64(kwargs["initial_azimuth"])
         self.initial_elevation_CH = np.float64(kwargs["initial_elevation"])
         self.CH = len(self.initial_azimuth_CH)
-        self.hrtf_path = kwargs["hrtf"]["path"]
-        self.hrtf_dtype = kwargs["hrtf"]["dtype"]
-        self.hrtf_equalization = kwargs["hrtf"].get("equalization", True)
-        self.hrtf_gain_db = np.float64(kwargs["hrtf"].get("gain_db", 0.0))
-        with open(self.hrtf_path, "rb") as fid:
-            HRTF_DOAx2xK = np.frombuffer(fid.read(), dtype=self.hrtf_dtype).reshape((-1, 2, self.nfrequencies))
-        self.HRTF_DOAx2xK = (self.equalize_hrtf(HRTF_DOAx2xK) / self.CH).astype(self.hrtf_dtype)
         self.azimuth_CH = self.initial_azimuth_CH.copy()
         self.elevation_CH = self.initial_elevation_CH.copy()
 
-        self.azimuth_symmetric = kwargs["azimuth"]["symmetric"]
-        self.azimuth_span = np.int32(kwargs["azimuth"]["span"])
-        self.azimuth_resolution = np.int32(kwargs["azimuth"]["resolution"])
-        self.azimuth_range = np.arange(0, self.azimuth_span, self.azimuth_resolution)
-        if not self.azimuth_symmetric:
-            self.azimuth_range = np.hstack(
-                (self.azimuth_range, np.arange(360 - self.azimuth_span, 360, self.azimuth_resolution))
-            )
-        self.Nazimuth = np.int32(np.size(self.azimuth_range))
+        self.grid = hrtf_build.grid.Grid(azimuth=kwargs["azimuth"], elevation=kwargs["elevation"])
 
-        self.elevation_span = np.int32(kwargs["elevation"]["span"])
-        self.elevation_resolution = np.int32(kwargs["elevation"]["resolution"])
-        self.elevation_range = np.arange(-self.elevation_span, self.elevation_span, self.elevation_resolution)
-        self.Nelevation = np.int32(np.size(self.elevation_range))
-        self.elevation_min = min(self.elevation_range)
-        self.elevation_max = max(self.elevation_range)
+        self.hrtf_source = kwargs["hrtf"].get("source", "file")
+        self.hrtf_path = kwargs["hrtf"].get("path")
+        self.hrtf_dtype = kwargs["hrtf"]["dtype"]
+        self.hrtf_equalization = kwargs["hrtf"].get("equalization", self.hrtf_source == "file")
+        self.hrtf_gain_db = np.float64(kwargs["hrtf"].get("gain_db", 0.0))
+        self.hrtf_floor_db = np.float64(kwargs["hrtf"].get("floor_db", -40.0))
+        self.rigid_sphere_kwargs = {
+            "nfft": self.nfft,
+            "sampling_frequency": kwargs["hrtf"]["sampling_frequency"],
+        } | kwargs["hrtf"].get("rigid_sphere", {})
+        self.HRTF_DOAx2xK = (self.equalize_hrtf(self.read_hrtf()) / self.CH).astype(self.hrtf_dtype)
 
         self.reset_tracking()
         self.mode = "binaural"
         self.set_doas()
 
-    def equalize_hrtf(self, HRTF_DOAx2xK):
+    def read_hrtf(self):
+        match self.hrtf_source:
+            case "synthetic":
+                model = hrtf_build.rigid_sphere.RigidSphere(**self.rigid_sphere_kwargs)
+                return model.hrtf(self.grid)
+            case _:
+                with open(self.hrtf_path, "rb") as fid:
+                    return np.frombuffer(fid.read(), dtype=self.hrtf_dtype).reshape((-1, 2, self.nfrequencies))
+
+    def equalization(self, HRTF_DOAx2xK):
         magnitude_K = np.full(self.nfrequencies, 10 ** (self.hrtf_gain_db / 20))
         if self.hrtf_equalization:
-            magnitude_K = magnitude_K / np.sqrt(np.mean(np.abs(HRTF_DOAx2xK) ** 2, axis=(0, 1)))
+            diffuse_field_K = np.sqrt(np.mean(np.abs(HRTF_DOAx2xK) ** 2, axis=(0, 1)))
+            floor = np.max(diffuse_field_K) * 10 ** (self.hrtf_floor_db / 20)
+            magnitude_K = magnitude_K / np.maximum(diffuse_field_K, floor)
 
         cepstrum_N = np.fft.irfft(np.log(magnitude_K), n=self.nfft)
         causal_N = np.zeros(self.nfft)
         causal_N[0] = 1
         causal_N[1 : self.nfft // 2] = 2
         causal_N[self.nfft // 2] = 1
-        equalization_K = np.exp(np.fft.rfft(cepstrum_N * causal_N))
 
-        return HRTF_DOAx2xK * equalization_K
+        return np.exp(np.fft.rfft(cepstrum_N * causal_N))
+
+    def equalize_hrtf(self, HRTF_DOAx2xK):
+        return HRTF_DOAx2xK * self.equalization(HRTF_DOAx2xK)
 
     def tare_head_orientation(self, yaw, pitch, roll):
         self.global_yaw = yaw
@@ -88,21 +93,9 @@ class SpatialAudio:
         return np.rad2deg(elevation_CH), np.rad2deg(azimuth_CH)
 
     def fetch_hrtf(self, elevation_CH, azimuth_CH):
-        elevation_index_CH = np.argmin(np.abs(self.elevation_range - np.expand_dims(elevation_CH, 1)), axis=1)
-        elevation_offset_CH = elevation_index_CH * self.Nazimuth
-
-        azimuth_CH = azimuth_CH % 360
-
-        replace_left_right_CH = self.azimuth_symmetric & (azimuth_CH > 180)
-        azimuth_CH[replace_left_right_CH] = 360 - azimuth_CH[replace_left_right_CH]
-
-        azimuth_index_CH = np.argmin(np.abs(self.azimuth_range - np.expand_dims(azimuth_CH, 1)), axis=1)
-        index_CH = np.int64(elevation_offset_CH + azimuth_index_CH)
-
+        index_CH, mirrored_CH = self.grid.nearest_index(elevation_CH, azimuth_CH)
         HRTF_CHx2xK = self.HRTF_DOAx2xK[index_CH]
-
-        HRTF_CHx2xK[replace_left_right_CH] = HRTF_CHx2xK[replace_left_right_CH][:, [1, 0], :]
-
+        HRTF_CHx2xK[mirrored_CH] = HRTF_CHx2xK[mirrored_CH][:, [1, 0], :]
         return HRTF_CHx2xK
 
     def set_doas(self):

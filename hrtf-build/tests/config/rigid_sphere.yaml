@@ -1,0 +1,27 @@
+base:
+  tested:
+    nfft: 512
+    sampling_frequency: 16000
+  grid:
+    azimuth:
+      symmetric: true
+      span: 90
+      resolution: 10
+    elevation:
+      span: 30
+      resolution: 10
+
+cases:
+  - name: default_head
+
+  - name: offset_ears
+    tested:
+      head_radius: 0.1
+      ear_azimuth: 95.0
+      ear_elevation: -15.0
+      delay_factor: 2.0
+
+  - name: wideband
+    tested:
+      nfft: 1024
+      sampling_frequency: 48000

@@ -113,14 +113,14 @@ class Gui:
         return self.clipping_gain_db() + GAIN_ABOVE_CLIPPING_GUARD_DB
 
     def build_azimuth(self):
-        span = self.spatial_audio.azimuth_span
+        span = self.spatial_audio.grid.azimuth_span
         return SliderColumn(
             self.master,
             title="Azimuth",
             column=AZIMUTH_COLUMN,
             orient=tk.HORIZONTAL,
             length=200,
-            resolution=self.spatial_audio.azimuth_resolution,
+            resolution=self.spatial_audio.grid.azimuth_resolution,
             on_change=self.azimuth_changed,
             initial=self.spatial_audio.initial_azimuth_CH,
             limits=[(-span, span) for channel in self.channels],
@@ -128,14 +128,14 @@ class Gui:
         )
 
     def build_elevation(self):
-        span = self.spatial_audio.elevation_span
+        span = self.spatial_audio.grid.elevation_span
         return SliderColumn(
             self.master,
             title="Elevation",
             column=ELEVATION_COLUMN,
             orient=tk.VERTICAL,
             length=100,
-            resolution=self.spatial_audio.elevation_resolution,
+            resolution=self.spatial_audio.grid.elevation_resolution,
             on_change=self.elevation_changed,
             initial=self.spatial_audio.initial_elevation_CH,
             limits=[(span, -span) for channel in self.channels],

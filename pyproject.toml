@@ -8,6 +8,7 @@ dependencies = [
     "analysis",
     "audio-io",
     "coordinates",
+    "hrtf-build",
     "spatial-audio",
 ]
 
@@ -30,3 +31,4 @@ analysis = { path = "analysis", editable = true }
 audio-io = { path = "audio-io", editable = true }
 spatial-audio = { path = "spatial-audio", editable = true }
 coordinates = { path = "coordinates", editable = true }
+hrtf-build = { path = "hrtf-build", editable = true }

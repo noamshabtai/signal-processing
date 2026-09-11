@@ -11,13 +11,11 @@ dependencies = [
     "activator",
     "audio-io",
     "coordinates",
+    "hrtf-build",
     "numpy>=2.3.5",
     "numpy-quaternion>=2024.0.12",
     "stft",
 ]
-
-[project.scripts]
-spatial-audio = "spatial_audio:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -33,5 +31,6 @@ dev = [
 parametrize-tests = { path = "../parametrize-tests", editable = true }
 audio-io = { path = "../audio-io", editable = true }
 coordinates = { path = "../coordinates", editable = true }
+hrtf-build = { path = "../hrtf-build", editable = true }
 stft = { path = "../stft", editable = true }
 activator = { path = "../activator", editable = true }

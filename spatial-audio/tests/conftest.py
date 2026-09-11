@@ -19,7 +19,8 @@ def project_dir():
 def spatial_audio_fixture(project_dir):
     class SpatialAudio(spatial_audio.spatial_audio.SpatialAudio):
         def __init__(self, kwargs):
-            kwargs["tested"]["hrtf"]["path"] = project_dir / kwargs["tested"]["hrtf"]["path"]
+            if "path" in kwargs["tested"]["hrtf"]:
+                kwargs["tested"]["hrtf"]["path"] = project_dir / kwargs["tested"]["hrtf"]["path"]
             kwargs["tested"]["initial_azimuth"] = kwargs["test"]["input"]["azimuth"]
             kwargs["tested"]["initial_elevation"] = kwargs["test"]["input"]["elevation"]
             super().__init__(**kwargs["tested"])

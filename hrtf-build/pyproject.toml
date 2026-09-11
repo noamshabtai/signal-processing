@@ -1,13 +1,14 @@
 [project]
-name = "coordinates"
+name = "hrtf-build"
 version = "0.1.0"
-description = "Add your description here"
+description = "Synthetic HRTF sets on an azimuth/elevation grid"
 readme = "README.md"
 authors = [
     { name = "Noam Shabtai", email = "shabtai.noam@gmail.com" }
 ]
 requires-python = ">=3.14"
 dependencies = [
+    "coordinates",
     "numpy>=2.3.5",
 ]
 
@@ -17,5 +18,10 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
+    "parametrize-tests",
     "pytest>=9.0.1",
 ]
+
+[tool.uv.sources]
+coordinates = { path = "../coordinates", editable = true }
+parametrize-tests = { path = "../parametrize-tests", editable = true }
