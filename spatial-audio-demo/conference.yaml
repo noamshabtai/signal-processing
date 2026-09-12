@@ -27,7 +27,7 @@ system:
     azimuth: [-135.0, 135.0, -45.0, 45.0, 0.0, 180.0]
     elevation: [0.0, 0.0, 0.0, 0.0, 60.0, -30.0]
   reverb:
-    rt60: 0.7
+    rt60: 0.3
     wet: 0.2
 input:
   source: file

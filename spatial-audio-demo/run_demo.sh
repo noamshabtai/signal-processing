@@ -46,9 +46,31 @@ else
     uv run python "scripts/create_input.py" "scripts/$DEMO.yaml"
 fi
 
-# The container inherits DISPLAY=:1 from the host, but only the host's :0 socket
-# is bind-mounted here, so the Tk window has nowhere to open without this.
-export DISPLAY=:0
+# The inherited DISPLAY can name a socket that is not there: /tmp/.X11-unix is
+# bind-mounted live, so the host restarting its X server changes what the
+# container sees. Pick whichever display actually has a socket.
+display_with_socket() {
+    local number="${DISPLAY#*:}"
+    number="${number%%.*}"
+    if [ -S "/tmp/.X11-unix/X$number" ]; then
+        echo ":$number"
+        return
+    fi
+    local socket
+    for socket in /tmp/.X11-unix/X*; do
+        [ -S "$socket" ] || continue
+        echo ":${socket##*/X}"
+        return
+    done
+}
+
+DEMO_DISPLAY="$(display_with_socket)"
+if [ -z "$DEMO_DISPLAY" ]; then
+    echo "No X socket under /tmp/.X11-unix: the Tk window has nowhere to open."
+elif [ "$DEMO_DISPLAY" != "$DISPLAY" ]; then
+    echo "DISPLAY '$DISPLAY' has no socket; using $DEMO_DISPLAY instead."
+fi
+export DISPLAY="${DEMO_DISPLAY:-$DISPLAY}"
 
 # Cameras are not visible unless they were passed in when the container was created.
 # They cannot be added to an existing container: it has to be recreated.
