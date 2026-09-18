@@ -1,0 +1,28 @@
+[project]
+name = "analysis"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "activator",
+    "parametrize-tests",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+    "pytest-mock>=3.15.1",
+    "pytest-xdist>=3.6.1",
+]
+
+[tool.uv.sources]
+parametrize-tests = { path = "../parametrize-tests", editable = true }
+activator = { path = "../activator", editable = true }
+
+[tool.setuptools.packages.find]
+exclude = ["output*"]

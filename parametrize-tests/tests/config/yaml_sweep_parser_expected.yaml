@@ -1,0 +1,62 @@
+- fs: 16e3
+  input_file: input1.bin
+  log_file: log.txt
+  module1:
+    buffer_size: 1024
+    step_size: 128
+  name: case1
+  output_dir: output
+- fs: 16e3
+  input_file: input1.bin
+  log_file: log.txt
+  module1:
+    buffer_size: 1024
+    step_size: 512
+  name: case1
+  output_dir: output
+- fs: 16e3
+  input_file: input2.bin
+  log_file: log.txt
+  module1:
+    buffer_size: 1024
+    step_size: 128
+  name: case1
+  output_dir: output
+- fs: 16e3
+  input_file: input2.bin
+  log_file: log.txt
+  module1:
+    buffer_size: 1024
+    step_size: 512
+  name: case1
+  output_dir: output
+- fs: 44.1e3
+  input_file: input3.bin
+  log_file: log.txt
+  metadata:
+    author: noam
+    version: 1
+  module2:
+    factor: 1.5
+    other_param: some_value
+  name: case2
+  output_dir: output
+- fs: 44.1e3
+  input_file: input3.bin
+  log_file: log.txt
+  metadata:
+    author: noam
+    version: 1
+  module2:
+    factor: 2.0
+    other_param: some_value
+  name: case2
+  output_dir: output
+- log_file: log.txt
+  mode: fast
+  name: case3
+  output_dir: custom_output
+- log_file: log.txt
+  mode: slow
+  name: case3
+  output_dir: custom_output

@@ -1,0 +1,26 @@
+base:
+  tested:
+    nfft: 512
+    sampling_frequency: 16000
+
+cases:
+  - name: gains_disagree
+    test:
+      message: Gains disagree with bands
+    tested:
+      center_frequencies_hz: [125.0, 1000.0, 8000.0]
+      gains_db: [6.0, -6.0]
+
+  - name: not_increasing
+    test:
+      message: Center frequencies not increasing
+    tested:
+      center_frequencies_hz: [1000.0, 125.0, 8000.0]
+      gains_db: [6.0, -6.0, 6.0]
+
+  - name: not_positive
+    test:
+      message: Center frequency not positive
+    tested:
+      center_frequencies_hz: [0.0, 1000.0, 8000.0]
+      gains_db: [6.0, -6.0, 6.0]

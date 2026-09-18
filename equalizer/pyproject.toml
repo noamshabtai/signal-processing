@@ -1,0 +1,25 @@
+[project]
+name = "equalizer"
+version = "0.1.0"
+description = "Graphic equalizer with fixed bands, applied in the STFT domain"
+readme = "README.md"
+requires-python = ">=3.14"
+license = "MIT"
+dependencies = [
+    "numpy>=2.3.5",
+    "stft",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "parametrize-tests",
+    "pytest>=8.3.4",
+]
+
+[tool.uv.sources]
+parametrize-tests = { path = "../parametrize-tests", editable = true }
+stft = { path = "../stft", editable = true }

@@ -1,0 +1,16 @@
+base:
+  tested:
+    input_buffer:
+      buffer_size: 9
+      step_size: 3
+      channel_shape: [1, 2]
+      dtype: int16
+
+cases:
+  - name: execute_when_ready
+    tested:
+      execute_before_input_buffer_full: false
+
+  - name: execute_before_ready
+    tested:
+      execute_before_input_buffer_full: true

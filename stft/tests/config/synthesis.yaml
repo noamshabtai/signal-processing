@@ -1,0 +1,11 @@
+base:
+  test:
+  tested:
+    output_buffer:
+      channel_shape: [1]
+      step_size: 256
+      buffer_size: 1024
+      dtype: float32
+
+cases:
+  - name: synthesis

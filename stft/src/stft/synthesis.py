@@ -1,0 +1,41 @@
+import numpy as np
+
+import buffer.output_buffer
+
+
+class Synthesis:
+    def __init__(self, **kwargs):
+        self.output_buffer = buffer.output_buffer.OutputBuffer(**kwargs["output_buffer"])
+
+        self.float_dtype = np.dtype(self.output_buffer.dtype)
+        self.complex_dtype = np.dtype(f"complex{self.float_dtype.itemsize * 16}")
+
+        self.step_ratio = self.output_buffer.buffer_size / self.output_buffer.step_size
+        self.synthesis_window = self._compute_synthesis_window()
+
+    def _compute_synthesis_window(self):
+        analysis_window = np.hamming(self.output_buffer.buffer_size).astype(self.float_dtype)
+        if self.step_ratio == 2:
+            return np.ones(self.output_buffer.buffer_size).astype(self.float_dtype)
+        elif self.step_ratio == 4:
+            ALPHA = 0.54
+            BETA = 0.46
+            RESTORING_FACTOR = 1 / self.step_ratio / (ALPHA**2 + BETA**2 / 2)
+            return (analysis_window * RESTORING_FACTOR).astype(self.float_dtype)
+        else:
+            denominator = np.zeros(self.output_buffer.buffer_size)
+            for n in range(self.output_buffer.buffer_size):
+                qn = np.int16(np.floor(n / self.output_buffer.step_size))
+                qm = np.int16(np.floor((self.output_buffer.buffer_size - 1 - n) / self.output_buffer.step_size))
+                for q in range(-qn, qm + 1):
+                    denominator[n] += analysis_window[q * self.output_buffer.step_size + n] ** 2
+            return np.flip(analysis_window / denominator)
+
+    def execute(self, processed_frame_fft):
+        mirrored_processed_frame = np.concatenate(
+            (processed_frame_fft, np.fliplr(processed_frame_fft[..., 1:-1]).conj()), axis=-1
+        )
+        y = (self.synthesis_window * np.fft.ifft(mirrored_processed_frame, axis=-1)).real.astype(self.float_dtype)
+        self.output_buffer.buffer += y
+
+        return self.output_buffer.pop()

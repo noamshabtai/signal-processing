@@ -1,0 +1,9 @@
+cases:
+  - name: activator
+    test:
+    tested:
+      system:
+        input_buffer:
+          step_size: 10
+          buffer_size: 50
+          dtype: int16

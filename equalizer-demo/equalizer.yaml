@@ -1,0 +1,30 @@
+demo:
+  title: Graphic Equalizer
+  initial_gain_db: -12
+  gain_range_db: 12
+  slider_resolution: 1
+
+system:
+  execute_before_input_buffer_full: true
+  input_buffer:
+    channel_shape: [2]
+    step_size: 256
+    buffer_size: 1024
+    dtype: int16
+  analysis: {}
+  synthesis:
+    output_buffer:
+      dtype: float32
+  equalizer:
+    sampling_frequency: 16000
+    center_frequencies_hz: [62.5, 125.0, 250.0, 500.0, 1000.0, 2000.0, 4000.0, 8000.0]
+    gains_db: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+input:
+  source: file
+  path: equalizer_input.wav
+
+output:
+  destination: speaker
+  dtype: int16
+  channel_shape: [2]

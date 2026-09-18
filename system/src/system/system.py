@@ -1,0 +1,22 @@
+import buffer.input_buffer
+
+
+class System:
+    def __init__(self, **kwargs):
+        self.input_buffer = buffer.input_buffer.InputBuffer(**kwargs.get("input_buffer", {}))
+
+        self.modules = {}
+        self.inputs = {}
+        self.outputs = {}
+
+        self.execute_before_input_buffer_full = kwargs.get("execute_before_input_buffer_full", False)
+
+    def connect(self, module):
+        self.inputs[module] = {}
+
+    def execute(self, chunk):
+        self.input_buffer.push(chunk)
+        if self.execute_before_input_buffer_full or self.input_buffer.ready:
+            for module in self.modules:
+                self.connect(module)
+                self.outputs[module] = self.modules[module].execute(**self.inputs[module])

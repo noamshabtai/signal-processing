@@ -1,0 +1,37 @@
+import equalizer.equalizer
+import stft.analysis
+import stft.synthesis
+import system.system
+
+
+class System(system.system.System):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.execute_before_input_buffer_full = True
+
+        kwargs["equalizer"] = kwargs.get("equalizer", {}) | {
+            "nfft": kwargs["input_buffer"]["buffer_size"],
+        }
+
+        kwargs["analysis"]["nfft"] = kwargs["input_buffer"]["buffer_size"]
+        kwargs["analysis"]["buffer_size"] = kwargs["input_buffer"]["buffer_size"]
+        kwargs["analysis"]["channel_shape"] = kwargs["input_buffer"]["channel_shape"]
+        kwargs["analysis"]["dtype"] = kwargs["synthesis"]["output_buffer"]["dtype"]
+
+        kwargs["synthesis"]["output_buffer"]["channel_shape"] = kwargs["input_buffer"]["channel_shape"]
+        kwargs["synthesis"]["output_buffer"]["step_size"] = kwargs["input_buffer"]["step_size"]
+        kwargs["synthesis"]["output_buffer"]["buffer_size"] = kwargs["input_buffer"]["buffer_size"]
+        kwargs["synthesis"]["buffer_size"] = kwargs["input_buffer"]["buffer_size"]
+
+        self.modules["analysis"] = stft.analysis.Analysis(**kwargs["analysis"])
+        self.modules["equalizer"] = equalizer.equalizer.Equalizer(**kwargs["equalizer"])
+        self.modules["synthesis"] = stft.synthesis.Synthesis(**kwargs["synthesis"])
+
+    def connect(self, module):
+        match module:
+            case "analysis":
+                self.inputs[module] = {"input_data": self.input_buffer.buffer}
+            case "equalizer":
+                self.inputs[module] = {"frame_fft_CHxK": self.outputs["analysis"]}
+            case "synthesis":
+                self.inputs[module] = {"processed_frame_fft": self.outputs["equalizer"]}

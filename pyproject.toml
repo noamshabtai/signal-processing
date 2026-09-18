@@ -1,0 +1,37 @@
+[project]
+name = "signal-processing"
+version = "0.1.0"
+description = "A modular Python framework for real-time and offline audio signal processing"
+readme = "README.md"
+requires-python = ">=3.14"
+license = "MIT"
+license-files = ["LICENSE"]
+dependencies = [
+    "analysis",
+    "audio-io",
+    "coordinates",
+    "equalizer",
+    "stft",
+]
+
+[dependency-groups]
+dev = [
+    "io-for-tests",
+    "lizard>=1.21.3",
+    "pre-commit>=4.1.0",
+    "pytest>=8.3.4",
+    "pytest-mock>=3.14.0",
+]
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
+consider_namespace_packages = true
+filterwarnings = ["error::RuntimeWarning"]
+
+[tool.uv.sources]
+io-for-tests = { path = "io-for-tests", editable = true }
+analysis = { path = "analysis", editable = true }
+audio-io = { path = "audio-io", editable = true }
+coordinates = { path = "coordinates", editable = true }
+stft = { path = "stft", editable = true }
+equalizer = { path = "equalizer", editable = true }

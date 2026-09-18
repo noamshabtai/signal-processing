@@ -1,0 +1,71 @@
+base:
+  test:
+    nsamples: 30
+  tested:
+    input:
+      dtype: int16
+      path: input.bin
+    output:
+      dir: output
+      first:
+        dtype: int32
+        channel_shape: [1]
+        step_size: 10
+      second:
+        dtype: int64
+        channel_shape: [2,3]
+        step_size: 10
+    system:
+      input_buffer:
+        step_size: 10
+        buffer_size: 50
+        dtype: int16
+        channel_shape: [1]
+    plot:
+      show: False
+      save: False
+    log:
+      rate: 1
+
+cases:
+  - name: no_steps
+    test:
+      nsamples: 5
+
+  - name: incomplete_final_chunk
+    test:
+      nsamples: 25
+
+  - name: one_step
+    test:
+      nsamples: 10
+
+  - name: wav
+    tested:
+      input:
+        path: input.wav
+
+  - name: plot_save
+    tested:
+      plot:
+        save: True
+
+  - name: log_rate_2
+    tested:
+      log:
+        rate: 2
+
+  - name: log_rate_0
+    tested:
+      log:
+        rate: 0
+
+  - name: max_steps
+    tested:
+      max_steps: 2
+
+  - name: empty_channel_shape
+    tested:
+      system:
+        input_buffer:
+          channel_shape: []
