@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.14"
 
 [[package]]
@@ -7,49 +7,27 @@ name = "activator"
 version = "0.1.0"
 source = { editable = "../activator" }
 dependencies = [
-    { name = "audio-io" },
     { name = "matplotlib" },
-    { name = "pyaudio" },
     { name = "system" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "audio-io", editable = "../audio-io" },
+    { name = "audio-io", marker = "extra == 'audio'", editable = "../audio-io" },
     { name = "matplotlib", specifier = ">=3.10.0" },
-    { name = "pyaudio", specifier = ">=0.2.14" },
+    { name = "pyaudio", marker = "extra == 'audio'", specifier = ">=0.2.14" },
     { name = "system", editable = "../system" },
 ]
+provides-extras = ["audio"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "activator", extras = ["audio"] },
     { name = "io-for-tests", editable = "../io-for-tests" },
     { name = "parametrize-tests", editable = "../parametrize-tests" },
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest-mock", specifier = ">=3.14.0" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
-]
-
-[[package]]
-name = "audio-io"
-version = "0.1.0"
-source = { editable = "../audio-io" }
-dependencies = [
-    { name = "numpy" },
-    { name = "pyaudio" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "numpy", specifier = ">=2.2.3" },
-    { name = "pyaudio", specifier = ">=0.2.14" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "parametrize-tests", editable = "../parametrize-tests" },
-    { name = "pytest", specifier = ">=8.3.5" },
-    { name = "pytest-mock", specifier = ">=3.14.0" },
 ]
 
 [[package]]
@@ -230,12 +208,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/96/2d/02d4312c973c6050a
 wheels = [
     { url = "https://files.pythonhosted.org/packages/88/5f/e351af9a41f866ac3f1fac4ca0613908d9a41741cfcf2228f4ad853b697d/pluggy-1.5.0-py3-none-any.whl", hash = "sha256:44e1ad92c8ca002de6377e165f3e0f1be63266ab4d554740532335b9d75ea669", size = 20556, upload-time = "2024-04-20T21:34:40.434Z" },
 ]
-
-[[package]]
-name = "pyaudio"
-version = "0.2.14"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/26/1d/8878c7752febb0f6716a7e1a52cb92ac98871c5aa522cba181878091607c/PyAudio-0.2.14.tar.gz", hash = "sha256:78dfff3879b4994d1f4fc6485646a57755c6ee3c19647a491f790a0895bd2f87", size = 47066, upload-time = "2023-11-07T07:11:48.806Z" }
 
 [[package]]
 name = "pyparsing"
