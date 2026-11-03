@@ -19,8 +19,8 @@ def Activator(activator_with_mocked_system_factory):
     return activator_with_mocked_system_factory(activator.audio_demo.Activator)
 
 
-def test_setup_gain(kwargs_audio_demo, tmp_path, Activator):
-    kwargs = io_for_tests.io_for_tests.arrange_kwargs(kwargs_audio_demo, tmp_path)
+def test_setup_gain(kwargs_audio_demo_setup_gain, tmp_path, Activator):
+    kwargs = io_for_tests.io_for_tests.arrange_kwargs(kwargs_audio_demo_setup_gain, tmp_path)
     nchannels = int(np.prod(kwargs["tested"]["system"]["input_buffer"]["channel_shape"]))
     with Activator(**kwargs["tested"]) as tested:
         if "demo" in kwargs["tested"]:
@@ -114,22 +114,14 @@ def test_audio_callback(kwargs_audio_demo, tmp_path, Activator):
     kwargs = io_for_tests.io_for_tests.arrange_kwargs(kwargs_audio_demo, tmp_path)
     with Activator(**kwargs["tested"]) as tested:
         step_size = kwargs["tested"]["system"]["input_buffer"]["step_size"]
-        tested.audio_callback(None, step_size, None, None)
-
+        nchunks = kwargs["test"]["nsamples"] // step_size
         expected = next(io_for_tests.io_for_tests.read_input_chunks(kwargs)) * tested.channel_gain[:, np.newaxis]
+
+        tested.audio_callback(None, step_size, None, None)
         assert np.array_equal(tested.system.execute.call_args.args[0], expected)
 
-
-def test_audio_callback_rewinds(kwargs_audio_demo, tmp_path, Activator):
-    kwargs = io_for_tests.io_for_tests.arrange_kwargs(kwargs_audio_demo, tmp_path)
-    with Activator(**kwargs["tested"]) as tested:
-        step_size = kwargs["tested"]["system"]["input_buffer"]["step_size"]
-        nchunks = kwargs["test"]["nsamples"] // step_size
-        first_chunk = next(io_for_tests.io_for_tests.read_input_chunks(kwargs))
-        for _ in range(nchunks + 1):
+        for _ in range(nchunks):
             tested.audio_callback(None, step_size, None, None)
-
-        expected = first_chunk * tested.channel_gain[:, np.newaxis]
         assert np.array_equal(tested.system.execute.call_args.args[0], expected)
 
 

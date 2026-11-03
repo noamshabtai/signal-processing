@@ -4,24 +4,24 @@ import pytest
 import equalizer.equalizer
 
 
-def test_init(kwargs_equalizer):
-    kwargs = kwargs_equalizer
-    tested = equalizer.equalizer.Equalizer(**kwargs["tested"])
-
+def check_valid(tested):
     assert tested.nbands == np.size(tested.gains_db_B)
     assert np.size(tested.frequency_K) == tested.nfrequencies
     assert tested.frequency_K[-1] == tested.sampling_frequency / 2
 
 
-def test_init_invalid(kwargs_equalizer_invalid):
-    kwargs = kwargs_equalizer_invalid
+def test_init(kwargs_equalizer_init):
+    kwargs = kwargs_equalizer_init
 
-    with pytest.raises(ValueError, match=kwargs["test"]["message"]):
-        equalizer.equalizer.Equalizer(**kwargs["tested"])
+    if "message" in kwargs["test"]:
+        with pytest.raises(ValueError, match=kwargs["test"]["message"]):
+            equalizer.equalizer.Equalizer(**kwargs["tested"])
+    else:
+        check_valid(equalizer.equalizer.Equalizer(**kwargs["tested"]))
 
 
-def test_frequency_response(kwargs_equalizer):
-    kwargs = kwargs_equalizer
+def test_frequency_response(kwargs_equalizer_frequency_response):
+    kwargs = kwargs_equalizer_frequency_response
     tested = equalizer.equalizer.Equalizer(**kwargs["tested"])
 
     response_K = tested.frequency_response()

@@ -42,6 +42,7 @@ module = sys.modules[__name__]
 for fixture in [
     "activator",
     "audio_demo",
-    "offline",
+    "audio_demo_setup_gain",
+    "offline_execute",
 ]:
     parametrize_tests.kwargs.setattr_kwargs(fixture, config_dir, module)

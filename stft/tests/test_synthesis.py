@@ -3,7 +3,7 @@ import numpy as np
 import stft.synthesis
 
 
-def test_synthesis(kwargs_synthesis):
+def test_execute(kwargs_synthesis):
     tested = stft.synthesis.Synthesis(**kwargs_synthesis["tested"])
 
     buffer_size = kwargs_synthesis["tested"]["output_buffer"]["buffer_size"]

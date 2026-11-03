@@ -2,13 +2,9 @@ base:
   test:
   tested:
     dtype: float32
+    channel_shape: [3, 5]
     buffer_size: 100
     step_size: 22
 
 cases:
-  - name: channel_shape
-    tested:
-      sweep:
-        channel_shape:
-          - []
-          - [3, 5]
+  - name: default

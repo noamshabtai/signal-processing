@@ -3,8 +3,8 @@ import numpy as np
 import buffer.buffer
 
 
-def test_init(kwargs_buffer):
-    kwargs = kwargs_buffer
+def test_init(kwargs_buffer_init):
+    kwargs = kwargs_buffer_init
     tested = buffer.buffer.Buffer(**kwargs["tested"])
 
     assert np.shape(tested.buffer) == tuple(tested.channel_shape + [tested.buffer_size])

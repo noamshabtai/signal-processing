@@ -14,14 +14,3 @@ base:
 
 cases:
   - name: bin
-
-  - name: wav
-    tested:
-      input:
-        path: input.wav
-
-  - name: multichannel
-    tested:
-      system:
-        input_buffer:
-          channel_shape: [2, 3]

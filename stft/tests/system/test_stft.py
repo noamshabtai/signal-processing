@@ -13,7 +13,7 @@ def prepare_data(channel_shape, nsamples, step_size, dtype):
     return data.reshape(channel_shape + [-1] + [step_size])
 
 
-def test_stft(kwargs_stft):
+def test_execute(kwargs_stft):
     system = stft.system.stft.System(**kwargs_stft["tested"])
 
     data = prepare_data(

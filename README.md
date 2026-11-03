@@ -105,6 +105,10 @@ uv run pytest equalizer/tests            # one package
 uv run pytest equalizer/tests/test_equalizer.py::test_execute
 ```
 
+Each `test_<function>` takes `kwargs_<module>`, a single case from
+`tests/config/<module>.yaml`, unless its checks depend on a varied setting; then
+it takes `kwargs_<module>_<function>` from `<module>_<function>.yaml`.
+
 ### Code quality
 ```bash
 uv run pre-commit run --all-files
@@ -160,9 +164,9 @@ own stage by registering a module and giving it a `connect()` case.
 Modules validate their configuration in `__init__` and raise rather than
 producing `inf`/`NaN` downstream — the equalizer rejects a gain list that
 disagrees with the band count, a non-positive centre frequency, and centre
-frequencies that are not strictly increasing. Each guard has a case in a
-`*_invalid.yaml` fixture carrying the expected message, so one `test_init_invalid`
-covers them all.
+frequencies that are not strictly increasing. Each guard has a case in
+`equalizer_init.yaml` carrying the expected message, so `test_init` covers the
+valid and invalid configurations alike.
 
 ## Code Style
 

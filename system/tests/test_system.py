@@ -1,8 +1,8 @@
 import numpy as np
 
 
-def test_system(kwargs_system, System):
-    kwargs = kwargs_system
+def test_execute(kwargs_system_execute, System):
+    kwargs = kwargs_system_execute
     tested = System(**kwargs["tested"])
 
     step_shape = tested.input_buffer.step_shape

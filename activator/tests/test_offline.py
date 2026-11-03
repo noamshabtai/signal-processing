@@ -48,8 +48,8 @@ def check_cleanup(mock_input_close, output_fids):
         assert fid.closed
 
 
-def test_offline(kwargs_offline, tmp_path, Activator):
-    kwargs = io_for_tests.io_for_tests.arrange_kwargs(kwargs_offline, tmp_path)
+def test_execute(kwargs_offline_execute, tmp_path, Activator):
+    kwargs = io_for_tests.io_for_tests.arrange_kwargs(kwargs_offline_execute, tmp_path)
 
     with Activator(**kwargs["tested"]) as tested:
         output_fids = {module: cfg["fid"] for module, cfg in tested.output_modules.items()}

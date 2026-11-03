@@ -3,7 +3,7 @@ import numpy as np
 import stft.analysis
 
 
-def test_analysis(kwargs_analysis):
+def test_execute(kwargs_analysis):
     tested = stft.analysis.Analysis(**kwargs_analysis["tested"])
 
     input_shape = kwargs_analysis["tested"]["channel_shape"] + [kwargs_analysis["tested"]["buffer_size"]]
