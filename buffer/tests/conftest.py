@@ -8,7 +8,9 @@ config_dir = tests_dir / "config"
 module = sys.modules[__name__]
 for fixture in [
     "buffer",
+    "buffer_init",
     "input_buffer",
+    "input_buffer_init",
     "output_buffer",
 ]:
     parametrize_tests.kwargs.setattr_kwargs(fixture, config_dir, module)

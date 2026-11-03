@@ -1,9 +1,19 @@
 base:
+  test: {}
   tested:
     nfft: 512
     sampling_frequency: 16000
 
 cases:
+  - name: default_bands
+    tested:
+      gains_db: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+  - name: three_bands
+    tested:
+      center_frequencies_hz: [125.0, 1000.0, 8000.0]
+      gains_db: [6.0, -6.0, 6.0]
+
   - name: gains_disagree
     test:
       message: Gains disagree with bands

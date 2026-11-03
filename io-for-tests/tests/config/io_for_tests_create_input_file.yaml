@@ -1,0 +1,18 @@
+base:
+  test:
+    nsamples: 30
+  tested:
+    input:
+      dtype: int16
+      path: input.bin
+    system:
+      input_buffer:
+        channel_shape: [1]
+
+cases:
+  - name: bin
+
+  - name: wav
+    tested:
+      input:
+        path: input.wav

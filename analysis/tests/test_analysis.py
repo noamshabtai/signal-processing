@@ -36,14 +36,14 @@ def check_log(tested, stdout):
     assert stdout.count("Activation") == len(tested.cases)
 
 
-def test_results_default(monkeypatch):
+def test_get_parser(monkeypatch):
     monkeypatch.setattr(sys, "argv", ["prog"])
     parser = analysis.analysis.get_parser()
     cliargs = analysis.analysis.get_cliargs(parser)
     assert cliargs.results == []
 
 
-def test_cliargs(monkeypatch, project_dir, tmp_path):
+def test_get_cliargs(monkeypatch, project_dir, tmp_path):
     yaml_path = project_dir / "tests/config/activator_config.yaml"
     monkeypatch.setattr(sys, "argv", ["prog", "-y", str(yaml_path), "-o", str(tmp_path), "-i", "0", "1"])
     parser = analysis.analysis.get_parser()
@@ -53,8 +53,8 @@ def test_cliargs(monkeypatch, project_dir, tmp_path):
     assert cliargs.indices == [0, 1]
 
 
-def test_execute(kwargs_analysis, project_dir, tmp_path, Analysis, capsys):
-    kwargs = kwargs_analysis
+def test_execute(kwargs_analysis_execute, project_dir, tmp_path, Analysis, capsys):
+    kwargs = kwargs_analysis_execute
     cliargs = arrange_cliargs(kwargs, project_dir, tmp_path)
     tested = Analysis(cliargs=cliargs)
     original_kwargs_list = copy.deepcopy(tested.activator_kwargs_list)

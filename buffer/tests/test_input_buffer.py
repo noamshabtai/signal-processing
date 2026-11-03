@@ -3,8 +3,8 @@ import numpy as np
 import buffer.input_buffer
 
 
-def test_init(kwargs_input_buffer):
-    kwargs = kwargs_input_buffer
+def test_init(kwargs_input_buffer_init):
+    kwargs = kwargs_input_buffer_init
     tested = buffer.input_buffer.InputBuffer(**kwargs["tested"])
 
     assert not tested.ready

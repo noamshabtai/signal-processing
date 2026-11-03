@@ -9,16 +9,16 @@ def test_arrange_tmp_path_in_kwargs(kwargs_io_for_tests, tmp_path):
     assert kwargs["tested"]["output"]["dir"].parent == tmp_path
 
 
-def test_create_input_file(kwargs_io_for_tests, tmp_path):
-    kwargs = kwargs_io_for_tests
+def test_create_input_file(kwargs_io_for_tests_create_input_file, tmp_path):
+    kwargs = kwargs_io_for_tests_create_input_file
     io_for_tests.io_for_tests.arrange_tmp_path_in_kwargs(kwargs, tmp_path)
     io_for_tests.io_for_tests.create_input_file(kwargs)
 
     assert kwargs["tested"]["input"]["path"].exists()
 
 
-def test_read_input_chunks(kwargs_io_for_tests, tmp_path):
-    kwargs = kwargs_io_for_tests
+def test_read_input_chunks(kwargs_io_for_tests_read_input_chunks, tmp_path):
+    kwargs = kwargs_io_for_tests_read_input_chunks
     io_for_tests.io_for_tests.arrange_tmp_path_in_kwargs(kwargs, tmp_path)
     io_for_tests.io_for_tests.create_input_file(kwargs)
 

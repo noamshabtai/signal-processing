@@ -40,7 +40,7 @@ package-name/
 **`tests/`** - Each directory level (root, subdirectories) has:
 - `conftest.py` - pytest configuration
 - `test_*.py` files - test modules
-- `config/` directory - YAML fixture definitions named after modules
+- `config/` directory - one YAML per fixture: `<module>.yaml` (single case) and `<module>_<function>.yaml` for functions whose checks depend on a varied setting
 
 **Multiple conftest.py files** - One at each directory level that has tests.
 
