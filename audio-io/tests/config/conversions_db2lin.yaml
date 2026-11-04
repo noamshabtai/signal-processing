@@ -1,0 +1,12 @@
+cases:
+  - name: unity
+    test:
+      lin: 1
+    tested:
+      db: 0
+
+  - name: ten
+    test:
+      lin: 10
+    tested:
+      db: 20

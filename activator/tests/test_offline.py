@@ -1,4 +1,5 @@
 import pathlib
+import re
 import sys
 import unittest.mock
 
@@ -48,7 +49,13 @@ def check_cleanup(mock_input_close, output_fids):
         assert fid.closed
 
 
-def test_execute(kwargs_offline_execute, tmp_path, Activator):
+def check_log(tested, stdout):
+    steps = range(1, tested.system.execute.call_count + 1)
+    expected = [step for step in steps if tested.log_rate and not step % tested.log_rate]
+    assert [int(step) for step in re.findall(r"Step (\d+)/", stdout)] == expected
+
+
+def test_execute(kwargs_offline_execute, tmp_path, Activator, capsys):
     kwargs = io_for_tests.io_for_tests.arrange_kwargs(kwargs_offline_execute, tmp_path)
 
     with Activator(**kwargs["tested"]) as tested:
@@ -59,3 +66,4 @@ def test_execute(kwargs_offline_execute, tmp_path, Activator):
     check_outputs(tested, kwargs)
     check_execute(tested, kwargs)
     check_cleanup(mock_input_close, output_fids)
+    check_log(tested, capsys.readouterr().out)

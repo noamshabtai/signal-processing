@@ -1,6 +1,6 @@
 base:
   test:
-    nsamples: 256
+    nsamples: 2048
   tested:
     input_buffer:
       channel_shape: [1]

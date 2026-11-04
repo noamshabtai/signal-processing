@@ -17,5 +17,9 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
+    "parametrize-tests",
     "pytest>=9.0.1",
 ]
+
+[tool.uv.sources]
+parametrize-tests = { path = "../parametrize-tests", editable = true }

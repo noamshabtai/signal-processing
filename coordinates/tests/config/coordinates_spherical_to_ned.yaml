@@ -1,0 +1,49 @@
+base:
+  tested:
+    r: 1.0
+    az_deg: 0.0
+    el_deg: 0.0
+
+cases:
+  - name: north
+    test:
+      expected: [1.0, 0.0, 0.0]
+
+  - name: east
+    test:
+      expected: [0.0, 1.0, 0.0]
+    tested:
+      az_deg: 90.0
+
+  - name: down
+    test:
+      expected: [0.0, 0.0, 1.0]
+    tested:
+      el_deg: -90.0
+
+  - name: south
+    test:
+      expected: [-1.0, 0.0, 0.0]
+    tested:
+      az_deg: 180.0
+
+  - name: up
+    test:
+      expected: [0.0, 0.0, -1.0]
+    tested:
+      el_deg: 90.0
+
+  - name: east_up
+    test:
+      expected: [0.0, 0.0, -1.0]
+    tested:
+      az_deg: 90.0
+      el_deg: 90.0
+
+  - name: oblique
+    test:
+      expected: [1.299038105676658, 0.75, -2.598076211353316]
+    tested:
+      r: 3.0
+      az_deg: 30.0
+      el_deg: 60.0

@@ -1,0 +1,14 @@
+import pathlib
+import sys
+
+import parametrize_tests.kwargs
+
+config_dir = pathlib.Path(__file__).parent / "config"
+module = sys.modules[__name__]
+for fixture in [
+    "conversions",
+    "conversions_np_dtype_to_pa_format",
+    "conversions_lin2db",
+    "conversions_db2lin",
+]:
+    parametrize_tests.kwargs.setattr_kwargs(fixture, config_dir, module)
