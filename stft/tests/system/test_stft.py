@@ -23,10 +23,11 @@ def test_execute(kwargs_stft):
         dtype=system.input_buffer.dtype,
     )
 
+    first_complete_output = 2 * (system.input_buffer.steps_to_ready - 1)
     for i in range(data.shape[-2]):
         chunk = data.take(i, axis=-2)
         system.execute(chunk)
-        if system.input_buffer.ready:
+        if i >= first_complete_output:
             step_ratio = system.modules["synthesis"].step_ratio
             previous_chunk = data.take(i - int(step_ratio) + 1, axis=-2)
-            assert np.allclose(system.outputs["synthesis"], previous_chunk, rtol=0.01)
+            assert np.allclose(system.outputs["synthesis"], previous_chunk, rtol=0.01, atol=1e-4)

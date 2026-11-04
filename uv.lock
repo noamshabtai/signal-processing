@@ -155,7 +155,10 @@ dependencies = [
 requires-dist = [{ name = "numpy", specifier = ">=2.3.5" }]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=9.0.1" }]
+dev = [
+    { name = "parametrize-tests", editable = "parametrize-tests" },
+    { name = "pytest", specifier = ">=9.0.1" },
+]
 
 [[package]]
 name = "cycler"

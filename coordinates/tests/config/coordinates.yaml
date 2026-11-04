@@ -1,0 +1,12 @@
+base:
+  test:
+    distance: [5, 10]
+  tested:
+    r: 0.1
+    az: 0.2
+    el: 0.3
+    inc: 0.3
+    v: [[3, 4, 0], [6, 8, 0]]
+
+cases:
+  - name: default

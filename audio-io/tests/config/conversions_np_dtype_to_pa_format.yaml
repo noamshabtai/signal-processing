@@ -1,0 +1,39 @@
+base:
+  test: {}
+
+cases:
+  - name: int16
+    test:
+      format: paInt16
+    tested:
+      dtype: int16
+
+  - name: int32
+    test:
+      format: paInt32
+    tested:
+      dtype: int32
+
+  - name: float32
+    test:
+      format: paFloat32
+    tested:
+      dtype: float32
+
+  - name: uint8
+    test:
+      format: paUInt8
+    tested:
+      dtype: uint8
+
+  - name: int8
+    test:
+      format: paInt8
+    tested:
+      dtype: int8
+
+  - name: unsupported
+    test:
+      message: "Unsupported dtype: .*"
+    tested:
+      dtype: float64
