@@ -1,0 +1,17 @@
+base:
+  test:
+  tested:
+    input_buffer:
+      channel_shape: [2]
+      step_size: 256
+      buffer_size: 1024
+      dtype: float32
+    analysis: {}
+    equalizer:
+      sampling_frequency: 16000
+    synthesis:
+      output_buffer:
+        dtype: float32
+
+cases:
+  - name: equalizer system

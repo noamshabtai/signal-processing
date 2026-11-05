@@ -1,0 +1,34 @@
+base:
+  test:
+  tested:
+    output_buffer:
+      step_size: 256
+      buffer_size: 1024
+      dtype: float32
+
+cases:
+  - name: no_channel_axis
+    tested:
+      output_buffer:
+        channel_shape: []
+
+  - name: mono
+    tested:
+      output_buffer:
+        channel_shape: [1]
+
+  - name: stereo
+    tested:
+      output_buffer:
+        channel_shape: [2]
+
+  - name: two_channel_axes
+    tested:
+      output_buffer:
+        channel_shape: [2, 3]
+
+  - name: ratio_2
+    tested:
+      output_buffer:
+        step_size: 512
+        channel_shape: [1]

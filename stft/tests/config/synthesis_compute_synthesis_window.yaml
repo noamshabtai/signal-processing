@@ -1,0 +1,23 @@
+base:
+  test:
+  tested:
+    output_buffer:
+      channel_shape: [1]
+      buffer_size: 1024
+      dtype: float32
+
+cases:
+  - name: ratio_2
+    tested:
+      output_buffer:
+        step_size: 512
+
+  - name: ratio_4
+    tested:
+      output_buffer:
+        step_size: 256
+
+  - name: ratio_8
+    tested:
+      output_buffer:
+        step_size: 128
