@@ -15,9 +15,7 @@ class Synthesis:
 
     def _compute_synthesis_window(self):
         analysis_window = np.hamming(self.output_buffer.buffer_size).astype(self.float_dtype)
-        if self.step_ratio == 2:
-            return np.ones(self.output_buffer.buffer_size).astype(self.float_dtype)
-        elif self.step_ratio == 4:
+        if self.step_ratio == 4:
             ALPHA = 0.54
             BETA = 0.46
             RESTORING_FACTOR = 1 / self.step_ratio / (ALPHA**2 + BETA**2 / 2)
@@ -33,7 +31,7 @@ class Synthesis:
 
     def execute(self, processed_frame_fft):
         mirrored_processed_frame = np.concatenate(
-            (processed_frame_fft, np.fliplr(processed_frame_fft[..., 1:-1]).conj()), axis=-1
+            (processed_frame_fft, np.flip(processed_frame_fft[..., 1:-1], axis=-1).conj()), axis=-1
         )
         y = (self.synthesis_window * np.fft.ifft(mirrored_processed_frame, axis=-1)).real.astype(self.float_dtype)
         self.output_buffer.buffer += y

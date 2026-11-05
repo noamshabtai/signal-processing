@@ -61,7 +61,8 @@ stft/
 │   ├── test_synthesis.py
 │   ├── config/
 │   │   ├── analysis.yaml
-│   │   └── synthesis.yaml
+│   │   ├── synthesis_compute_synthesis_window.yaml
+│   │   └── synthesis_execute.yaml
 │   └── system/
 │       ├── conftest.py
 │       ├── test_stft.py
