@@ -56,7 +56,8 @@ class Activator(activator.Activator):
         self.fs = self.input_fid.getframerate()
         self._input_chunk_nbytes = self.step_size * self.channel_count * self.input_dtype.itemsize
         all_data = np.frombuffer(self.input_fid.readframes(self.input_fid.getnframes()), dtype=self.input_dtype)
-        self.input_peak_normalized = np.max(np.abs(all_data)) / np.iinfo(self.input_dtype).max
+        limits = np.iinfo(self.input_dtype)
+        self.input_peak_normalized = max(np.max(all_data) / limits.max, np.min(all_data) / limits.min)
         self.input_fid.rewind()
 
     def _setup_output(self, kwargs):

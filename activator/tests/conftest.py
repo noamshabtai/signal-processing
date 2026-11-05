@@ -43,6 +43,7 @@ for fixture in [
     "activator",
     "audio_demo",
     "audio_demo_setup_gain",
+    "audio_demo_setup_input",
     "offline_execute",
 ]:
     parametrize_tests.kwargs.setattr_kwargs(fixture, config_dir, module)
