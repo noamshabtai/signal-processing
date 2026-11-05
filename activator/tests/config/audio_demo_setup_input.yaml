@@ -1,0 +1,37 @@
+base:
+  test:
+    sampling_rate: 16000
+  tested:
+    input:
+      path: input.wav
+      dtype: int16
+    output:
+      dtype: int16
+      channel_shape: [1]
+    system:
+      input_buffer:
+        step_size: 256
+        buffer_size: 1024
+        dtype: int16
+        channel_shape: [1]
+
+cases:
+  - name: negative_full_scale_with_quiet_rest
+    test:
+      samples: [-32768, 5]
+      peak: 1.0
+
+  - name: negative_full_scale_with_loud_rest
+    test:
+      samples: [-32768, 30000]
+      peak: 1.0
+
+  - name: positive_full_scale
+    test:
+      samples: [32767, 5]
+      peak: 1.0
+
+  - name: negative_half_scale
+    test:
+      samples: [-16384, 5]
+      peak: 0.5

@@ -80,16 +80,23 @@ def test_unmute_all_channels(kwargs_audio_demo, tmp_path, Activator):
         assert np.allclose(tested.channel_gain, original_gains)
 
 
-def test_setup_input(kwargs_audio_demo, tmp_path, Activator):
-    kwargs = io_for_tests.io_for_tests.arrange_kwargs(kwargs_audio_demo, tmp_path)
+def write_samples(kwargs):
     dtype = np.dtype(kwargs["tested"]["input"]["dtype"])
+    with wave.open(str(kwargs["tested"]["input"]["path"]), "wb") as fid:
+        fid.setnchannels(int(np.prod(kwargs["tested"]["system"]["input_buffer"]["channel_shape"])))
+        fid.setsampwidth(dtype.itemsize)
+        fid.setframerate(kwargs["test"]["sampling_rate"])
+        fid.writeframes(np.array(kwargs["test"]["samples"], dtype=dtype).tobytes())
+
+
+def test_setup_input(kwargs_audio_demo_setup_input, tmp_path, Activator):
+    kwargs = kwargs_audio_demo_setup_input
+    io_for_tests.io_for_tests.arrange_tmp_path_in_kwargs(kwargs, tmp_path)
+    write_samples(kwargs)
     path = kwargs["tested"]["input"]["path"]
-    with wave.open(str(path), "rb") as fid:
-        all_data = np.frombuffer(fid.readframes(fid.getnframes()), dtype=dtype)
-    expected = np.max(np.abs(all_data)) / np.iinfo(dtype).max
 
     with Activator(**kwargs["tested"]) as tested:
-        assert tested.input_peak_normalized == expected
+        assert np.isclose(tested.input_peak_normalized, kwargs["test"]["peak"], atol=1e-3)
         assert tested.fs == kwargs["test"]["sampling_rate"]
         assert tested.input_path == path
 
