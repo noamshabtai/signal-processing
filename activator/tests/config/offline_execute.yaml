@@ -45,6 +45,21 @@ cases:
       input:
         path: input.wav
 
+  - name: h5
+    tested:
+      input:
+        path: input.h5
+        dataset: data
+
+  - name: h5_multichannel
+    tested:
+      input:
+        path: input.h5
+        dataset: data
+      system:
+        input_buffer:
+          channel_shape: [2, 3]
+
   - name: plot_save
     tested:
       plot:

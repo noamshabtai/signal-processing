@@ -1,6 +1,7 @@
 import pathlib
 import wave
 
+import h5py
 import numpy as np
 
 
@@ -25,6 +26,9 @@ def create_input_file(kwargs):
             fid.setsampwidth(dtype.itemsize)
             fid.setframerate(fs)
             fid.writeframes(data.ravel(order="F").tobytes())
+    elif path.suffix.lower() == ".h5":
+        with h5py.File(path, "w") as fid:
+            fid.create_dataset(kwargs["tested"]["input"]["dataset"], data=data.T)
     else:
         with path.open("wb") as fid:
             fid.write(data.ravel(order="F").tobytes())
@@ -41,6 +45,11 @@ def read_input_chunks(kwargs):
             read_nbytes = int(np.prod(step_shape)) * dtype.itemsize
             while len(chunk := fid.readframes(step_size)) == read_nbytes:
                 yield np.frombuffer(chunk, dtype=dtype).reshape(step_shape, order="F")
+    elif path.suffix.lower() == ".h5":
+        with h5py.File(path, "r") as fid:
+            dataset = fid[kwargs["tested"]["input"]["dataset"]]
+            for start in range(0, dataset.shape[0] - step_size + 1, step_size):
+                yield dataset[start : start + step_size].T
     else:
         dtype = np.dtype(kwargs["tested"]["input"]["dtype"])
         read_nbytes = int(np.prod(step_shape)) * dtype.itemsize
