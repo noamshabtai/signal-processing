@@ -16,3 +16,9 @@ cases:
     tested:
       input:
         path: input.wav
+
+  - name: h5
+    tested:
+      input:
+        path: input.h5
+        dataset: data

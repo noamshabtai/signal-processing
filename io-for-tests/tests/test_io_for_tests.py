@@ -1,3 +1,4 @@
+import h5py
 import io_for_tests.io_for_tests
 
 
@@ -14,7 +15,9 @@ def test_create_input_file(kwargs_io_for_tests_create_input_file, tmp_path):
     io_for_tests.io_for_tests.arrange_tmp_path_in_kwargs(kwargs, tmp_path)
     io_for_tests.io_for_tests.create_input_file(kwargs)
 
-    assert kwargs["tested"]["input"]["path"].exists()
+    path = kwargs["tested"]["input"]["path"]
+    assert path.exists()
+    assert h5py.is_hdf5(path) == (path.suffix == ".h5")
 
 
 def test_read_input_chunks(kwargs_io_for_tests_read_input_chunks, tmp_path):

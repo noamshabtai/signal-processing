@@ -2,6 +2,7 @@ import itertools
 import pathlib
 import time
 
+import h5py
 import numpy as np
 
 from . import activator
@@ -35,9 +36,20 @@ class Activator(activator.Activator):
     def _read_bin_input_chunk(self):
         return self.input_fid.read(self._input_chunk_nbytes)
 
+    def _read_h5_input_chunk(self):
+        start = self._step * self.step_size
+        return self._input_dataset[start : start + self.step_size].tobytes()
+
     def _setup_input(self, kwargs):
         self.input_path = pathlib.Path(kwargs["input"]["path"]).expanduser()
-        self._input_is_wav = self.input_path.suffix.lower() == ".wav"
+        suffix = self.input_path.suffix.lower()
+        self._input_is_wav = suffix == ".wav"
+        if suffix == ".h5":
+            self.input_fid = h5py.File(self.input_path, "r")
+            self._input_dataset = self.input_fid[kwargs["input"]["dataset"]]
+            self._input_total_nbytes = self._input_dataset.size * self._input_dataset.dtype.itemsize
+            self._read_input_chunk = self._read_h5_input_chunk
+            return
         if self._input_is_wav:
             import wave
 
